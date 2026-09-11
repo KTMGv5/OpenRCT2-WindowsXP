@@ -1,5 +1,6 @@
 0.5.6 (in development)
 ------------------------------------------------------------------------
+<<<<<<< HEAD
 - Feature: [#16014] Land surfaces and edges can now be recoloured.
 - Feature: [#26894] Added 18 additional colours, including 5 from the base version of RCT1 (which were removed in later versions).
 - Feature: [#27153] [Plugin] Add `guestsEntertained` to `Entertainer` interface.
@@ -13,6 +14,7 @@
 - Change: [#27071] The gamepad deadzone has been raised from 11% to 25% by default to compensate for stick drift.
 - Change: [#27100] Negative G-forces no longer turn red in the stats window and graph when below -2.50.
 - Fix: [#1514] Wrong capitalisation for strings in the Guest List window.
+- Fix: [#11659] Right-click dragging the viewport does not keep the cursor locked to the same world position when UI scale is not 1.
 - Fix: [#12516] Sprites past 65,536 pixels are drawn in the wrong place by the software renderer, most visibly in long scenario lists.
 - Fix: [#15423] Crash when a guest or handyman uses a bin whose path addition object is not loaded.
 - Fix: [#17409] When reading system settings, non-US dollar currencies are not recognised correctly. 
