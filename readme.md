@@ -21,9 +21,9 @@
 ---
 
 ### Download
-| Latest release                                                                                                       | Latest development build |
-|----------------------------------------------------------------------------------------------------------------------|--------------------------|
-| [![OpenRCT2.io](https://img.shields.io/github/v/release/OpenRCT2/OpenRCT2.svg?color=green)](https://openrct2.io/download/release/latest) | [![OpenRCT2.io](https://img.shields.io/github/last-commit/OpenRCT2/OpenRCT2/develop?color=green)](https://openrct2.io/download/develop/latest) |
+| Windows XP Native Releases | Source Repository |
+|----------------------------|-------------------|
+| [![GitHub Release](https://img.shields.io/github/v/release/KTMGv5/OpenRCT2-WindowsXP?color=green&label=Release)](https://github.com/KTMGv5/OpenRCT2-WindowsXP/releases) | [![GitHub Branch](https://img.shields.io/badge/branch-winxp-blue)](https://github.com/KTMGv5/OpenRCT2-WindowsXP/tree/winxp) |
 
 ---
 
