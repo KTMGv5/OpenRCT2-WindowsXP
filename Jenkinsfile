@@ -103,7 +103,6 @@ pipeline {
                     if [ "${BUILD_TYPE}" != "Debug" ]; then
                         strip openrct2.exe openrct2-cli.exe
                     fi
-                    cp openrct2.exe openrct2.com && printf ' ' | dd conv=notrunc of=openrct2.com bs=1 seek=220
                 '''
             }
         }
@@ -125,14 +124,13 @@ pipeline {
             steps {
                 echo "Packaging portable Windows XP release zip..."
                 sh '''
-                    PACKAGE_DIR="OpenRCT2-WindowsXP"
-                    PACKAGE_NAME="OpenRCT2-WindowsXP-v${BUILD_DATE}-${SHORT_SHA}.zip"
+                    PACKAGE_DIR="OpenRCT2-portable"
+                    PACKAGE_NAME="OpenRCT2-develop-${SHORT_SHA}-windows-portable-win32.zip"
                     rm -rf "${PACKAGE_DIR}" "${PACKAGE_NAME}"
                     mkdir -p "${PACKAGE_DIR}"
 
                     cp _build/openrct2.exe "${PACKAGE_DIR}/"
                     cp _build/openrct2-cli.exe "${PACKAGE_DIR}/"
-                    [ -f _build/openrct2.com ] && cp _build/openrct2.com "${PACKAGE_DIR}/" || true
                     for dll in build/bin/*.dll; do
                         [ -f "$dll" ] && cp "$dll" "${PACKAGE_DIR}/"
                     done
@@ -152,7 +150,7 @@ pipeline {
                         exit 1
                     fi
 
-                    zip -r "${PACKAGE_NAME}" "${PACKAGE_DIR}"
+                    cd "${PACKAGE_DIR}" && rm -f "../${PACKAGE_NAME}" && zip -r "../${PACKAGE_NAME}" . && cd ..
                     echo "Packaged release: ${PACKAGE_NAME}"
                 '''
             }
@@ -168,9 +166,9 @@ pipeline {
                     try {
                         withCredentials([string(credentialsId: 'github-token', variable: 'GH_TOKEN')]) {
                             sh '''
-                                TAG="v${BUILD_DATE}-${SHORT_SHA}"
-                                RELEASE_TITLE="OpenRCT2 - Windows XP Edition (${TAG})"
-                                ZIP_FILE=$(ls OpenRCT2-WindowsXP*.zip 2>/dev/null | head -n 1)
+                                TAG="develop"
+                                RELEASE_TITLE="OpenRCT2 develop (${SHORT_SHA}) - Windows XP Edition"
+                                ZIP_FILE=$(ls OpenRCT2-*-windows-portable-win32.zip 2>/dev/null | head -n 1)
 
                                 if [ -z "${ZIP_FILE}" ]; then
                                     echo "Error: No release zip found." >&2
@@ -178,16 +176,12 @@ pipeline {
                                 fi
 
                                 echo "Publishing artifact: ${ZIP_FILE} to ${GITHUB_REPO} (${TAG})"
-                                if gh release view "${TAG}" --repo "${GITHUB_REPO}" >/dev/null 2>&1; then
-                                    echo "Updating existing release ${TAG}..."
-                                    gh release upload "${TAG}" "${ZIP_FILE}" _build/openrct2.exe _build/openrct2-cli.exe --repo "${GITHUB_REPO}" --clobber
-                                else
-                                    echo "Creating new GitHub release for ${TAG}..."
-                                    gh release create "${TAG}" "${ZIP_FILE}" _build/openrct2.exe _build/openrct2-cli.exe \
-                                        --repo "${GITHUB_REPO}" \
-                                        --title "${RELEASE_TITLE}" \
-                                        --notes "Native build of OpenRCT2 Windows XP Edition from commit ${SHORT_SHA}. Built natively for Windows XP (NT 5.1) without binary patching. Includes modern TLS 1.2/1.3 multiplayer networking, root CA certificate store (cacert.pem), and legacy graphics driver fallbacks."
-                                fi
+                                gh release delete "${TAG}" -y --cleanup-tag --repo "${GITHUB_REPO}" 2>/dev/null || true
+                                gh release create "${TAG}" "${ZIP_FILE}" _build/openrct2.exe _build/openrct2-cli.exe \
+                                    --repo "${GITHUB_REPO}" \
+                                    --title "${RELEASE_TITLE}" \
+                                    --notes "Native development build of OpenRCT2 Windows XP Edition from commit ${SHORT_SHA}. Built natively for Windows XP (NT 5.1) without binary patching. Includes modern TLS 1.2/1.3 multiplayer networking, root CA certificate store (cacert.pem), and legacy graphics driver fallbacks." \
+                                    --prerelease
 
                                 echo "Release published successfully to https://github.com/${GITHUB_REPO}/releases !"
                             '''
@@ -204,7 +198,7 @@ pipeline {
     post {
         success {
             echo "Windows XP build passed all verifications!"
-            archiveArtifacts artifacts: 'OpenRCT2-WindowsXP*.zip, _build/openrct2.exe, _build/openrct2-cli.exe, _build/openrct2.com', fingerprint: true, allowEmptyArchive: true
+            archiveArtifacts artifacts: 'OpenRCT2-*-windows-portable-win32.zip, _build/openrct2.exe, _build/openrct2-cli.exe', fingerprint: true, allowEmptyArchive: true
         }
         failure {
             echo "Build failed. Check console logs."
