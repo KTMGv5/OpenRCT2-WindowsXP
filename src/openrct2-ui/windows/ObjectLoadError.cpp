@@ -232,19 +232,28 @@ namespace OpenRCT2::Ui::Windows
                 _pendingRequests.push_back(Http::DoAsync(req, [this, entry, name](Http::Response response) {
                     if (response.status == Http::Status::ok)
                     {
-                        auto jresponse = Json::FromString(response.body);
-                        if (jresponse.is_object())
+                        try
                         {
-                            auto objName = Json::GetString(jresponse["name"]);
-                            auto source = Json::GetString(jresponse["source"]);
-                            auto downloadLink = Json::GetString(jresponse["download"]);
-                            if (!downloadLink.empty())
+                            auto jresponse = Json::FromString(response.body);
+                            if (jresponse.is_object())
                             {
-                                _lastDownloadSource = source;
-                                UpdateProgress({ name, source, _currentDownloadIndex, _entries.size() });
-                                DownloadObject(entry, objName, downloadLink);
+                                auto objName = Json::GetString(jresponse["name"]);
+                                auto source = Json::GetString(jresponse["source"]);
+                                auto downloadLink = Json::GetString(jresponse["download"]);
+                                if (!downloadLink.empty())
+                                {
+                                    _lastDownloadSource = source;
+                                    UpdateProgress({ name, source, _currentDownloadIndex, _entries.size() });
+                                    DownloadObject(entry, objName, downloadLink);
+                                    return;
+                                }
                             }
                         }
+                        catch (const std::exception&)
+                        {
+                            Console::Error::WriteLine("  Failed to parse response for %s", name.c_str());
+                        }
+                        QueueNextDownload();
                     }
                     else if (response.status == Http::Status::notFound)
                     {
@@ -262,6 +271,7 @@ namespace OpenRCT2::Ui::Windows
             catch (const std::exception&)
             {
                 Console::Error::WriteLine("  Failed to query %s", name.c_str());
+                QueueNextDownload();
             }
         }
     };

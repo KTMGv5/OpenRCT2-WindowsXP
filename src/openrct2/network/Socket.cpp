@@ -652,16 +652,34 @@ namespace OpenRCT2::Network
             std::string result;
             if (addr->sin_family == AF_INET)
             {
+#ifdef _WIN32
+                char* str = inet_ntoa(addr->sin_addr);
+                if (str != nullptr)
+                {
+                    result = str;
+                }
+#else
                 char str[INET_ADDRSTRLEN]{};
                 inet_ntop(AF_INET, &addr->sin_addr, str, sizeof(str));
                 result = str;
+#endif
             }
             else if (addr->sin_family == AF_INET6)
             {
                 auto addrv6 = reinterpret_cast<const sockaddr_in6*>(addr);
+#ifdef _WIN32
+                char str[INET6_ADDRSTRLEN]{};
+                DWORD strLen = sizeof(str);
+                sockaddr_in6 saCopy = *addrv6;
+                if (WSAAddressToStringA(reinterpret_cast<LPSOCKADDR>(&saCopy), sizeof(saCopy), nullptr, str, &strLen) == 0)
+                {
+                    result = str;
+                }
+#else
                 char str[INET6_ADDRSTRLEN]{};
                 inet_ntop(AF_INET6, &addrv6->sin6_addr, str, sizeof(str));
                 result = str;
+#endif
             }
             return result;
         }

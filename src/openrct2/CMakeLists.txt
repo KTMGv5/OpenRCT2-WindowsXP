@@ -45,7 +45,7 @@ set_target_properties(libopenrct2 PROPERTIES PREFIX "")
 SET_CHECK_CXX_FLAGS(libopenrct2)
 
 if (NOT DISABLE_NETWORK OR NOT DISABLE_HTTP)
-    if (WIN32)
+    if (WIN32 AND MSVC)
         target_link_libraries(libopenrct2 bcrypt)
     else ()
         if (APPLE AND NOT MACOS_USE_DEPENDENCIES)
@@ -70,8 +70,12 @@ if (NOT DISABLE_NETWORK AND WIN32)
     target_link_libraries(libopenrct2 ws2_32 crypt32 wldap32 version winmm imm32 advapi32 shell32 ole32)
 endif ()
 
+if (WIN32)
+    target_link_libraries(libopenrct2 shlwapi)
+endif ()
+
 if (NOT DISABLE_HTTP)
-    if (WIN32)
+    if (WIN32 AND MSVC)
         target_link_libraries(libopenrct2 winhttp)
     else ()
         PKG_CHECK_MODULES(LIBCURL REQUIRED libcurl)
@@ -174,7 +178,7 @@ endif ()
 
 if (MINGW)
     # Hardcode libraries used on mingw
-    target_link_libraries(libopenrct2 crypto ws2_32 tasn1 unistring iconv p11-kit hogweed gmp nettle)
+    target_link_libraries(libopenrct2 crypto ws2_32 iconv)
     # Link in libssp
     target_link_libraries(libopenrct2 -fstack-protector-strong)
 endif()

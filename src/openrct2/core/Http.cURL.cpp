@@ -7,12 +7,13 @@
  * OpenRCT2 is licensed under the GNU General Public License version 3.
  *****************************************************************************/
 
-#if !defined(DISABLE_HTTP) && !defined(_WIN32) && !defined(__ANDROID__)
+#if !defined(DISABLE_HTTP) && (!defined(_WIN32) || (_WIN32_WINNT < 0x0600)) && !defined(__ANDROID__)
 
     #include "Http.h"
 
     #include "../Version.h"
 
+    #include <cstdio>
     #include <cstring>
     #include <memory>
     #include <stdexcept>
@@ -112,14 +113,32 @@ namespace OpenRCT2::Http
             if (req.method == Method::put)
                 curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 
+            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+            curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+#if defined(_WIN32)
+            FILE* f = fopen("./cacert.pem", "rb");
+            if (f != nullptr)
+            {
+                fclose(f);
+                curl_easy_setopt(curl, CURLOPT_CAINFO, "./cacert.pem");
+                curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+            }
+            else
+            {
+                curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+                curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+            }
+#else
+            curl_easy_setopt(curl, CURLOPT_CAINFO, "./cacert.pem");
+            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
+#endif
             curl_easy_setopt(curl, CURLOPT_URL, req.url.c_str());
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteData);
             curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(&res));
             curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback);
             curl_easy_setopt(curl, CURLOPT_HEADERDATA, static_cast<void*>(&res));
-            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, true);
-            curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, true);
             curl_easy_setopt(curl, CURLOPT_USERAGENT, kOpenRCT2UserAgent);
 
             curl_slist* chunk = nullptr;

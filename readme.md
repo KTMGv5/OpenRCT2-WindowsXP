@@ -6,9 +6,12 @@
   </a>
 </p>
 
-<h1 align="center">OpenRCT2</h1>
+<h1 align="center">OpenRCT2 - Windows XP Edition</h1>
 
-<h3 align="center">An open-source re-implementation of RollerCoaster Tycoon 2, a construction and management simulation video game that simulates amusement park management.</h3>
+<h3 align="center">An open-source re-implementation of RollerCoaster Tycoon 2 engineered to run natively on <b>Windows XP (NT 5.1)</b> out of the box with zero binary patching.</h3>
+
+> [!NOTE]
+> This fork adapts modern OpenRCT2 source code to run seamlessly on Windows XP. All Vista+ APIs have been rewritten in C++ with native Win32 equivalents, modern TLS 1.2/1.3 networking is provided via `libcurl`, and renderer fallbacks ensure compatibility with vintage GPUs and virtual machines.
 
 ---
 

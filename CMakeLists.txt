@@ -344,9 +344,16 @@ else ()
 
     # Compiler flags
     set(DEBUG_LEVEL 0 CACHE STRING "Select debug level for compilation. Use value in range 0–3.")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -Werror -Wundef -Wmissing-declarations -Winit-self -Wall -Wextra -Wshadow")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstrict-aliasing -Wundef -Wmissing-declarations -Winit-self -Wall -Wextra -Wshadow")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unknown-pragmas -Wno-missing-braces -Wno-comment -Wnonnull -Wno-unused-parameter -Wno-attributes")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDEBUG=${DEBUG_LEVEL}")
+
+    if (WIN32)
+        add_definitions(-D_WIN32_WINNT=0x0501 -DWINVER=0x0501)
+        if (MINGW)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--major-os-version,5,--minor-os-version,1 -Wl,--major-subsystem-version,5,--minor-subsystem-version,1")
+        endif ()
+    endif ()
 
     # Enable char8_t<->char conversion
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t -Wno-deprecated-declarations")

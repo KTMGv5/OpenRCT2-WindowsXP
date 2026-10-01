@@ -7,7 +7,7 @@
  * OpenRCT2 is licensed under the GNU General Public License version 3.
  *****************************************************************************/
 
-#if !defined(DISABLE_NETWORK) && !defined(_WIN32)
+#if !defined(DISABLE_NETWORK) && (!defined(_WIN32) || (_WIN32_WINNT < 0x0600))
 
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wdeprecated-declarations"

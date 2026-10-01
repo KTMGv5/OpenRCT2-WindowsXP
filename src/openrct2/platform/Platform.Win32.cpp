@@ -19,6 +19,7 @@
     #include <lmcons.h>
     #include <memory>
     #include <shlobj.h>
+    #include <shlwapi.h>
     // clang-format on
     #undef GetEnvironmentVariable
     #undef small
@@ -185,8 +186,8 @@ namespace OpenRCT2::Platform
         std::string result;
 
         wchar_t date[20];
-        ptrdiff_t charsWritten = GetDateFormatEx(
-            LOCALE_NAME_USER_DEFAULT, DATE_SHORTDATE, &st, nullptr, date, static_cast<int>(std::size(date)), nullptr);
+        ptrdiff_t charsWritten = GetDateFormatW(
+            LOCALE_USER_DEFAULT, DATE_SHORTDATE, &st, nullptr, date, static_cast<int>(std::size(date)));
         if (charsWritten != 0)
         {
             result = String::toUtf8(std::wstring_view(date, charsWritten - 1));
@@ -200,8 +201,8 @@ namespace OpenRCT2::Platform
         std::string result;
 
         wchar_t time[20];
-        ptrdiff_t charsWritten = GetTimeFormatEx(
-            LOCALE_NAME_USER_DEFAULT, 0, &st, nullptr, time, static_cast<int>(std::size(time)));
+        ptrdiff_t charsWritten = GetTimeFormatW(
+            LOCALE_USER_DEFAULT, 0, &st, nullptr, time, static_cast<int>(std::size(time)));
         if (charsWritten != 0)
         {
             result = String::toUtf8(std::wstring_view(time, charsWritten - 1));
@@ -299,14 +300,33 @@ namespace OpenRCT2::Platform
 
     static std::string WIN32_GetKnownFolderPath(REFKNOWNFOLDERID rfid)
     {
-        std::string path;
-        wchar_t* wpath = nullptr;
-        if (SUCCEEDED(SHGetKnownFolderPath(rfid, KF_FLAG_CREATE, nullptr, &wpath)))
+        int csidl = -1;
+        if (rfid == FOLDERID_Documents)
         {
-            path = String::toUtf8(wpath);
+            csidl = CSIDL_MYDOCUMENTS;
         }
-        CoTaskMemFree(wpath);
-        return path;
+        else if (rfid == FOLDERID_Fonts)
+        {
+            csidl = CSIDL_FONTS;
+        }
+        else if (rfid == FOLDERID_LocalAppData)
+        {
+            csidl = CSIDL_LOCAL_APPDATA;
+        }
+        else if (rfid == FOLDERID_Profile)
+        {
+            csidl = CSIDL_PROFILE;
+        }
+
+        if (csidl != -1)
+        {
+            wchar_t path[MAX_PATH];
+            if (SUCCEEDED(SHGetFolderPathW(nullptr, csidl | CSIDL_FLAG_CREATE, nullptr, SHGFP_TYPE_CURRENT, path)))
+            {
+                return String::toUtf8(path);
+            }
+        }
+        return std::string();
     }
 
     static std::wstring WIN32_GetModuleFileNameW(HMODULE hModule)
@@ -457,11 +477,11 @@ namespace OpenRCT2::Platform
         if (RegOpenKeyW(HKEY_CURRENT_USER, SOFTWARE_CLASSES, &hRootKey) == ERROR_SUCCESS)
         {
             // [hRootKey\.ext]
-            RegDeleteTreeW(hRootKey, String::toWideChar(extension).c_str());
+            SHDeleteKeyW(hRootKey, String::toWideChar(extension).c_str());
 
             // [hRootKey\OpenRCT2.ext]
             auto progIdName = GetProdIDName(extension);
-            RegDeleteTreeW(hRootKey, progIdName.c_str());
+            SHDeleteKeyW(hRootKey, progIdName.c_str());
 
             RegCloseKey(hRootKey);
         }
@@ -578,10 +598,23 @@ namespace OpenRCT2::Platform
 
     uint16_t GetLocaleLanguage()
     {
-        wchar_t langCode[LOCALE_NAME_MAX_LENGTH];
-        if (GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, langCode, static_cast<int>(std::size(langCode))) == 0)
+        wchar_t lang[16] = {};
+        wchar_t ctry[16] = {};
+        wchar_t langCode[LOCALE_NAME_MAX_LENGTH] = {};
+        if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, lang, static_cast<int>(std::size(lang))) > 0)
         {
-            return LANGUAGE_UNDEFINED;
+            if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, ctry, static_cast<int>(std::size(ctry))) > 0 && ctry[0] != L'\0')
+            {
+                swprintf(langCode, std::size(langCode), L"%ls-%ls", lang, ctry);
+            }
+            else
+            {
+                swprintf(langCode, std::size(langCode), L"%ls", lang);
+            }
+        }
+        else
+        {
+            return LANGUAGE_ENGLISH_UK;
         }
 
         const std::pair<std::wstring_view, int16_t> supportedLocales[] = {
@@ -624,13 +657,13 @@ namespace OpenRCT2::Platform
                 return locale.second;
             }
         }
-        return LANGUAGE_UNDEFINED;
+        return LANGUAGE_ENGLISH_UK;
     }
 
     CurrencyType GetLocaleCurrency()
     {
         wchar_t currCode[9];
-        if (GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SINTLSYMBOL, currCode, static_cast<int>(std::size(currCode))) == 0)
+        if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SINTLSYMBOL, currCode, static_cast<int>(std::size(currCode))) == 0)
         {
             return GetCurrencyValue(nullptr);
         }
@@ -641,8 +674,8 @@ namespace OpenRCT2::Platform
     MeasurementFormat GetLocaleMeasurementFormat()
     {
         UINT measurement_system;
-        if (GetLocaleInfoEx(
-                LOCALE_NAME_USER_DEFAULT, LOCALE_IMEASURE | LOCALE_RETURN_NUMBER, reinterpret_cast<LPWSTR>(&measurement_system),
+        if (GetLocaleInfoW(
+                LOCALE_USER_DEFAULT, LOCALE_IMEASURE | LOCALE_RETURN_NUMBER, reinterpret_cast<LPWSTR>(&measurement_system),
                 sizeof(measurement_system) / sizeof(wchar_t))
             == 0)
         {
@@ -656,7 +689,7 @@ namespace OpenRCT2::Platform
     {
         // Retrieve short date format, eg "MM/dd/yyyy"
         wchar_t dateFormat[80];
-        if (GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SSHORTDATE, dateFormat, static_cast<int>(std::size(dateFormat)))
+        if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_SSHORTDATE, dateFormat, static_cast<int>(std::size(dateFormat)))
             == 0)
         {
             return DATE_FORMAT_DAY_MONTH_YEAR;
@@ -670,10 +703,7 @@ namespace OpenRCT2::Platform
         //
         wchar_t first[std::size(dateFormat)];
         wchar_t second[std::size(dateFormat)];
-        if (swscanf_s(
-                dateFormat, L"%l[dyM]%*l[^dyM]%l[dyM]%*l[^dyM]%*l[dyM]", first, static_cast<uint32_t>(std::size(first)), second,
-                static_cast<uint32_t>(std::size(second)))
-            != 2)
+        if (swscanf(dateFormat, L"%l[dyM]%*l[^dyM]%l[dyM]%*l[^dyM]%*l[dyM]", first, second) != 2)
         {
             return DATE_FORMAT_DAY_MONTH_YEAR;
         }
@@ -705,10 +735,10 @@ namespace OpenRCT2::Platform
     {
         UINT fahrenheit;
 
-        // GetLocaleInfoEx will set fahrenheit to 1 if the locale on this computer
+        // GetLocaleInfoW will set fahrenheit to 1 if the locale on this computer
         // uses the United States measurement system or 0 otherwise.
-        if (GetLocaleInfoEx(
-                LOCALE_NAME_USER_DEFAULT, LOCALE_IMEASURE | LOCALE_RETURN_NUMBER, reinterpret_cast<LPWSTR>(&fahrenheit),
+        if (GetLocaleInfoW(
+                LOCALE_USER_DEFAULT, LOCALE_IMEASURE | LOCALE_RETURN_NUMBER, reinterpret_cast<LPWSTR>(&fahrenheit),
                 sizeof(fahrenheit) / sizeof(wchar_t))
             == 0)
         {
@@ -850,7 +880,7 @@ namespace OpenRCT2::Platform
             {
                 if (RegSetValueW(hClassKey, nullptr, REG_SZ, L"URL:openrct2", 0) == ERROR_SUCCESS)
                 {
-                    if (RegSetKeyValueW(hClassKey, nullptr, L"URL Protocol", REG_SZ, "", 0) == ERROR_SUCCESS)
+                    if (RegSetValueExW(hClassKey, L"URL Protocol", 0, REG_SZ, reinterpret_cast<const BYTE*>(L""), sizeof(wchar_t)) == ERROR_SUCCESS)
                     {
                         // [hRootKey\openrct2\shell\open\command]
                         const std::wstring& exePathW = WIN32_GetModuleFileNameW(nullptr);
@@ -864,11 +894,9 @@ namespace OpenRCT2::Platform
                             if (RegCreateKeyW(hRootKey, MUI_CACHE, &hMuiCacheKey) == ERROR_SUCCESS)
                             {
                                 const std::wstring friendly_apl_name = std::format(L"{}.FriendlyAppName", exePathW);
-                                // mingw-w64 used to define RegSetKeyValueW's signature incorrectly
-                                // You need at least mingw-w64 5.0 including this commit:
-                                //   https://sourceforge.net/p/mingw-w64/mingw-w64/ci/da9341980a4b70be3563ac09b5927539e7da21f7/
-                                RegSetKeyValueW(
-                                    hMuiCacheKey, nullptr, friendly_apl_name.c_str(), REG_SZ, L"OpenRCT2", sizeof(L"OpenRCT2"));
+                                RegSetValueExW(
+                                    hMuiCacheKey, friendly_apl_name.c_str(), 0, REG_SZ,
+                                    reinterpret_cast<const BYTE*>(L"OpenRCT2"), sizeof(L"OpenRCT2"));
                             }
 
                             LOG_VERBOSE("URI protocol setup successful");

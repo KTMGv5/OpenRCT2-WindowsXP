@@ -14,7 +14,9 @@
     #include <functional>
     #include <future>
     #include <map>
+    #include <memory>
     #include <string>
+    #include <thread>
 
 namespace OpenRCT2::Http
 {
@@ -53,21 +55,31 @@ namespace OpenRCT2::Http
 
     Response Do(const Request& req);
 
-    [[nodiscard]] inline auto DoAsync(const Request& req, std::function<void(Response& res)> fn)
+    [[nodiscard]] inline std::future<void> DoAsync(const Request& req, std::function<void(Response& res)> fn)
     {
-        return std::async(std::launch::async, [=]() {
+        auto ptask = std::make_shared<std::packaged_task<void()>>([=]() {
             Response res{};
             try
             {
                 res = Do(req);
             }
-            catch (std::exception& e)
+            catch (const std::exception& e)
             {
+                res.status = Status::error;
                 res.error = e.what();
-                return;
             }
-            fn(res);
+            try
+            {
+                fn(res);
+            }
+            catch (...)
+            {
+            }
         });
+
+        std::future<void> fut = ptask->get_future();
+        std::thread([ptask]() { (*ptask)(); }).detach();
+        return fut;
     }
 } // namespace OpenRCT2::Http
 

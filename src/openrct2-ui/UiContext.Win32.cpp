@@ -16,6 +16,8 @@
     #endif
     #include <windows.h>
     #include <shellapi.h>
+    #include <commdlg.h>
+    #include <shlobj.h>
     #undef CreateWindow
 // clang-format on
 
@@ -27,38 +29,9 @@
     #include <openrct2/core/Path.hpp>
     #include <openrct2/core/String.hpp>
     #include <openrct2/ui/UiContext.h>
-    #include <shobjidl.h>
-    #include <wrl/client.h>
 
     // Native resource IDs
     #include "../../resources/resource.h"
-
-using namespace Microsoft::WRL;
-
-class CCoInitialize
-{
-public:
-    CCoInitialize(DWORD dwCoInit)
-        : m_hr(CoInitializeEx(nullptr, dwCoInit))
-    {
-    }
-
-    ~CCoInitialize()
-    {
-        if (SUCCEEDED(m_hr))
-        {
-            CoUninitialize();
-        }
-    }
-
-    operator bool() const
-    {
-        return SUCCEEDED(m_hr);
-    }
-
-private:
-    HRESULT m_hr;
-};
 
 namespace OpenRCT2::Ui
 {
@@ -127,68 +100,71 @@ namespace OpenRCT2::Ui
         std::string ShowFileDialogInternal(SDL_Window* window, const FileDialogDesc& desc, bool isFolder)
         {
             std::string resultFilename;
-
-            CCoInitialize coInitialize(COINIT_APARTMENTTHREADED);
-            if (coInitialize)
+            WCHAR path[MAX_PATH] = {};
+            if (isFolder)
             {
-                CLSID dialogId = CLSID_FileOpenDialog;
-                DWORD flagsToSet = FOS_FORCEFILESYSTEM;
+                BROWSEINFOW bi = {};
+                std::wstring wtitle = String::toWideChar(desc.Title);
+                bi.hwndOwner = GetHWND(window);
+                bi.pidlRoot = nullptr;
+                bi.pszDisplayName = path;
+                bi.lpszTitle = wtitle.c_str();
+                bi.ulFlags = BIF_USENEWUI;
+                bi.lpfn = nullptr;
+                bi.lParam = 0;
+                bi.iImage = 0;
+
+                PIDLIST_ABSOLUTE list = SHBrowseForFolderW(&bi);
+                if (list != NULL)
+                {
+                    SHGetPathFromIDListW(list, path);
+                    resultFilename = String::toUtf8(path);
+                    CoTaskMemFree(list);
+                }
+            }
+            else
+            {
+                OPENFILENAMEW ofn = {};
+                ofn.lStructSize = sizeof(ofn);
+                ofn.hwndOwner = GetHWND(window);
+                ofn.lpstrFile = path;
+                ofn.nMaxFile = MAX_PATH;
+                std::wstring wtitle = String::toWideChar(desc.Title);
+                ofn.lpstrTitle = wtitle.c_str();
+                std::wstring wInitDir = String::toWideChar(desc.InitialDirectory);
+                if (!wInitDir.empty())
+                {
+                    ofn.lpstrInitialDir = wInitDir.c_str();
+                }
+
+                std::wstring filterStr;
+                for (const auto& filter : desc.Filters)
+                {
+                    filterStr += String::toWideChar(filter.Name);
+                    filterStr.push_back(L'\0');
+                    filterStr += String::toWideChar(filter.Pattern);
+                    filterStr.push_back(L'\0');
+                }
+                filterStr.push_back(L'\0');
+                if (!desc.Filters.empty())
+                {
+                    ofn.lpstrFilter = filterStr.c_str();
+                }
+
                 if (desc.Type == FileDialogType::save)
                 {
-                    dialogId = CLSID_FileSaveDialog;
-                    flagsToSet |= FOS_OVERWRITEPROMPT | FOS_CREATEPROMPT | FOS_STRICTFILETYPES;
-                }
-                if (isFolder)
-                {
-                    flagsToSet |= FOS_PICKFOLDERS;
-                }
-
-                ComPtr<IFileDialog> fileDialog;
-                if (SUCCEEDED(
-                        CoCreateInstance(dialogId, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(fileDialog.GetAddressOf()))))
-                {
-                    DWORD flags;
-                    if (SUCCEEDED(fileDialog->GetOptions(&flags)) && SUCCEEDED(fileDialog->SetOptions(flags | flagsToSet)))
+                    ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+                    if (GetSaveFileNameW(&ofn))
                     {
-                        fileDialog->SetTitle(String::toWideChar(desc.Title).c_str());
-                        fileDialog->SetFileName(String::toWideChar(Path::GetFileName(desc.DefaultFilename)).c_str());
-
-                        // Set default directory (optional, don't fail the operation if it fails to set)
-                        ComPtr<IShellItem> defaultDirectory;
-                        if (SUCCEEDED(SHCreateItemFromParsingName(
-                                String::toWideChar(desc.InitialDirectory).c_str(), nullptr,
-                                IID_PPV_ARGS(defaultDirectory.GetAddressOf()))))
-                        {
-                            fileDialog->SetFolder(defaultDirectory.Get());
-                        }
-
-                        // Opt-in to automatic extensions, this will ensure extension of the selected file matches the filter
-                        // Setting it to an empty string so "All Files" does not get anything appended
-                        fileDialog->SetDefaultExtension(L"");
-
-                        // Filters need an "auxillary" storage for wide strings
-                        std::vector<std::wstring> filtersStorage;
-                        auto filters = GetFilters(desc.Filters, filtersStorage);
-
-                        bool filtersSet = true;
-                        if (!filters.empty())
-                        {
-                            filtersSet = SUCCEEDED(fileDialog->SetFileTypes(static_cast<UINT>(filters.size()), filters.data()));
-                        }
-
-                        if (filtersSet && SUCCEEDED(fileDialog->Show(nullptr)))
-                        {
-                            ComPtr<IShellItem> resultItem;
-                            if (SUCCEEDED(fileDialog->GetResult(resultItem.GetAddressOf())))
-                            {
-                                PWSTR filePath = nullptr;
-                                if (SUCCEEDED(resultItem->GetDisplayName(SIGDN_FILESYSPATH, &filePath)))
-                                {
-                                    resultFilename = String::toUtf8(filePath);
-                                    CoTaskMemFree(filePath);
-                                }
-                            }
-                        }
+                        resultFilename = String::toUtf8(ofn.lpstrFile);
+                    }
+                }
+                else
+                {
+                    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+                    if (GetOpenFileNameW(&ofn))
+                    {
+                        resultFilename = String::toUtf8(ofn.lpstrFile);
                     }
                 }
             }
@@ -228,26 +204,6 @@ namespace OpenRCT2::Ui
 
                 result = wmInfo.info.win.window;
             }
-            return result;
-        }
-
-        static std::vector<COMDLG_FILTERSPEC> GetFilters(
-            const std::vector<FileDialogDesc::Filter>& filters, std::vector<std::wstring>& outFiltersStorage)
-        {
-            std::vector<COMDLG_FILTERSPEC> result;
-            for (const auto& filter : filters)
-            {
-                outFiltersStorage.emplace_back(String::toWideChar(filter.Name));
-                outFiltersStorage.emplace_back(String::toWideChar(filter.Pattern));
-            }
-
-            for (auto it = outFiltersStorage.begin(); it != outFiltersStorage.end();)
-            {
-                const wchar_t* Name = (it++)->c_str();
-                const wchar_t* Pattern = (it++)->c_str();
-                result.push_back({ Name, Pattern });
-            }
-
             return result;
         }
     };
