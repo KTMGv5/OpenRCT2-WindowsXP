@@ -627,22 +627,22 @@ namespace OpenRCT2::String
         auto srcW = toWideChar(src);
 
         // Measure how long the destination needs to be
-        auto requiredSize = LCMapStringEx(
-            LOCALE_NAME_USER_DEFAULT, LCMAP_UPPERCASE | LCMAP_LINGUISTIC_CASING, srcW.c_str(), static_cast<int>(srcW.length()),
-            nullptr, 0, nullptr, nullptr, 0);
+        auto requiredSize = LCMapStringW(
+            LOCALE_USER_DEFAULT, LCMAP_UPPERCASE, srcW.c_str(), static_cast<int>(srcW.length()),
+            nullptr, 0);
 
         auto dstW = std::wstring();
         dstW.resize(requiredSize);
 
         // Transform the string
-        auto result = LCMapStringEx(
-            LOCALE_NAME_USER_DEFAULT, LCMAP_UPPERCASE | LCMAP_LINGUISTIC_CASING, srcW.c_str(), static_cast<int>(srcW.length()),
-            dstW.data(), static_cast<int>(dstW.length()), nullptr, nullptr, 0);
+        auto result = LCMapStringW(
+            LOCALE_USER_DEFAULT, LCMAP_UPPERCASE, srcW.c_str(), static_cast<int>(srcW.length()),
+            dstW.data(), static_cast<int>(dstW.length()));
         if (result == 0)
         {
             // Check the error
             auto error = GetLastError();
-            LOG_WARNING("LCMapStringEx failed with %d", error);
+            LOG_WARNING("LCMapStringW failed with %d", error);
             return std::string(src);
         }
 
