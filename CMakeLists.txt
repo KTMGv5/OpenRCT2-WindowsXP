@@ -351,7 +351,7 @@ else ()
     if (WIN32)
         add_definitions(-D_WIN32_WINNT=0x0501 -DWINVER=0x0501)
         if (MINGW)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--major-os-version,5,--minor-os-version,1 -Wl,--major-subsystem-version,5,--minor-subsystem-version,1")
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++ -Wl,--major-os-version,5,--minor-os-version,1 -Wl,--major-subsystem-version,5,--minor-subsystem-version,1")
         endif ()
     endif ()
 
