@@ -168,9 +168,20 @@ FileWatcher::FileWatcher(u8string_view directoryPath)
 FileWatcher::~FileWatcher()
 {
 #ifdef _WIN32
-    CancelIoEx(_directoryHandle, nullptr);
-    _watchThread.join();
-    CloseHandle(_directoryHandle);
+    using PFN_CancelIoEx = BOOL(WINAPI*)(HANDLE, LPOVERLAPPED);
+    static auto pCancelIoEx = reinterpret_cast<PFN_CancelIoEx>(
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "CancelIoEx"));
+    if (pCancelIoEx != nullptr)
+    {
+        pCancelIoEx(_directoryHandle, nullptr);
+        _watchThread.join();
+        CloseHandle(_directoryHandle);
+    }
+    else
+    {
+        CloseHandle(_directoryHandle);
+        _watchThread.join();
+    }
 #elif defined(__linux__)
     _finished = true;
     _watchThread.join();
