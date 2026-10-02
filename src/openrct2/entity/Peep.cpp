@@ -405,6 +405,10 @@ namespace OpenRCT2
         spriteData.width = spriteBounds.spriteWidth;
         spriteData.heightMin = spriteBounds.spriteHeightNegative;
         spriteData.heightMax = spriteBounds.spriteHeightPositive;
+        if (peepFlags.has(PeepFlag::isChild))
+        {
+            spriteData.heightMax = (spriteBounds.spriteHeightPositive * 3) / 4;
+        }
     }
 
     /* rct2: 0x00693BE5 */

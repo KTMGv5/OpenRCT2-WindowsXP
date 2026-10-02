@@ -44,6 +44,8 @@ namespace OpenRCT2::Scripting
             { "joy", PeepFlag::joy },
             { "angry", PeepFlag::angry },
             { "iceCream", PeepFlag::iceCream },
+            { "isChild", PeepFlag::isChild },
+            { "isFamily", PeepFlag::isFamily },
             { "hereWeAre", PeepFlag::hereWeAre },
             { "positionFrozen", PeepFlag::positionFrozen },
             { "animationFrozen", PeepFlag::animationFrozen },

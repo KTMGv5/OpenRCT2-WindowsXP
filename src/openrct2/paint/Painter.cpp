@@ -114,6 +114,11 @@ static bool ShouldShowFPS()
     return windowMgr->FindByClass(WindowClass::topToolbar);
 }
 
+#ifdef _WIN32
+#    define WIN32_LEAN_AND_MEAN
+#    include <windows.h>
+#endif
+
 void Painter::PaintFPS(RenderTarget& rt)
 {
     if (!ShouldShowFPS())
@@ -121,8 +126,22 @@ void Painter::PaintFPS(RenderTarget& rt)
 
     MeasureFPS();
 
-    char buffer[64]{};
+    char buffer[128]{};
+#ifdef _WIN32
+    MEMORYSTATUSEX memStatus;
+    memStatus.dwLength = sizeof(memStatus);
+    GlobalMemoryStatusEx(&memStatus);
+    uint32_t totalRamMB = static_cast<uint32_t>(memStatus.ullTotalPhys / (1024 * 1024));
+    uint32_t availRamMB = static_cast<uint32_t>(memStatus.ullAvailPhys / (1024 * 1024));
+    uint32_t usedRamMB = totalRamMB > availRamMB ? (totalRamMB - availRamMB) : 0;
+    auto numGuests = getGameState().park.numGuestsInPark;
+
+    FormatStringToBuffer(
+        buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32} FPS | {INT32}/{INT32} MB RAM | {INT32} Guests",
+        _currentFPS, usedRamMB, totalRamMB, numGuests);
+#else
     FormatStringToBuffer(buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32}", _currentFPS);
+#endif
     const int32_t stringWidth = getStringWidth(buffer, FontStyle::medium);
 
     // Figure out where counter should be rendered

@@ -145,6 +145,7 @@ namespace OpenRCT2
         DefineSubCommand("screenshot",      kScreenshotCommands       ),
         DefineSubCommand("sprite",          Sprite::kSpriteCommands   ),
         DefineSubCommand("simulate",        kSimulateCommands         ),
+        DefineSubCommand("benchmark",       kBenchmarkCommands        ),
         DefineSubCommand("parkinfo",        kParkInfoCommands         ),
         kCommandTableEnd
     };

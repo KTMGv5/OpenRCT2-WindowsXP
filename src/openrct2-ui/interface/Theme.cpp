@@ -264,6 +264,151 @@ namespace OpenRCT2::Ui
 
     static constexpr std::array<UIThemeWindowEntry, 0> kPredefinedThemeRCT2Entries = {};
 
+    static constexpr std::array kPredefinedThemeXPLunaBlueEntries = std::to_array<UIThemeWindowEntry>({
+        { WindowClass::topToolbar,             { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightGreen),  opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::gameStatusBar,          { translucent(Drawing::Colour::darkBlue) } },
+        { WindowClass::newsTicker,             { opaque(Drawing::Colour::voidBackground),  opaque(Drawing::Colour::darkBlue) } },
+        { WindowClass::parkInfoPanel,          { translucent(Drawing::Colour::darkBlue),   opaque(Drawing::Colour::brightGreen) } },
+        { WindowClass::dateInfoPanel,          { translucent(Drawing::Colour::darkBlue) } },
+        { WindowClass::ride,                   { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightGreen),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::rideList,               { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::constructRide,          { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightGreen),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::peep,                   { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightGreen),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::guestList,              { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staffList,              { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::finances,               { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightGreen),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleMenu,              { translucent(Drawing::Colour::darkBlue),   translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::darkBlue),   opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleExit,              { translucent(Drawing::Colour::darkBlue),   translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::darkBlue),   opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::newCampaign,            { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightGreen),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleOptions,           { translucent(Drawing::Colour::darkBlue),   translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::darkBlue),   opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staff,                  { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::options,                { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightGreen),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::assetPacks,             { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::keyboardShortcutList,   { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changeKeyboardShortcut, { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::recentNews,             { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::voidBackground), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::trackDesignList,        { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::map,                    { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::about,                  { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changelog,              { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+    });
+
+    static constexpr std::array kPredefinedThemeXPLunaOliveEntries = std::to_array<UIThemeWindowEntry>({
+        { WindowClass::topToolbar,             { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::mossGreen),    opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::gameStatusBar,          { translucent(Drawing::Colour::oliveGreen) } },
+        { WindowClass::newsTicker,             { opaque(Drawing::Colour::voidBackground),  opaque(Drawing::Colour::oliveGreen) } },
+        { WindowClass::parkInfoPanel,          { translucent(Drawing::Colour::oliveGreen), opaque(Drawing::Colour::brightYellow) } },
+        { WindowClass::dateInfoPanel,          { translucent(Drawing::Colour::oliveGreen) } },
+        { WindowClass::ride,                   { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::mossGreen),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::rideList,               { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::constructRide,          { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::mossGreen),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::peep,                   { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::mossGreen),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::guestList,              { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staffList,              { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::finances,               { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::mossGreen),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleMenu,              { translucent(Drawing::Colour::oliveGreen), translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::oliveGreen), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleExit,              { translucent(Drawing::Colour::oliveGreen), translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::oliveGreen), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::newCampaign,            { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::mossGreen),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleOptions,           { translucent(Drawing::Colour::oliveGreen), translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::oliveGreen), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staff,                  { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::options,                { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::brightYellow),    opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::assetPacks,             { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::keyboardShortcutList,   { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changeKeyboardShortcut, { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::recentNews,             { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::voidBackground), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::trackDesignList,        { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::map,                    { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::about,                  { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changelog,              { opaque(Drawing::Colour::oliveGreen),      opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+    });
+
+    static constexpr std::array kPredefinedThemeXPLunaSilverEntries = std::to_array<UIThemeWindowEntry>({
+        { WindowClass::topToolbar,             { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::gameStatusBar,          { translucent(Drawing::Colour::grey) } },
+        { WindowClass::newsTicker,             { opaque(Drawing::Colour::voidBackground),  opaque(Drawing::Colour::grey) } },
+        { WindowClass::parkInfoPanel,          { translucent(Drawing::Colour::grey),       opaque(Drawing::Colour::darkBlue) } },
+        { WindowClass::dateInfoPanel,          { translucent(Drawing::Colour::grey) } },
+        { WindowClass::ride,                   { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::rideList,               { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::constructRide,          { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::peep,                   { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::guestList,              { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staffList,              { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::finances,               { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleMenu,              { translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::grey),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleExit,              { translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::grey),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::newCampaign,            { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleOptions,           { translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::grey),       opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staff,                  { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::options,                { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::assetPacks,             { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::keyboardShortcutList,   { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changeKeyboardShortcut, { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::recentNews,             { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::voidBackground), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::trackDesignList,        { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::map,                    { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::about,                  { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changelog,              { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+    });
+
+    static constexpr std::array kPredefinedThemeXPRoyaleEntries = std::to_array<UIThemeWindowEntry>({
+        { WindowClass::topToolbar,             { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkOrange),   opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::gameStatusBar,          { translucent(Drawing::Colour::lightBlue) } },
+        { WindowClass::newsTicker,             { opaque(Drawing::Colour::voidBackground),  opaque(Drawing::Colour::lightBlue) } },
+        { WindowClass::parkInfoPanel,          { translucent(Drawing::Colour::lightBlue),  opaque(Drawing::Colour::darkOrange) } },
+        { WindowClass::dateInfoPanel,          { translucent(Drawing::Colour::lightBlue) } },
+        { WindowClass::ride,                   { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkOrange),      opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::rideList,               { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::constructRide,          { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkOrange),      opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::peep,                   { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkOrange),      opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::guestList,              { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staffList,              { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::finances,               { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkOrange),      opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleMenu,              { translucent(Drawing::Colour::lightBlue),  translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::lightBlue),  opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleExit,              { translucent(Drawing::Colour::lightBlue),  translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::lightBlue),  opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::newCampaign,            { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkOrange),      opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleOptions,           { translucent(Drawing::Colour::lightBlue),  translucent(Drawing::Colour::grey),       translucent(Drawing::Colour::lightBlue),  opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staff,                  { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::lightPurple),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::options,                { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkOrange),      opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::assetPacks,             { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::keyboardShortcutList,   { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changeKeyboardShortcut, { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::recentNews,             { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::voidBackground), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::trackDesignList,        { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::map,                    { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::about,                  { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changelog,              { opaque(Drawing::Colour::lightBlue),       opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+    });
+
+    static constexpr std::array kPredefinedThemeWindowsClassicEntries = std::to_array<UIThemeWindowEntry>({
+        { WindowClass::topToolbar,             { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),     opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::gameStatusBar,          { opaque(Drawing::Colour::grey) } },
+        { WindowClass::newsTicker,             { opaque(Drawing::Colour::voidBackground),  opaque(Drawing::Colour::grey) } },
+        { WindowClass::parkInfoPanel,          { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue) } },
+        { WindowClass::dateInfoPanel,          { opaque(Drawing::Colour::grey) } },
+        { WindowClass::ride,                   { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::rideList,               { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::constructRide,          { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::peep,                   { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::guestList,              { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staffList,              { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::finances,               { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleMenu,              { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleExit,              { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::newCampaign,            { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::titleOptions,           { opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::staff,                  { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::options,                { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::assetPacks,             { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::keyboardShortcutList,   { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changeKeyboardShortcut, { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::recentNews,             { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::voidBackground), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::trackDesignList,        { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::map,                    { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::about,                  { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+        { WindowClass::changelog,              { opaque(Drawing::Colour::darkBlue),        opaque(Drawing::Colour::grey),            opaque(Drawing::Colour::white),           opaque(Drawing::Colour::black), opaque(Drawing::Colour::black), opaque(Drawing::Colour::black) } },
+    });
+
     const UITheme kPredefinedThemeRCT1 = UITheme::CreatePredefined(
         "*RCT1", kPredefinedThemeRCT1Entries,
         UITHEME_FLAG_USE_LIGHTS_RIDE | UITHEME_FLAG_USE_LIGHTS_PARK | UITHEME_FLAG_USE_ALTERNATIVE_SCENARIO_SELECT_FONT
@@ -271,15 +416,41 @@ namespace OpenRCT2::Ui
 
     const UITheme kPredefinedThemeRCT2 = UITheme::CreatePredefined("*RCT2", kPredefinedThemeRCT2Entries, 0);
 
+    const UITheme kPredefinedThemeXPLunaBlue = UITheme::CreatePredefined(
+        "*XP_LUNA_BLUE", kPredefinedThemeXPLunaBlueEntries,
+        UITHEME_FLAG_USE_GAME_STATUS_BAR | UITHEME_FLAG_USE_3D_IMAGE_BUTTONS);
+
+    const UITheme kPredefinedThemeXPLunaOlive = UITheme::CreatePredefined(
+        "*XP_LUNA_OLIVE", kPredefinedThemeXPLunaOliveEntries,
+        UITHEME_FLAG_USE_GAME_STATUS_BAR | UITHEME_FLAG_USE_3D_IMAGE_BUTTONS);
+
+    const UITheme kPredefinedThemeXPLunaSilver = UITheme::CreatePredefined(
+        "*XP_LUNA_SILVER", kPredefinedThemeXPLunaSilverEntries,
+        UITHEME_FLAG_USE_GAME_STATUS_BAR | UITHEME_FLAG_USE_3D_IMAGE_BUTTONS);
+
+    const UITheme kPredefinedThemeXPRoyale = UITheme::CreatePredefined(
+        "*XP_ROYALE", kPredefinedThemeXPRoyaleEntries,
+        UITHEME_FLAG_USE_GAME_STATUS_BAR | UITHEME_FLAG_USE_3D_IMAGE_BUTTONS);
+
+    const UITheme kPredefinedThemeWindowsClassic = UITheme::CreatePredefined(
+        "*WINDOWS_CLASSIC", kPredefinedThemeWindowsClassicEntries,
+        UITHEME_FLAG_USE_GAME_STATUS_BAR | UITHEME_FLAG_USE_3D_IMAGE_BUTTONS);
+
     struct PredefinedTheme
     {
         const UITheme* Theme;
         StringId Name;
+        const char* DisplayName;
     };
 
     static constexpr PredefinedTheme kPredefinedThemes[] = {
-        { &kPredefinedThemeRCT1, STR_TITLE_SEQUENCE_RCT1 },
-        { &kPredefinedThemeRCT2, STR_TITLE_SEQUENCE_RCT2 },
+        { &kPredefinedThemeRCT1, STR_TITLE_SEQUENCE_RCT1, "RollerCoaster Tycoon 1" },
+        { &kPredefinedThemeRCT2, STR_TITLE_SEQUENCE_RCT2, "RollerCoaster Tycoon 2" },
+        { &kPredefinedThemeXPLunaBlue, kStringIdNone, "Windows XP (Luna Blue)" },
+        { &kPredefinedThemeXPLunaOlive, kStringIdNone, "Windows XP (Olive Green)" },
+        { &kPredefinedThemeXPLunaSilver, kStringIdNone, "Windows XP (Metallic Silver)" },
+        { &kPredefinedThemeXPRoyale, kStringIdNone, "Windows XP (Royale Blue)" },
+        { &kPredefinedThemeWindowsClassic, kStringIdNone, "Windows Classic" },
     };
 
 #pragma endregion
@@ -787,7 +958,16 @@ namespace OpenRCT2::Ui
     const utf8* ThemeManagerGetAvailableThemeName(size_t index)
     {
         if (index < ThemeManager::NumPredefinedThemes)
-            return LanguageGetString(kPredefinedThemes[index].Name);
+        {
+            if (kPredefinedThemes[index].Name != kStringIdNone)
+            {
+                auto str = LanguageGetString(kPredefinedThemes[index].Name);
+                if (str != nullptr && str[0] != '\0')
+                    return str;
+            }
+            if (kPredefinedThemes[index].DisplayName != nullptr)
+                return kPredefinedThemes[index].DisplayName;
+        }
         return ThemeManager::AvailableThemes[index].Name.c_str();
     }
 

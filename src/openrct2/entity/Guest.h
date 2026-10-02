@@ -359,6 +359,16 @@ namespace OpenRCT2
         bool hasEmptyContainer() const;
         void updateAnimationGroup();
         bool headingForRideOrParkExit() const;
+        bool isChild() const
+        {
+            return peepFlags.has(PeepFlag::isChild) || mass < 40;
+        }
+        bool isFamily() const
+        {
+            return peepFlags.has(PeepFlag::isFamily);
+        }
+        uint8_t getAge() const;
+        const char* getLifeStageName() const;
         void readMap();
         bool shouldGoOnRide(Ride& ride, StationIndex entranceNum, bool atQueue, bool thinking);
         void spendMoney(money64& peep_expend_type, money64 amount, ExpenditureType type);

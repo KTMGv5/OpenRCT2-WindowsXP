@@ -552,6 +552,41 @@ namespace OpenRCT2::Park
                 peep->peepDirection = direction;
                 peep->var37 = 0;
                 peep->state = PeepState::enteringPark;
+
+                // Windows XP Edition: Peeps Age & Family Dynamics
+                // ~25% chance of spawning as a family group (parent arriving together with child)
+                if ((ScenarioRand() % 4) == 0)
+                {
+                    peep->peepFlags.set(PeepFlag::isFamily);
+
+                    auto child = Guest::generate({ spawn->x, spawn->y, spawn->z });
+                    if (child != nullptr)
+                    {
+                        child->orientation = peep->orientation;
+                        child->setDestination(destination, 5);
+                        child->peepDirection = direction;
+                        child->var37 = 0;
+                        child->state = PeepState::enteringPark;
+
+                        child->peepFlags.set(PeepFlag::isChild);
+                        child->peepFlags.set(PeepFlag::isFamily);
+                        // Family group members share shirt colour
+                        child->tShirtColour = peep->tShirtColour;
+                        // Child lighter mass: 24 to 36 kg (vs adult 45 to 76 kg)
+                        child->mass = (ScenarioRand() % 13) + 24;
+                        // Children prefer less intense rides
+                        child->intensity = IntensityRange(0, std::min<uint8_t>(child->intensity.getMaximum(), 6));
+                        child->updateSpriteBoundingBox();
+                    }
+                }
+                else if ((ScenarioRand() % 10) == 0)
+                {
+                    // Solo child visiting the park
+                    peep->peepFlags.set(PeepFlag::isChild);
+                    peep->mass = (ScenarioRand() % 13) + 24;
+                    peep->intensity = IntensityRange(0, std::min<uint8_t>(peep->intensity.getMaximum(), 6));
+                    peep->updateSpriteBoundingBox();
+                }
             }
         }
         return peep;

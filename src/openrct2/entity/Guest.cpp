@@ -2002,7 +2002,8 @@ namespace OpenRCT2
                     // excitement check and will only do a basic intensity check when they arrive at the ride itself.
                     if (ride.id == guestHeadingToRideId)
                     {
-                        if (ride.ratings.intensity > RideRating::make(10, 00) && !gameState.cheats.ignoreRideIntensity)
+                        RideRating_t headingMax = isChild() ? RideRating::make(6, 50) : RideRating::make(10, 00);
+                        if (ride.ratings.intensity > headingMax && !gameState.cheats.ignoreRideIntensity)
                         {
                             GuestRideIsTooIntense(*this, ride, peepAtRide);
                             return false;
@@ -2050,7 +2051,7 @@ namespace OpenRCT2
                                     choseNotToGoOnRide(ride, peepAtRide, true);
                                     return false;
                                 }
-                                if (ride.ratings.intensity > maxIntensity)
+                                if (ride.ratings.intensity > maxIntensity || (isChild() && ride.ratings.intensity > RideRating::make(6, 50)))
                                 {
                                     GuestRideIsTooIntense(*this, ride, peepAtRide);
                                     return false;
@@ -2303,6 +2304,43 @@ namespace OpenRCT2
     int32_t Guest::getParkEntryTime() const
     {
         return parkEntryTime;
+    }
+
+    uint8_t Guest::getAge() const
+    {
+        if (isChild())
+        {
+            // Children: ages 6 to 12 (deterministic based on peepId and mass)
+            return 6 + static_cast<uint8_t>((peepId ^ mass) % 7);
+        }
+
+        // Deterministic age derived from peepId and mass
+        uint32_t seed = peepId ^ (static_cast<uint32_t>(mass) << 8);
+        uint32_t bucket = seed % 100;
+        if (bucket < 15)
+        {
+            // Teen: 13 to 17
+            return 13 + static_cast<uint8_t>((seed >> 8) % 5);
+        }
+        if (bucket < 85)
+        {
+            // Adult: 18 to 59
+            return 18 + static_cast<uint8_t>((seed >> 8) % 42);
+        }
+        // Senior: 60 to 75
+        return 60 + static_cast<uint8_t>((seed >> 8) % 16);
+    }
+
+    const char* Guest::getLifeStageName() const
+    {
+        uint8_t age = getAge();
+        if (age <= 12)
+            return "Child";
+        if (age <= 17)
+            return "Teen";
+        if (age <= 59)
+            return "Adult";
+        return "Senior";
     }
 
     static bool GuestShouldRideWhileRaining(Guest& guest, const Ride& ride)
