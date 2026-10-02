@@ -87,7 +87,7 @@ if (NOT DISABLE_VORBIS)
     if (NOT MSVC AND NOT WIN32 AND NOT EMSCRIPTEN)
         target_link_libraries(openrct2 PkgConfig::OGG PkgConfig::VORBISFILE)
     else ()
-        target_link_libraries(openrct2 ${OGG_LDFLAGS} ${VORBISFILE_LDFLAGS} ${VORBIS_LDFLAGS})
+        target_link_libraries(openrct2 ${OGG_LDFLAGS} ${VORBISFILE_LDFLAGS} ${VORBIS_LDFLAGS} vorbis)
     endif ()
 endif ()
 
