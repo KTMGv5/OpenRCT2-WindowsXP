@@ -52,10 +52,7 @@ namespace OpenRCT2
         }
 
         int32_t ticks = 1000;
-        if (argEnumerator->HasMoreArgs())
-        {
-            argEnumerator->TryPopInteger(&ticks);
-        }
+        argEnumerator->TryPopInteger(&ticks);
 
         if (ticks <= 0)
         {
