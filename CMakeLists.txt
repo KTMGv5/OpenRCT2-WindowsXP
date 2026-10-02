@@ -394,7 +394,7 @@ if (CXX_WARN_SUGGEST_FINAL_METHODS)
 endif ()
 
 if (MINGW)
-   add_definitions(-fstack-protector-strong)
+    add_compile_options($<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-fstack-protector-strong>)
 endif ()
 
 # Include sub-projects
