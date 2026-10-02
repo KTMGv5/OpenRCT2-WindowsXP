@@ -19,7 +19,10 @@ extern "C" {
 // references locally without emitting entries into the PE import address table for KERNEL32.DLL.
 #define DLL_OVERRIDE(name, argbytes) \
     __attribute__((used)) typeof(name) *name##_ptr  asm("__imp__" #name "@" #argbytes) = name; \
-    __attribute__((used)) typeof(name) *name##_ptr2 asm("_imp__"  #name "@" #argbytes) = name;
+    __attribute__((used)) typeof(name) *name##_ptr2 asm("_imp__"  #name "@" #argbytes) = name; \
+    __attribute__((used)) typeof(name) *name##_ptr3 asm("__imp__" #name) = name; \
+    __attribute__((used)) typeof(name) *name##_ptr4 asm("_imp__"  #name) = name; \
+    __asm__(".globl _" #name "\n\t_" #name " = _" #name "@" #argbytes);
 
 #ifndef CONDITION_VARIABLE_INIT
 typedef struct _RTL_CONDITION_VARIABLE {

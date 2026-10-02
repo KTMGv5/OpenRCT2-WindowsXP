@@ -117,6 +117,15 @@ extern "C" {
 #include <winsock2.h>
 #include <windows.h>
 #include <process.h> // _beginthread
+#if _WIN32_WINNT < 0x0600
+WINBASEAPI VOID WINAPI InitializeConditionVariable (PCONDITION_VARIABLE ConditionVariable);
+WINBASEAPI VOID WINAPI WakeConditionVariable (PCONDITION_VARIABLE ConditionVariable);
+WINBASEAPI VOID WINAPI WakeAllConditionVariable (PCONDITION_VARIABLE ConditionVariable);
+WINBASEAPI WINBOOL WINAPI SleepConditionVariableCS (PCONDITION_VARIABLE ConditionVariable, PCRITICAL_SECTION CriticalSection, DWORD dwMilliseconds);
+WINBASEAPI WINBOOL WINAPI SleepConditionVariableSRW (PCONDITION_VARIABLE ConditionVariable, PSRWLOCK SRWLock, DWORD dwMilliseconds, ULONG Flags);
+WINBASEAPI VOID WINAPI InitOnceInitialize (PINIT_ONCE InitOnce);
+WINBASEAPI WINBOOL WINAPI InitOnceExecuteOnce (PINIT_ONCE InitOnce, PINIT_ONCE_FN InitFn, PVOID Parameter, LPVOID *Context);
+#endif
 #endif
 #if !defined(_WIN32) && !defined(EMSCRIPTEN) && !defined(__wasi__) && !defined(__DJGPP)
 #include <errno.h>
