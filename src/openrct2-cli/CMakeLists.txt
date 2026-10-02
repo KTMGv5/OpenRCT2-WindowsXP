@@ -6,10 +6,14 @@ file(GLOB_RECURSE OPENRCT2_CLI_SOURCES
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.hpp")
 
+if (WIN32)
+    list(APPEND OPENRCT2_CLI_SOURCES "${ROOT_DIR}/resources/openrct2-cli.rc")
+endif ()
+
 add_executable(openrct2-cli ${OPENRCT2_CLI_SOURCES})
 add_executable(OpenRCT2::openrct2-cli ALIAS openrct2-cli)
 
-target_include_directories(openrct2-cli PRIVATE "${CMAKE_CURRENT_LIST_DIR}/..")
+target_include_directories(openrct2-cli PRIVATE "${CMAKE_CURRENT_LIST_DIR}/.." "${ROOT_DIR}/resources")
 ipo_set_target_properties(openrct2-cli)
 if (EMSCRIPTEN)
     target_link_libraries(openrct2-cli ${ICU_DT_LIBRARY_RELEASE} ${ICU_DATA_LIBRARIES})

@@ -47,6 +47,10 @@ if (APPLE)
     set_source_files_properties(${OPENRCT2_UI_MM_SOURCES} PROPERTIES COMPILE_FLAGS "-x objective-c++ -fmodules")
 endif ()
 
+if (WIN32)
+    list(APPEND OPENRCT2_UI_SOURCES "${ROOT_DIR}/resources/OpenRCT2.rc")
+endif ()
+
 # Outputs
 add_executable(openrct2 ${OPENRCT2_UI_SOURCES} ${OPENRCT2_UI_MM_SOURCES})
 add_executable(OpenRCT2::openrct2 ALIAS openrct2)
@@ -99,6 +103,7 @@ endif ()
 
 # Includes
 target_include_directories(openrct2 PRIVATE "${CMAKE_CURRENT_LIST_DIR}/.."
+                                              "${ROOT_DIR}/resources"
                                               ${OGG_INCLUDE_DIRS}
                                               ${VORBIS_INCLUDE_DIRS}
                                               ${FLAC_INCLUDE_DIRS})

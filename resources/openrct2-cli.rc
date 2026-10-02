@@ -43,7 +43,7 @@ BEGIN
         BLOCK "080904b0"
         BEGIN
             VALUE "CompanyName", "OpenRCT2 Team"
-            VALUE "FileDescription", "Main executable for OpenRCT2"
+            VALUE "FileDescription", "Command-line and server executable for OpenRCT2"
             VALUE "FileVersion", OPENRCT2_PRODUCT_VERSION
             VALUE "LegalCopyright", "Copyright (c) 2014-2026 OpenRCT2 developers"
             VALUE "ProductName", "OpenRCT2"
@@ -105,4 +105,3 @@ IDI_ICON                ICON                    "logo/icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
-

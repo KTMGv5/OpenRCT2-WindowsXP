@@ -57,6 +57,7 @@ namespace OpenRCT2::Ui
                     if (hwnd != nullptr)
                     {
                         SendMessage(hwnd, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(icon));
+                        SendMessage(hwnd, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(icon));
                     }
                 }
             }
