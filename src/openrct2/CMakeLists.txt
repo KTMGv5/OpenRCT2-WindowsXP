@@ -71,7 +71,7 @@ if (NOT DISABLE_NETWORK AND WIN32)
 endif ()
 
 if (WIN32)
-    target_link_libraries(libopenrct2 shlwapi)
+    target_link_libraries(libopenrct2 shlwapi mbedtls mbedcrypto mbedx509)
 endif ()
 
 if (NOT DISABLE_HTTP)
