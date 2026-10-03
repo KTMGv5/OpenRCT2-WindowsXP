@@ -112,7 +112,7 @@ namespace OpenRCT2::Ui::Windows
                 case WIDX_HARDWARE_HUD:
                     Config::Get().general.showFPS = !Config::Get().general.showFPS;
                     Config::Save();
-                    GfxInvalidateScreen();
+                    Drawing::GfxInvalidateScreen();
                     invalidate();
                     break;
                 case WIDX_SET_DESKTOP_WALLPAPER:
