@@ -666,6 +666,11 @@ public:
         _platformUiContext->ShowMessageBox(_window, message);
     }
 
+    void ShowNotification(const std::string& title, const std::string& message) override
+    {
+        _platformUiContext->ShowNotification(_window, title, message);
+    }
+
     int32_t ShowMessageBox(
         const std::string& title, const std::string& message, const std::vector<std::string>& options) override
     {

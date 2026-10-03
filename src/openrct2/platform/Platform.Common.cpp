@@ -305,4 +305,36 @@ namespace OpenRCT2::Platform
         return true;
     }
 
+#ifndef _WIN32
+    std::string GetHypervisorName()
+    {
+        return "Bare-Metal PC";
+    }
+
+    std::string GetCpuBrandName()
+    {
+        return "Generic x86";
+    }
+
+    bool IsVirtualMachine()
+    {
+        return false;
+    }
+
+    void SetHighPrecisionTimer(bool)
+    {
+    }
+
+    bool IsHighPrecisionTimerActive()
+    {
+        return false;
+    }
+
+    bool SetDesktopWallpaper(const std::string&)
+    {
+        return false;
+    }
+#endif
+
 } // namespace OpenRCT2::Platform
+

@@ -259,6 +259,7 @@ namespace OpenRCT2::Ui::Windows
         WIDX_EXPORT_EMSCRIPTEN_DATA,
         WIDX_IMPORT_EMSCRIPTEN_DATA,
 #endif
+        WIDX_WINDOWS_XP_TUNING,
         WIDX_ASSET_PACKS,
     };
 
@@ -468,6 +469,7 @@ namespace OpenRCT2::Ui::Windows
         makeWidget        ({ 10, kAdvancedStart + 46}, {135, 14}, WidgetType::button,       WindowColour::secondary, STR_EXPORT_EMSCRIPTEN,                     kStringIdNone                                ), // Emscripten data export
         makeWidget        ({150, kAdvancedStart + 46}, {150, 14}, WidgetType::button,       WindowColour::secondary, STR_IMPORT_EMSCRIPTEN,                     kStringIdNone                                ), // Emscripten data import
 #endif
+        makeWidget        ({ 10, kAdvancedStart + 64}, {135, 14}, WidgetType::button,       WindowColour::secondary, STR_WINDOWS_XP_TUNING,                     STR_WINDOWS_XP_TUNING_TIP                   ), // Windows XP Tuning
         makeWidget        ({150, kAdvancedStart + 64}, {150, 14}, WidgetType::button,       WindowColour::secondary, STR_EDIT_ASSET_PACKS_BUTTON,               kStringIdNone                                )  // Asset packs
     );
 
@@ -2078,6 +2080,9 @@ namespace OpenRCT2::Ui::Windows
                     }
                     invalidate();
                     break;
+                case WIDX_WINDOWS_XP_TUNING:
+                    ContextOpenWindow(WindowClass::windowsXpTuning);
+                    break;
                 case WIDX_ASSET_PACKS:
                     ContextOpenWindow(WindowClass::assetPacks);
                     break;
@@ -2185,6 +2190,8 @@ namespace OpenRCT2::Ui::Windows
 
             widgets[WIDX_ASSET_PACKS].top = widgets[WIDX_GROUP_ADVANCED].bottom - 20;
             widgets[WIDX_ASSET_PACKS].bottom = widgets[WIDX_GROUP_ADVANCED].bottom - 6;
+            widgets[WIDX_WINDOWS_XP_TUNING].top = widgets[WIDX_GROUP_ADVANCED].bottom - 20;
+            widgets[WIDX_WINDOWS_XP_TUNING].bottom = widgets[WIDX_GROUP_ADVANCED].bottom - 6;
         }
 
         void AdvancedDraw(RenderTarget& rt)

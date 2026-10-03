@@ -403,4 +403,8 @@ namespace OpenRCT2::Ui::Windows
     // Water
     WindowBase* WaterOpen();
     void ToggleWaterWindow();
+
+    // Windows XP & VM Control Center
+    WindowBase* WindowsXpTuningOpen();
 } // namespace OpenRCT2::Ui::Windows
+

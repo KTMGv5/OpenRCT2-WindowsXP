@@ -39,6 +39,7 @@
 #include "Viewport.h"
 
 #include <cstdlib>
+#include <fstream>
 #include <memory>
 #include <optional>
 #include <string>
@@ -659,4 +660,95 @@ void CaptureImage(const CaptureOptions& options)
     RenderViewport(nullptr, viewport, rt);
     WriteRTToFile(outputPath, rt, gPalette);
     ReleaseRT(rt);
+}
+
+#pragma pack(push, 1)
+struct BMPFileHeader
+{
+    uint16_t bfType{ 0x4D42 };
+    uint32_t bfSize{ 0 };
+    uint16_t bfReserved1{ 0 };
+    uint16_t bfReserved2{ 0 };
+    uint32_t bfOffBits{ 54 };
+};
+
+struct BMPInfoHeader
+{
+    uint32_t biSize{ 40 };
+    int32_t biWidth{ 0 };
+    int32_t biHeight{ 0 };
+    uint16_t biPlanes{ 1 };
+    uint16_t biBitCount{ 24 };
+    uint32_t biCompression{ 0 };
+    uint32_t biSizeImage{ 0 };
+    int32_t biXPelsPerMeter{ 2835 };
+    int32_t biYPelsPerMeter{ 2835 };
+    uint32_t biClrUsed{ 0 };
+    uint32_t biClrImportant{ 0 };
+};
+#pragma pack(pop)
+
+bool ScreenshotSetDesktopWallpaper()
+{
+#ifdef _WIN32
+    auto& rt = DrawingEngineGetRT();
+    if (rt.bits == nullptr || rt.width <= 0 || rt.height <= 0)
+    {
+        return false;
+    }
+
+    auto userProfile = Platform::GetEnvironmentVariable("USERPROFILE");
+    if (userProfile.empty())
+        userProfile = Platform::GetEnvironmentVariable("TEMP");
+    if (userProfile.empty())
+        userProfile = "C:\\";
+
+    auto bmpPath = Path::Combine(userProfile, "OpenRCT2_Wallpaper.bmp");
+
+    int32_t width = rt.width;
+    int32_t height = rt.height;
+    int32_t stride = rt.LineStride();
+    int32_t rowPadding = (4 - ((width * 3) % 4)) % 4;
+    int32_t rowSize = width * 3 + rowPadding;
+    int32_t imageSize = rowSize * height;
+
+    BMPFileHeader bfh;
+    bfh.bfSize = sizeof(BMPFileHeader) + sizeof(BMPInfoHeader) + imageSize;
+
+    BMPInfoHeader bih;
+    bih.biWidth = width;
+    bih.biHeight = height;
+    bih.biSizeImage = imageSize;
+
+    std::ofstream fs(fs::u8path(bmpPath), std::ios::binary);
+    if (!fs.is_open())
+    {
+        return false;
+    }
+
+    fs.write(reinterpret_cast<const char*>(&bfh), sizeof(bfh));
+    fs.write(reinterpret_cast<const char*>(&bih), sizeof(bih));
+
+    std::vector<uint8_t> rowBuffer(rowSize, 0);
+    const auto* pixels = reinterpret_cast<const uint8_t*>(rt.bits);
+
+    for (int32_t y = height - 1; y >= 0; --y)
+    {
+        const uint8_t* srcRow = pixels + (y * stride);
+        for (int32_t x = 0; x < width; ++x)
+        {
+            uint8_t idx = srcRow[x];
+            const auto& col = gPalette[idx];
+            rowBuffer[x * 3 + 0] = col.blue;
+            rowBuffer[x * 3 + 1] = col.green;
+            rowBuffer[x * 3 + 2] = col.red;
+        }
+        fs.write(reinterpret_cast<const char*>(rowBuffer.data()), rowSize);
+    }
+    fs.close();
+
+    return Platform::SetDesktopWallpaper(bmpPath);
+#else
+    return false;
+#endif
 }

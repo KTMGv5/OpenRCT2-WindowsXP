@@ -99,14 +99,16 @@ namespace OpenRCT2::Ui::Windows
         // separator
         DDIDX_SCREENSHOT = 6,
         DDIDX_GIANT_SCREENSHOT = 7,
+        DDIDX_SET_DESKTOP_WALLPAPER = 8,
         // separator
-        DDIDX_ABOUT = 9,
-        DDIDX_FILE_BUG_ON_GITHUB = 10,
-        DDIDX_UPDATE_AVAILABLE = 11,
-        DDIDX_OPTIONS = 12,
+        DDIDX_ABOUT = 10,
+        DDIDX_FILE_BUG_ON_GITHUB = 11,
+        DDIDX_UPDATE_AVAILABLE = 12,
+        DDIDX_OPTIONS = 13,
+        DDIDX_XP_TUNING = 14,
         // separator
-        DDIDX_QUIT_TO_MENU = 14,
-        DDIDX_EXIT_OPENRCT2 = 15,
+        DDIDX_QUIT_TO_MENU = 16,
+        DDIDX_EXIT_OPENRCT2 = 17,
     };
 
     enum TopToolbarViewMenuDdidx
@@ -557,6 +559,7 @@ namespace OpenRCT2::Ui::Windows
             {
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_SCREENSHOT);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_GIANT_SCREENSHOT);
+                gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_SET_DESKTOP_WALLPAPER);
                 gDropdown.items[numItems++] = Dropdown::Separator();
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_ABOUT);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_FILE_BUG_ON_GITHUB);
@@ -565,6 +568,7 @@ namespace OpenRCT2::Ui::Windows
                     gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_UPDATE_AVAILABLE);
 
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_OPTIONS);
+                gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_WINDOWS_XP_TUNING);
                 gDropdown.items[numItems++] = Dropdown::Separator();
 
                 if (gLegacyScene == LegacyScene::trackDesigner)
@@ -582,6 +586,7 @@ namespace OpenRCT2::Ui::Windows
                 gDropdown.items[numItems++] = Dropdown::Separator();
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_SCREENSHOT);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_GIANT_SCREENSHOT);
+                gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_SET_DESKTOP_WALLPAPER);
                 gDropdown.items[numItems++] = Dropdown::Separator();
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_ABOUT);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_FILE_BUG_ON_GITHUB);
@@ -590,6 +595,7 @@ namespace OpenRCT2::Ui::Windows
                     gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_UPDATE_AVAILABLE);
 
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_OPTIONS);
+                gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_WINDOWS_XP_TUNING);
                 gDropdown.items[numItems++] = Dropdown::Separator();
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_QUIT_SCENARIO_EDITOR);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_EXIT_OPENRCT2);
@@ -604,6 +610,7 @@ namespace OpenRCT2::Ui::Windows
                 gDropdown.items[numItems++] = Dropdown::Separator();
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_SCREENSHOT);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_GIANT_SCREENSHOT);
+                gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_SET_DESKTOP_WALLPAPER);
                 gDropdown.items[numItems++] = Dropdown::Separator();
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_ABOUT);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_FILE_BUG_ON_GITHUB);
@@ -612,6 +619,7 @@ namespace OpenRCT2::Ui::Windows
                     gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_UPDATE_AVAILABLE);
 
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_OPTIONS);
+                gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_WINDOWS_XP_TUNING);
                 gDropdown.items[numItems++] = Dropdown::Separator();
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_QUIT_TO_MENU);
                 gDropdown.items[numItems++] = Dropdown::PlainMenuLabel(STR_EXIT_OPENRCT2);
@@ -971,11 +979,17 @@ namespace OpenRCT2::Ui::Windows
                         case DDIDX_OPTIONS:
                             ContextOpenWindow(WindowClass::options);
                             break;
+                        case DDIDX_XP_TUNING:
+                            ContextOpenWindow(WindowClass::windowsXpTuning);
+                            break;
                         case DDIDX_SCREENSHOT:
                             gScreenshotCountdown = 10;
                             break;
                         case DDIDX_GIANT_SCREENSHOT:
                             ScreenshotGiant();
+                            break;
+                        case DDIDX_SET_DESKTOP_WALLPAPER:
+                            ScreenshotSetDesktopWallpaper();
                             break;
                         case DDIDX_FILE_BUG_ON_GITHUB:
                         {

@@ -75,6 +75,27 @@ namespace OpenRCT2::Ui
             MessageBoxW(hwnd, messageW.c_str(), L"OpenRCT2", MB_OK);
         }
 
+        void ShowNotification(SDL_Window* window, const std::string& title, const std::string& message) override
+        {
+            HWND hwnd = GetHWND(window);
+            NOTIFYICONDATAA nid;
+            std::memset(&nid, 0, sizeof(nid));
+            nid.cbSize = sizeof(NOTIFYICONDATAA);
+            nid.hWnd = hwnd;
+            nid.uID = 1001;
+            nid.uFlags = NIF_ICON | NIF_TIP | NIF_INFO;
+            nid.hIcon = LoadIconA(GetModuleHandleA(nullptr), MAKEINTRESOURCEA(1));
+            if (!nid.hIcon)
+            {
+                nid.hIcon = LoadIconA(nullptr, IDI_APPLICATION);
+            }
+            std::strncpy(nid.szTip, "OpenRCT2: Windows XP Edition", sizeof(nid.szTip) - 1);
+            std::strncpy(nid.szInfoTitle, title.c_str(), sizeof(nid.szInfoTitle) - 1);
+            std::strncpy(nid.szInfo, message.c_str(), sizeof(nid.szInfo) - 1);
+            nid.dwInfoFlags = NIIF_INFO;
+            Shell_NotifyIconA(NIM_ADD, &nid);
+        }
+
         bool HasMenuSupport() override
         {
             return false;

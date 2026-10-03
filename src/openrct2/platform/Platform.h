@@ -231,6 +231,13 @@ namespace OpenRCT2::Platform
     bool SSE41Available();
     bool AVX2Available();
 
+    std::string GetHypervisorName();
+    std::string GetCpuBrandName();
+    bool IsVirtualMachine();
+    void SetHighPrecisionTimer(bool enabled);
+    bool IsHighPrecisionTimerActive();
+    bool SetDesktopWallpaper(const std::string& path);
+
     std::vector<std::string> GetSearchablePathsRCT1();
     std::vector<std::string> GetSearchablePathsRCT2();
 } // namespace OpenRCT2::Platform

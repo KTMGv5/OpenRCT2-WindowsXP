@@ -167,6 +167,8 @@ public:
                 return editorStepControllerOpen();
             case WindowClass::editorStatusLine:
                 return editorStatusLineOpen();
+            case WindowClass::windowsXpTuning:
+                return WindowsXpTuningOpen();
             default:
                 Console::Error::WriteLine("Unhandled window class (%d)", wc);
                 return nullptr;

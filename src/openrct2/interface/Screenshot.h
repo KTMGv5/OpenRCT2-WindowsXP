@@ -64,3 +64,5 @@ void ScreenshotGiant();
 int32_t CommandLineForScreenshot(const char** argv, int32_t argc, ScreenshotOptions* options);
 
 void CaptureImage(const CaptureOptions& options);
+
+bool ScreenshotSetDesktopWallpaper();

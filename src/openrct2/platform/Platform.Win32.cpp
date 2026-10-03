@@ -20,9 +20,18 @@
     #include <memory>
     #include <shlobj.h>
     #include <shlwapi.h>
+    #include <mmsystem.h>
     // clang-format on
     #undef GetEnvironmentVariable
     #undef small
+
+#if defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+    #include <cpuid.h>
+    #define OpenRCT2_CPUID_GNUC_X86
+#elif defined(_MSC_VER) && (_MSC_VER >= 1500) && (defined(_M_X64) || defined(_M_IX86))
+    #include <intrin.h>
+    #define OpenRCT2_CPUID_MSVC_X86
+#endif
 
     #include "Platform.h"
 
@@ -943,6 +952,228 @@ namespace OpenRCT2::Platform
         };
     }
 
+#if defined(OpenRCT2_CPUID_GNUC_X86) || defined(OpenRCT2_CPUID_MSVC_X86)
+    static void CpuIdRaw(uint32_t* out, uint32_t leaf)
+    {
+#    if defined(OpenRCT2_CPUID_GNUC_X86)
+        __cpuid(leaf, out[0], out[1], out[2], out[3]);
+#    elif defined(OpenRCT2_CPUID_MSVC_X86)
+        __cpuid(reinterpret_cast<int*>(out), static_cast<int>(leaf));
+#    else
+        out[0] = out[1] = out[2] = out[3] = 0;
+#    endif
+    }
+#endif
+
+    static bool gTimerActive = false;
+
+    void SetHighPrecisionTimer(bool enabled)
+    {
+        if (enabled && !gTimerActive)
+        {
+            if (timeBeginPeriod(1) == TIMERR_NOERROR)
+            {
+                gTimerActive = true;
+                LOG_VERBOSE("Windows XP 1ms multimedia timer activated.");
+            }
+        }
+        else if (!enabled && gTimerActive)
+        {
+            timeEndPeriod(1);
+            gTimerActive = false;
+            LOG_VERBOSE("Windows XP multimedia timer restored.");
+        }
+    }
+
+    bool IsHighPrecisionTimerActive()
+    {
+        return gTimerActive;
+    }
+
+    struct PrecisionTimerInit
+    {
+        PrecisionTimerInit()
+        {
+            SetHighPrecisionTimer(true);
+        }
+        ~PrecisionTimerInit()
+        {
+            SetHighPrecisionTimer(false);
+        }
+    };
+    static PrecisionTimerInit gPrecisionTimerInit;
+
+    std::string GetCpuBrandName()
+    {
+        static std::string cachedBrand;
+        if (!cachedBrand.empty())
+            return cachedBrand;
+
+#if defined(OpenRCT2_CPUID_GNUC_X86) || defined(OpenRCT2_CPUID_MSVC_X86)
+        uint32_t regs[4] = { 0 };
+        CpuIdRaw(regs, 0x80000000);
+        if (regs[0] >= 0x80000004)
+        {
+            char brand[49] = { 0 };
+            CpuIdRaw(reinterpret_cast<uint32_t*>(brand), 0x80000002);
+            CpuIdRaw(reinterpret_cast<uint32_t*>(brand + 16), 0x80000003);
+            CpuIdRaw(reinterpret_cast<uint32_t*>(brand + 32), 0x80000004);
+            brand[48] = '\0';
+
+            std::string s = brand;
+            size_t start = s.find_first_not_of(" \t\r\n");
+            if (start != std::string::npos)
+            {
+                size_t end = s.find_last_not_of(" \t\r\n");
+                cachedBrand = s.substr(start, end - start + 1);
+                return cachedBrand;
+            }
+            cachedBrand = s;
+            return cachedBrand;
+        }
+#endif
+        cachedBrand = "x86 Compatible Processor";
+        return cachedBrand;
+    }
+
+    std::string GetHypervisorName()
+    {
+        static std::string cachedHv;
+        if (!cachedHv.empty())
+            return cachedHv;
+
+        if (IsRunningInWine())
+        {
+            cachedHv = "Wine / Proton";
+            return cachedHv;
+        }
+
+#if defined(OpenRCT2_CPUID_GNUC_X86) || defined(OpenRCT2_CPUID_MSVC_X86)
+        uint32_t regs[4] = { 0 };
+        CpuIdRaw(regs, 1);
+        if ((regs[2] & (1U << 31)) != 0)
+        {
+            CpuIdRaw(regs, 0x40000000);
+            char sig[13] = { 0 };
+            std::memcpy(sig + 0, &regs[1], 4);
+            std::memcpy(sig + 4, &regs[2], 4);
+            std::memcpy(sig + 8, &regs[3], 4);
+            sig[12] = '\0';
+            std::string_view sv(sig);
+
+            if (sv.find("VBox") != std::string_view::npos)
+                cachedHv = "Oracle VM VirtualBox";
+            else if (sv.find("VMware") != std::string_view::npos)
+                cachedHv = "VMware Workstation/ESXi";
+            else if (sv.find("KVM") != std::string_view::npos)
+                cachedHv = "QEMU / KVM";
+            else if (sv.find("Microsoft") != std::string_view::npos || sv.find("Hv") != std::string_view::npos)
+                cachedHv = "Microsoft Hyper-V / Virtual PC";
+            else if (sv.find("Xen") != std::string_view::npos)
+                cachedHv = "Xen Hypervisor";
+            else if (sv.find("prl") != std::string_view::npos || sv.find("lrpe") != std::string_view::npos)
+                cachedHv = "Parallels Desktop";
+            else if (sv.find("bhyve") != std::string_view::npos)
+                cachedHv = "bhyve";
+            else if (sv.find("tcg") != std::string_view::npos)
+                cachedHv = "QEMU (TCG Emulated)";
+            else
+                cachedHv = std::string("Hypervisor (") + sig + ")";
+
+            return cachedHv;
+        }
+#endif
+
+        DISPLAY_DEVICEA dd{};
+        dd.cb = sizeof(dd);
+        for (DWORD i = 0; EnumDisplayDevicesA(nullptr, i, &dd, 0); ++i)
+        {
+            std::string dev = dd.DeviceString;
+            std::string devLower = dev;
+            std::transform(devLower.begin(), devLower.end(), devLower.begin(), [](unsigned char c) { return std::tolower(c); });
+            if (devLower.find("virtualbox") != std::string::npos || devLower.find("vbox") != std::string::npos)
+            {
+                cachedHv = "Oracle VM VirtualBox";
+                return cachedHv;
+            }
+            if (devLower.find("vmware") != std::string::npos || devLower.find("svga") != std::string::npos)
+            {
+                cachedHv = "VMware Workstation/ESXi";
+                return cachedHv;
+            }
+            if (devLower.find("qemu") != std::string::npos || devLower.find("red hat") != std::string::npos || devLower.find("bochs") != std::string::npos)
+            {
+                cachedHv = "QEMU / KVM";
+                return cachedHv;
+            }
+            if (devLower.find("86box") != std::string::npos)
+            {
+                cachedHv = "86Box PC Emulator";
+                return cachedHv;
+            }
+            if (devLower.find("pcem") != std::string::npos)
+            {
+                cachedHv = "PCem PC Emulator";
+                return cachedHv;
+            }
+        }
+
+        HKEY hKey;
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\BIOS", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+        {
+            char biosVal[256] = { 0 };
+            DWORD sz = sizeof(biosVal);
+            if (RegQueryValueExA(hKey, "SystemManufacturer", nullptr, nullptr, reinterpret_cast<LPBYTE>(biosVal), &sz) == ERROR_SUCCESS)
+            {
+                std::string s = biosVal;
+                std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+                if (s.find("vmware") != std::string::npos) { RegCloseKey(hKey); cachedHv = "VMware Workstation/ESXi"; return cachedHv; }
+                if (s.find("innotek") != std::string::npos || s.find("virtualbox") != std::string::npos) { RegCloseKey(hKey); cachedHv = "Oracle VM VirtualBox"; return cachedHv; }
+                if (s.find("qemu") != std::string::npos) { RegCloseKey(hKey); cachedHv = "QEMU / KVM"; return cachedHv; }
+            }
+
+            sz = sizeof(biosVal);
+            if (RegQueryValueExA(hKey, "SystemProductName", nullptr, nullptr, reinterpret_cast<LPBYTE>(biosVal), &sz) == ERROR_SUCCESS)
+            {
+                std::string s = biosVal;
+                std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+                if (s.find("virtualbox") != std::string::npos) { RegCloseKey(hKey); cachedHv = "Oracle VM VirtualBox"; return cachedHv; }
+                if (s.find("vmware") != std::string::npos) { RegCloseKey(hKey); cachedHv = "VMware Workstation/ESXi"; return cachedHv; }
+                if (s.find("86box") != std::string::npos) { RegCloseKey(hKey); cachedHv = "86Box PC Emulator"; return cachedHv; }
+                if (s.find("pcem") != std::string::npos) { RegCloseKey(hKey); cachedHv = "PCem PC Emulator"; return cachedHv; }
+                if (s.find("virtual machine") != std::string::npos) { RegCloseKey(hKey); cachedHv = "Microsoft Virtual PC"; return cachedHv; }
+            }
+            RegCloseKey(hKey);
+        }
+
+        cachedHv = "Bare-Metal PC";
+        return cachedHv;
+    }
+
+    bool IsVirtualMachine()
+    {
+        auto hv = GetHypervisorName();
+        return hv != "Bare-Metal PC" && !hv.empty();
+    }
+
+    bool SetDesktopWallpaper(const std::string& path)
+    {
+        if (path.empty() || !File::Exists(path))
+            return false;
+
+        HKEY hKey;
+        if (RegOpenKeyExA(HKEY_CURRENT_USER, "Control Panel\\Desktop", 0, KEY_SET_VALUE, &hKey) == ERROR_SUCCESS)
+        {
+            RegSetValueExA(hKey, "WallpaperStyle", 0, REG_SZ, reinterpret_cast<const BYTE*>("2"), 2); // 2 = Stretched
+            RegSetValueExA(hKey, "TileWallpaper", 0, REG_SZ, reinterpret_cast<const BYTE*>("0"), 2);
+            RegCloseKey(hKey);
+        }
+
+        auto ret = SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0, const_cast<char*>(path.c_str()), SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+        return ret != 0;
+    }
+
 } // namespace OpenRCT2::Platform
+
 
 #endif

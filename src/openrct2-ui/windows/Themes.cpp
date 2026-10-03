@@ -183,6 +183,7 @@ namespace OpenRCT2::Ui::Windows
         WindowClass::transparency,
         WindowClass::themes,
         WindowClass::options,
+        WindowClass::windowsXpTuning,
         WindowClass::keyboardShortcutList,
         WindowClass::changeKeyboardShortcut,
         WindowClass::assetPacks,

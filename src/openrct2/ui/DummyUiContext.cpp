@@ -92,6 +92,9 @@ namespace OpenRCT2::Ui
         void ShowMessageBox(const std::string& /*message*/) override
         {
         }
+        void ShowNotification(const std::string& /*title*/, const std::string& /*message*/) override
+        {
+        }
         int32_t ShowMessageBox(const std::string&, const std::string&, const std::vector<std::string>&) override
         {
             return -1;

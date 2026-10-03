@@ -459,6 +459,8 @@ namespace OpenRCT2
                 _uiContext->CreateWindow();
             }
 
+            Platform::SetHighPrecisionTimer(Config::Get().general.highPrecisionTimer);
+
             EnsureUserContentDirectoriesExist();
 
             if (!gOpenRCT2Headless)
@@ -1253,6 +1255,13 @@ namespace OpenRCT2
             do
             {
                 RunFrame();
+                if (!gOpenRCT2Headless && Config::Get().general.vmIdleSleep)
+                {
+                    if (_uiContext != nullptr && (_uiContext->IsMinimised() || !_uiContext->HasFocus()))
+                    {
+                        Platform::Sleep(30);
+                    }
+                }
             } while (!_finished);
             LOG_VERBOSE("finish openrct2 loop");
         }

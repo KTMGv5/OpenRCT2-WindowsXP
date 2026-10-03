@@ -240,6 +240,8 @@ namespace OpenRCT2::Config
             model->windowScale = reader->GetFloat("window_scale", Platform::GetDefaultScale());
             model->inferDisplayDPI = reader->GetBoolean("infer_display_dpi", kInferDisplayDPIDefault);
             model->showFPS = reader->GetBoolean("show_fps", false);
+            model->vmIdleSleep = reader->GetBoolean("vm_idle_sleep", true);
+            model->highPrecisionTimer = reader->GetBoolean("high_precision_timer", true);
 #ifdef _DEBUG
             // Always have multi-threading disabled in debug builds, this makes things slower.
             model->multiThreading = false;
@@ -342,6 +344,8 @@ namespace OpenRCT2::Config
         writer->WriteFloat("window_scale", model->windowScale);
         writer->WriteBoolean("infer_display_dpi", model->inferDisplayDPI);
         writer->WriteBoolean("show_fps", model->showFPS);
+        writer->WriteBoolean("vm_idle_sleep", model->vmIdleSleep);
+        writer->WriteBoolean("high_precision_timer", model->highPrecisionTimer);
         writer->WriteBoolean("multithreading", model->multiThreading);
         writer->WriteBoolean("trap_cursor", model->trapCursor);
         writer->WriteBoolean("auto_open_shops", model->autoOpenShops);

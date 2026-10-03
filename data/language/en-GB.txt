@@ -3854,3 +3854,23 @@ STR_7060    :Guests watching construction of {STRINGID}
 STR_7061    :Guests looking at scenery
 STR_7062    :Guests leaving the park
 STR_7063    :Guests watching new ride being constructed
+STR_7064    :Set as Windows XP Desktop Wallpaper
+STR_7065    :Sets the current park view as the Windows XP desktop wallpaper.
+STR_7066    :Windows XP & VM Control Center
+STR_7067    :Configure optimizations for Virtual Machines (VirtualBox, VMware, QEMU) and vintage PC hardware.
+STR_7068    :Windows XP Desktop Wallpaper Updated
+STR_7069    :Your current park view has been set as the Windows XP desktop wallpaper!
+STR_7070    :Windows XP & VM Control Center
+STR_7071    :System & Hypervisor Diagnostics
+STR_7072    :Performance & VM Tuning
+STR_7073    :Windows XP Vintage Features
+STR_7074    :Throttle CPU usage when unfocused / minimized
+STR_7075    :Reduces host CPU consumption from 100% to < 1% in VirtualBox, VMware, and QEMU when the window is inactive.
+STR_7076    :High-Precision 1ms Multimedia Timer
+STR_7077    :Enables timeBeginPeriod(1) for microsecond frame pacing, eliminating audio jitter and VM emulation stutter.
+STR_7078    :Hardware Telemetry HUD
+STR_7079    :Displays real-time FPS, detected VM platform, RAM usage, and guest count at the top of the screen.
+STR_7080    :Run Vintage Hardware Benchmark
+STR_7081    :Executes a simulation stress test and rates performance against vintage x86 processors.
+STR_7082    :Test Windows XP System Tray Notification
+STR_7083    :Triggers a native Windows XP system tray balloon tooltip.

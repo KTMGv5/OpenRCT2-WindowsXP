@@ -37,6 +37,9 @@ namespace OpenRCT2::Ui
         virtual bool IsSteamOverlayAttached() = 0;
 
         virtual void ShowMessageBox(SDL_Window* window, const std::string& message) = 0;
+        virtual void ShowNotification(SDL_Window* window, const std::string& title, const std::string& message)
+        {
+        }
         virtual bool HasMenuSupport() = 0;
         virtual int32_t ShowMenuDialog(
             const std::vector<std::string>& options, const std::string& title, const std::string& text)

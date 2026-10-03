@@ -125,6 +125,7 @@ namespace OpenRCT2
             virtual void TriggerResize() = 0;
 
             virtual void ShowMessageBox(const std::string& message) = 0;
+            virtual void ShowNotification(const std::string& title, const std::string& message) = 0;
             virtual int32_t ShowMessageBox(
                 const std::string& title, const std::string& message, const std::vector<std::string>& options)
                 = 0;
