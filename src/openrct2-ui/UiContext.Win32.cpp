@@ -25,6 +25,7 @@
     #include "UiContext.h"
 
     #include <SDL_syswm.h>
+    #include <cstring>
     #include <openrct2/Diagnostic.h>
     #include <openrct2/core/Path.hpp>
     #include <openrct2/core/String.hpp>
@@ -78,8 +79,7 @@ namespace OpenRCT2::Ui
         void ShowNotification(SDL_Window* window, const std::string& title, const std::string& message) override
         {
             HWND hwnd = GetHWND(window);
-            NOTIFYICONDATAA nid;
-            std::memset(&nid, 0, sizeof(nid));
+            NOTIFYICONDATAA nid{};
             nid.cbSize = sizeof(NOTIFYICONDATAA);
             nid.hWnd = hwnd;
             nid.uID = 1001;
@@ -89,9 +89,9 @@ namespace OpenRCT2::Ui
             {
                 nid.hIcon = LoadIconA(nullptr, IDI_APPLICATION);
             }
-            std::strncpy(nid.szTip, "OpenRCT2: Windows XP Edition", sizeof(nid.szTip) - 1);
-            std::strncpy(nid.szInfoTitle, title.c_str(), sizeof(nid.szInfoTitle) - 1);
-            std::strncpy(nid.szInfo, message.c_str(), sizeof(nid.szInfo) - 1);
+            strncpy(nid.szTip, "OpenRCT2: Windows XP Edition", sizeof(nid.szTip) - 1);
+            strncpy(nid.szInfoTitle, title.c_str(), sizeof(nid.szInfoTitle) - 1);
+            strncpy(nid.szInfo, message.c_str(), sizeof(nid.szInfo) - 1);
             nid.dwInfoFlags = NIIF_INFO;
             Shell_NotifyIconA(NIM_ADD, &nid);
         }
