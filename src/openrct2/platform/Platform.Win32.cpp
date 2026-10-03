@@ -39,6 +39,7 @@
     #include "../Diagnostic.h"
     #include "../OpenRCT2.h"
     #include "../Version.h"
+    #include "../core/File.h"
     #include "../core/Path.hpp"
     #include "../core/String.hpp"
     #include "../drawing/Font.h"
@@ -1158,7 +1159,7 @@ namespace OpenRCT2::Platform
 
     bool SetDesktopWallpaper(const std::string& path)
     {
-        if (path.empty() || !File::Exists(path))
+        if (path.empty() || GetFileAttributesA(path.c_str()) == INVALID_FILE_ATTRIBUTES)
             return false;
 
         HKEY hKey;
