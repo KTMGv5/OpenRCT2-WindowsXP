@@ -37,6 +37,7 @@
 #include "../world/tile_element/SurfaceElement.h"
 #include "../world/tile_element/TileElement.h"
 #include "Viewport.h"
+#include "Window.h"
 
 #include <cstdlib>
 #include <fstream>
@@ -691,11 +692,45 @@ struct BMPInfoHeader
 bool ScreenshotSetDesktopWallpaper()
 {
 #ifdef _WIN32
-    auto& rt = DrawingEngineGetRT();
-    if (rt.bits == nullptr || rt.width <= 0 || rt.height <= 0)
+    auto* mainWindow = WindowGetMain();
+    bool createdCustomRT = false;
+    RenderTarget customRT{};
+    RenderTarget* targetRT = nullptr;
+
+    if (mainWindow != nullptr && mainWindow->viewport != nullptr)
     {
+        try
+        {
+            auto viewport = *mainWindow->viewport;
+            customRT = CreateRT(viewport);
+            UpdatePaletteEffects();
+            RenderViewport(nullptr, viewport, customRT);
+            targetRT = &customRT;
+            createdCustomRT = true;
+        }
+        catch (const std::exception& e)
+        {
+            LOG_ERROR("Failed to render viewport for wallpaper: %s", e.what());
+        }
+    }
+
+    if (targetRT == nullptr)
+    {
+        auto& rt = DrawingEngineGetRT();
+        if (rt.bits != nullptr && rt.width > 0 && rt.height > 0)
+        {
+            targetRT = &rt;
+        }
+    }
+
+    if (targetRT == nullptr || targetRT->bits == nullptr || targetRT->width <= 0 || targetRT->height <= 0)
+    {
+        if (createdCustomRT)
+            ReleaseRT(customRT);
         return false;
     }
+
+    auto& rt = *targetRT;
 
     auto userProfile = Platform::GetEnvironmentVariable("USERPROFILE");
     if (userProfile.empty())
@@ -723,6 +758,8 @@ bool ScreenshotSetDesktopWallpaper()
     std::ofstream fs(fs::u8path(bmpPath), std::ios::binary);
     if (!fs.is_open())
     {
+        if (createdCustomRT)
+            ReleaseRT(customRT);
         return false;
     }
 
@@ -746,6 +783,11 @@ bool ScreenshotSetDesktopWallpaper()
         fs.write(reinterpret_cast<const char*>(rowBuffer.data()), rowSize);
     }
     fs.close();
+
+    if (createdCustomRT)
+    {
+        ReleaseRT(customRT);
+    }
 
     return Platform::SetDesktopWallpaper(bmpPath);
 #else

@@ -196,7 +196,7 @@ namespace OpenRCT2::Ui::Windows
 
     static constexpr std::array _guestWindowPageSizes = {
         std::array{ ScreenSize{ 192, 159 }, ScreenSize{ 500, 450 } }, // WINDOW_GUEST_OVERVIEW
-        std::array{ ScreenSize{ 192, 180 }, ScreenSize{ 192, 180 } }, // WINDOW_GUEST_STATS
+        std::array{ ScreenSize{ 192, 202 }, ScreenSize{ 192, 202 } }, // WINDOW_GUEST_STATS
         std::array{ ScreenSize{ 192, 180 }, ScreenSize{ 500, 400 } }, // WINDOW_GUEST_RIDES
         std::array{ ScreenSize{ 210, 148 }, ScreenSize{ 210, 148 } }, // WINDOW_GUEST_FINANCE
         std::array{ ScreenSize{ 192, 159 }, ScreenSize{ 500, 450 } }, // WINDOW_GUEST_THOUGHTS
@@ -460,6 +460,12 @@ namespace OpenRCT2::Ui::Windows
             maxSize.width = std::max(minSize.width, maxSize.width);
 
             WindowSetResize(*this, minSize, maxSize);
+
+            if (widgets.size() > WIDX_PAGE_BACKGROUND)
+            {
+                widgets[WIDX_PAGE_BACKGROUND].right = width - 1;
+                widgets[WIDX_PAGE_BACKGROUND].bottom = height - 1;
+            }
         }
 
         void onPrepareDrawCommon()
@@ -477,10 +483,6 @@ namespace OpenRCT2::Ui::Windows
             _windowTitle += peep->getLifeStageName();
             _windowTitle += ", Age ";
             _windowTitle += std::to_string(peep->getAge());
-            if (peep->isFamily())
-            {
-                _windowTitle += " - Family";
-            }
             _windowTitle += ")";
             widgets[WIDX_TITLE].setString(_windowTitle.c_str());
 
@@ -1210,12 +1212,12 @@ namespace OpenRCT2::Ui::Windows
                 drawText(rt, screenCoords, STR_GUEST_STAT_NAUSEA_TOLERANCE, ft);
             }
 
-            // Windows XP Edition: Age & Family Status
+            // Age & Life Stage
             {
                 screenCoords.y += kListRowHeight;
                 char ageBuffer[64];
-                snprintf(ageBuffer, sizeof(ageBuffer), "Age: %u (%s%s)",
-                    peep->getAge(), peep->getLifeStageName(), peep->isFamily() ? ", Family" : "");
+                snprintf(ageBuffer, sizeof(ageBuffer), "{BLACK}Age: %u (%s)",
+                    peep->getAge(), peep->getLifeStageName());
                 drawText(rt, screenCoords, ageBuffer);
             }
         }

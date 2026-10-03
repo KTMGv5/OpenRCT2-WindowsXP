@@ -3854,30 +3854,25 @@ STR_7060    :Guests watching construction of {STRINGID}
 STR_7061    :Guests looking at scenery
 STR_7062    :Guests leaving the park
 STR_7063    :Guests watching new ride being constructed
-STR_7064    :Set as Desktop Wallpaper
-STR_7065    :Sets the current park view as your system desktop wallpaper.
-STR_7066    :System & Performance Optimizer
-STR_7067    :Configure system performance, modern coaster physics, and hardware optimizations.
-STR_7068    :Desktop Wallpaper Updated
-STR_7069    :Your current park view has been set as the desktop wallpaper!
-STR_7070    :System & Performance Optimizer
-STR_7071    :System & Hardware Diagnostics
-STR_7072    :Engine & Performance Tuning
-STR_7073    :Tools & Desktop Integration
-STR_7074    :Throttle CPU usage when unfocused / minimized
-STR_7075    :Reduces CPU consumption to < 1% when the game window is inactive or minimized.
-STR_7076    :High-Precision 1ms Multimedia Timer
-STR_7077    :Enables 1ms precision timer for smooth frame pacing and reduced micro-stutter.
-STR_7078    :Performance Telemetry HUD
-STR_7079    :Displays real-time FPS counter at the top of the screen.
-STR_7080    :Run Hardware Benchmark
-STR_7081    :Executes a CPU benchmark test to evaluate simulation speed.
-STR_7082    :Test System Notification
-STR_7083    :Triggers a desktop tray notification to verify system messaging.
-STR_7084    :Modern Coaster Rating Balance
-STR_7085    :Rebalances airtime and high G-forces using modern coaster tolerances, rewarding intense ejector airtime with high excitement.
-STR_7086    :Coaster Freedom Mode
-STR_7087    :Unlocks all track pieces, chain lifts on curves/slopes, and speed limits across all coaster types.
-STR_7088    :Coaster Masterworks & Next-Gen Physics
-STR_7089    :Network Optimizer for 10/100 Mbps
-STR_7090    :Enhanced buffer sizes, TCP_NODELAY, and extended timeout keepalives for smooth multiplayer on vintage and 10/100 Mbps links.
+STR_7100    :Set as Desktop Wallpaper
+STR_7101    :Sets the current park view as your system desktop wallpaper.
+STR_7102    :System & Performance Optimizer
+STR_7103    :Configure system performance, vintage hardware tuning, and desktop integration.
+STR_7104    :Desktop Wallpaper Updated
+STR_7105    :Your current park view has been set as the desktop wallpaper!
+STR_7106    :System & Performance Optimizer
+STR_7107    :System & Hardware Diagnostics
+STR_7108    :Engine & Performance Tuning
+STR_7109    :Tools & Desktop Integration
+STR_7110    :Throttle CPU usage when unfocused / minimized
+STR_7111    :Reduces CPU consumption to < 1% when the game window is inactive or minimized.
+STR_7112    :High-Precision 1ms Multimedia Timer
+STR_7113    :Enables 1ms precision timer for smooth frame pacing and reduced micro-stutter.
+STR_7114    :Performance Telemetry HUD
+STR_7115    :Displays real-time FPS counter at the top of the screen.
+STR_7116    :Run Hardware Benchmark
+STR_7117    :Executes a CPU benchmark test to evaluate simulation speed.
+STR_7118    :Test System Notification
+STR_7119    :Triggers a desktop tray notification to verify system messaging.
+STR_7120    :Network Optimizer for 10/100 Mbps
+STR_7121    :Enhanced buffer sizes, TCP_NODELAY, and extended timeout keepalives for smooth multiplayer on vintage and 10/100 Mbps links.

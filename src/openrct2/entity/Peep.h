@@ -229,8 +229,10 @@ namespace OpenRCT2
         joy = 23,        // Makes the peep jump in joy
         angry = 24,
         iceCream = 25,           // Gives passing peeps ice cream and they wave back
-        isChild = 26,            // Peep is a child (young guest, lighter mass, restricted on extreme rides)
-        isFamily = 27,           // Peep is part of a family group (spawned together with family)
+        niceRideDeprecated = 26, // Used to make the peep think "Nice ride! But not as good as the
+                                 // Phoenix..." on exiting a ride
+        intaminDeprecated = 27,  // Used to make the peep think "I'm so excited - It's an Intamin ride!" while
+                                 // riding on a Intamin ride.
         hereWeAre = 28,          // Makes the peep think  "...and here we are on X!" while riding a ride
         positionFrozen = 29,     // Prevents the peep from moving around, thus keeping them in place
         animationFrozen = 30,    // Prevents the peep sprite from updating

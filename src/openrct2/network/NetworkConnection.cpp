@@ -229,12 +229,6 @@ namespace OpenRCT2::Network
 
     bool Connection::receivedDataRecently() const noexcept
     {
-        // Don't time out if we are actively transmitting outbound data (e.g. large park map transfer)
-        if (!_outboundBuffer.empty())
-        {
-            return true;
-        }
-
         constexpr auto kTimeoutMs = kNoDataTimeout * 1000;
 
         const auto timeSinceLastRecv = Platform::GetTicks() - _lastReceiveTime;

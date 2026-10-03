@@ -31,7 +31,7 @@
 namespace OpenRCT2::Ui::Windows
 {
     static constexpr StringId kWindowTitle = STR_WINDOWS_XP_TUNING;
-    static constexpr ScreenSize kWindowSize = { 430, 420 };
+    static constexpr ScreenSize kWindowSize = { 430, 346 };
 
     enum WindowXpTuningWidgetIdx : WidgetIndex
     {
@@ -45,10 +45,6 @@ namespace OpenRCT2::Ui::Windows
         WIDX_VM_IDLE_SLEEP,
         WIDX_HIGH_PRECISION_TIMER,
         WIDX_HARDWARE_HUD,
-
-        WIDX_GROUP_COASTER_PHYSICS,
-        WIDX_MODERN_COASTER_RATINGS,
-        WIDX_COASTER_FREEDOM_MODE,
 
         WIDX_GROUP_ACTIONS,
         WIDX_SET_DESKTOP_WALLPAPER,
@@ -69,16 +65,11 @@ namespace OpenRCT2::Ui::Windows
         makeWidget({ 14, 180 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_HIGH_PRECISION_TIMER_LABEL, STR_HIGH_PRECISION_TIMER_TIP),
         makeWidget({ 14, 198 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_HARDWARE_HUD_LABEL, STR_HARDWARE_HUD_TIP),
 
-        // Group 3: Coaster Innovations & Next-Gen Physics
-        makeWidget({ 6, 228 }, { 418, 58 }, WidgetType::groupbox, WindowColour::secondary, STR_COASTER_PHYSICS_GROUP),
-        makeWidget({ 14, 244 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_MODERN_COASTER_RATINGS, STR_MODERN_COASTER_RATINGS_TIP),
-        makeWidget({ 14, 262 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_COASTER_FREEDOM_MODE, STR_COASTER_FREEDOM_MODE_TIP),
-
-        // Group 4: Tools & Desktop Integration
-        makeWidget({ 6, 292 }, { 418, 92 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_ACTIONS_GROUP),
-        makeWidget({ 14, 308 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_SET_DESKTOP_WALLPAPER, STR_SET_DESKTOP_WALLPAPER_TIP),
-        makeWidget({ 14, 336 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP),
-        makeWidget({ 218, 336 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_TEST_NOTIFICATION_BTN, STR_TEST_NOTIFICATION_TIP)
+        // Group 3: Tools & Desktop Integration
+        makeWidget({ 6, 228 }, { 418, 88 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_ACTIONS_GROUP),
+        makeWidget({ 14, 244 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_SET_DESKTOP_WALLPAPER, STR_SET_DESKTOP_WALLPAPER_TIP),
+        makeWidget({ 14, 272 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP),
+        makeWidget({ 218, 272 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_TEST_NOTIFICATION_BTN, STR_TEST_NOTIFICATION_TIP)
     );
     // clang-format on
 
@@ -100,8 +91,6 @@ namespace OpenRCT2::Ui::Windows
             setCheckboxValue(WIDX_VM_IDLE_SLEEP, Config::Get().general.vmIdleSleep);
             setCheckboxValue(WIDX_HIGH_PRECISION_TIMER, Config::Get().general.highPrecisionTimer);
             setCheckboxValue(WIDX_HARDWARE_HUD, Config::Get().general.showFPS);
-            setCheckboxValue(WIDX_MODERN_COASTER_RATINGS, Config::Get().general.modernCoasterPhysics);
-            setCheckboxValue(WIDX_COASTER_FREEDOM_MODE, Config::Get().general.coasterFreedomMode);
         }
 
         void onMouseUp(WidgetIndex widgetIndex) override
@@ -126,31 +115,6 @@ namespace OpenRCT2::Ui::Windows
                     Config::Get().general.showFPS = !Config::Get().general.showFPS;
                     Config::Save();
                     Drawing::GfxInvalidateScreen();
-                    invalidate();
-                    break;
-                case WIDX_MODERN_COASTER_RATINGS:
-                    Config::Get().general.modernCoasterPhysics = !Config::Get().general.modernCoasterPhysics;
-                    Config::Save();
-                    _actionStatus = Config::Get().general.modernCoasterPhysics
-                        ? "Modern Coaster Physics active: high airtime rewarded!"
-                        : "Classic Coaster Physics active.";
-                    invalidate();
-                    break;
-                case WIDX_COASTER_FREEDOM_MODE:
-                    Config::Get().general.coasterFreedomMode = !Config::Get().general.coasterFreedomMode;
-                    if (Config::Get().general.coasterFreedomMode)
-                    {
-                        getGameState().cheats.enableChainLiftOnAllTrack = true;
-                        getGameState().cheats.enableAllDrawableTrackPieces = true;
-                        getGameState().cheats.unlockOperatingLimits = true;
-                        getGameState().cheats.showAllOperatingModes = true;
-                        _actionStatus = "Coaster Freedom active: track pieces & launch limits unlocked!";
-                    }
-                    else
-                    {
-                        _actionStatus = "Coaster Freedom deactivated.";
-                    }
-                    Config::Save();
                     invalidate();
                     break;
                 case WIDX_SET_DESKTOP_WALLPAPER:
@@ -197,7 +161,7 @@ namespace OpenRCT2::Ui::Windows
 
             if (!_actionStatus.empty())
             {
-                drawText(rt, windowPos + ScreenCoordsXY{ 16, 392 }, _actionStatus, { textColour });
+                drawText(rt, windowPos + ScreenCoordsXY{ 16, 324 }, _actionStatus, { textColour });
             }
         }
 

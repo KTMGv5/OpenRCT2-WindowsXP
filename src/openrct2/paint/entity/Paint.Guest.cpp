@@ -34,7 +34,7 @@ void PaintGuest(PaintSession& session, const Guest& guest, int32_t orientation)
 
     // In the following 4 calls to PaintAddImageAsParent/PaintAddImageAsChild, we add 5 (instead of 3) to the
     // bound_box_offset_z to make sure peeps are drawn on top of railways
-    auto bb = guest.isChild() ? BoundBoxXYZ{ { 0, 0, guest.z + 5 }, { 1, 1, 8 } } : kPaintPeepBoundBox(guest.z);
+    auto bb = kPaintPeepBoundBox(guest.z);
     PaintAddImageAsParent(session, imageId, { 0, 0, guest.z }, bb);
 
     PaintGuestAccesories(session, guest, baseImageData.offset, baseImageData.actionAnimationGroup, direction);

@@ -359,14 +359,6 @@ namespace OpenRCT2
         bool hasEmptyContainer() const;
         void updateAnimationGroup();
         bool headingForRideOrParkExit() const;
-        bool isChild() const
-        {
-            return peepFlags.has(PeepFlag::isChild) || mass < 40;
-        }
-        bool isFamily() const
-        {
-            return peepFlags.has(PeepFlag::isFamily);
-        }
         uint8_t getAge() const;
         const char* getLifeStageName() const;
         void readMap();

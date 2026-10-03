@@ -2002,8 +2002,7 @@ namespace OpenRCT2
                     // excitement check and will only do a basic intensity check when they arrive at the ride itself.
                     if (ride.id == guestHeadingToRideId)
                     {
-                        RideRating_t headingMax = isChild() ? RideRating::make(6, 50) : RideRating::make(10, 00);
-                        if (ride.ratings.intensity > headingMax && !gameState.cheats.ignoreRideIntensity)
+                        if (ride.ratings.intensity > RideRating::make(10, 00) && !gameState.cheats.ignoreRideIntensity)
                         {
                             GuestRideIsTooIntense(*this, ride, peepAtRide);
                             return false;
@@ -2051,7 +2050,7 @@ namespace OpenRCT2
                                     choseNotToGoOnRide(ride, peepAtRide, true);
                                     return false;
                                 }
-                                if (ride.ratings.intensity > maxIntensity || (isChild() && ride.ratings.intensity > RideRating::make(6, 50)))
+                                if (ride.ratings.intensity > maxIntensity)
                                 {
                                     GuestRideIsTooIntense(*this, ride, peepAtRide);
                                     return false;
@@ -2308,16 +2307,15 @@ namespace OpenRCT2
 
     uint8_t Guest::getAge() const
     {
-        if (isChild())
-        {
-            // Children: ages 6 to 12 (deterministic based on peepId and mass)
-            return 6 + static_cast<uint8_t>((peepId ^ mass) % 7);
-        }
-
         // Deterministic age derived from peepId and mass
         uint32_t seed = peepId ^ (static_cast<uint32_t>(mass) << 8);
         uint32_t bucket = seed % 100;
-        if (bucket < 15)
+        if (bucket < 12)
+        {
+            // Child: 6 to 12
+            return 6 + static_cast<uint8_t>((seed >> 8) % 7);
+        }
+        if (bucket < 25)
         {
             // Teen: 13 to 17
             return 13 + static_cast<uint8_t>((seed >> 8) % 5);
