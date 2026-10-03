@@ -16,6 +16,7 @@
 #include <openrct2/Context.h>
 #include <openrct2/config/Config.h>
 #include <openrct2/drawing/Drawing.h>
+#include <openrct2/drawing/Drawing.Screen.h>
 #include <openrct2/drawing/Text.h>
 #include <openrct2/interface/Screenshot.h>
 #include <openrct2/localisation/Language.h>
