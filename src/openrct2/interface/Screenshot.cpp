@@ -38,6 +38,7 @@
 #include "../world/tile_element/TileElement.h"
 #include "Viewport.h"
 #include "Window.h"
+#include "WindowBase.h"
 
 #include <cstdlib>
 #include <fstream>
