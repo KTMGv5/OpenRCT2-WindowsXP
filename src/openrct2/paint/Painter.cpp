@@ -127,6 +127,7 @@ void Painter::PaintFPS(RenderTarget& rt)
 
     MeasureFPS();
 
+    char buffer[64]{};
     FormatStringToBuffer(buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32} FPS", _currentFPS);
     const int32_t stringWidth = getStringWidth(buffer, FontStyle::medium);
 
