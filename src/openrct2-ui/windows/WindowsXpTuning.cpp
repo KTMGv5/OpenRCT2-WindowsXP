@@ -88,7 +88,7 @@ namespace OpenRCT2::Ui::Windows
         {
             setCheckboxValue(WIDX_VM_IDLE_SLEEP, Config::Get().general.vmIdleSleep);
             setCheckboxValue(WIDX_HIGH_PRECISION_TIMER, Config::Get().general.highPrecisionTimer);
-            setCheckboxValue(WIDX_HARDWARE_HUD, Config::Get().interface.showFPS);
+            setCheckboxValue(WIDX_HARDWARE_HUD, Config::Get().general.showFPS);
         }
 
         void onMouseUp(WidgetIndex widgetIndex) override
@@ -110,8 +110,9 @@ namespace OpenRCT2::Ui::Windows
                     invalidate();
                     break;
                 case WIDX_HARDWARE_HUD:
-                    Config::Get().interface.showFPS = !Config::Get().interface.showFPS;
+                    Config::Get().general.showFPS = !Config::Get().general.showFPS;
                     Config::Save();
+                    GfxInvalidateScreen();
                     invalidate();
                     break;
                 case WIDX_SET_DESKTOP_WALLPAPER:
