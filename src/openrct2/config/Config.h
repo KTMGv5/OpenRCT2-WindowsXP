@@ -47,6 +47,8 @@ namespace OpenRCT2::Config
         bool showFPS;
         bool vmIdleSleep;
         bool highPrecisionTimer;
+        bool modernCoasterPhysics;
+        bool coasterFreedomMode;
         std::atomic_uint8_t multiThreading;
         bool minimizeFullscreenFocusLoss;
         bool disableScreensaver;

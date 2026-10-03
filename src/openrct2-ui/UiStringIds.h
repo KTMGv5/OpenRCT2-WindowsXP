@@ -2296,7 +2296,7 @@ namespace OpenRCT2
         STR_ADJUST_SMALLER_WATER_TIP = 2380,
         STR_WATER = 2383,
 
-        // Window: Windows XP & VM Control Center
+        // Window: System & Performance Optimizer
         STR_SET_DESKTOP_WALLPAPER = 7064,
         STR_SET_DESKTOP_WALLPAPER_TIP = 7065,
         STR_WINDOWS_XP_TUNING = 7066,
@@ -2317,5 +2317,12 @@ namespace OpenRCT2
         STR_RUN_BENCHMARK_TIP = 7081,
         STR_TEST_NOTIFICATION_BTN = 7082,
         STR_TEST_NOTIFICATION_TIP = 7083,
+        STR_MODERN_COASTER_RATINGS = 7084,
+        STR_MODERN_COASTER_RATINGS_TIP = 7085,
+        STR_COASTER_FREEDOM_MODE = 7086,
+        STR_COASTER_FREEDOM_MODE_TIP = 7087,
+        STR_COASTER_PHYSICS_GROUP = 7088,
+        STR_NETWORK_OPTIMIZER_LABEL = 7089,
+        STR_NETWORK_OPTIMIZER_TIP = 7090,
     };
 } // namespace OpenRCT2

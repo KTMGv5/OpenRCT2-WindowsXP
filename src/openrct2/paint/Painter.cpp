@@ -127,44 +127,7 @@ void Painter::PaintFPS(RenderTarget& rt)
 
     MeasureFPS();
 
-    char buffer[128]{};
-#ifdef _WIN32
-    MEMORYSTATUSEX memStatus;
-    memStatus.dwLength = sizeof(memStatus);
-    GlobalMemoryStatusEx(&memStatus);
-    uint32_t totalRamMB = static_cast<uint32_t>(memStatus.ullTotalPhys / (1024 * 1024));
-    uint32_t availRamMB = static_cast<uint32_t>(memStatus.ullAvailPhys / (1024 * 1024));
-    uint32_t usedRamMB = totalRamMB > availRamMB ? (totalRamMB - availRamMB) : 0;
-    auto numGuests = getGameState().park.numGuestsInPark;
-
-    static std::string platformTag;
-    if (platformTag.empty())
-    {
-        std::string hv = Platform::GetHypervisorName();
-        if (hv.find("VirtualBox") != std::string::npos)
-            platformTag = "[VBox]";
-        else if (hv.find("VMware") != std::string::npos)
-            platformTag = "[VMware]";
-        else if (hv.find("QEMU") != std::string::npos || hv.find("KVM") != std::string::npos)
-            platformTag = "[QEMU]";
-        else if (hv.find("86Box") != std::string::npos)
-            platformTag = "[86Box]";
-        else if (hv.find("PCem") != std::string::npos)
-            platformTag = "[PCem]";
-        else if (hv.find("Wine") != std::string::npos)
-            platformTag = "[Wine]";
-        else if (Platform::IsVirtualMachine())
-            platformTag = "[VM]";
-        else
-            platformTag = "[XP Native]";
-    }
-
-    FormatStringToBuffer(
-        buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32} FPS {STRING} | {INT32}/{INT32} MB RAM | {INT32} Guests",
-        _currentFPS, platformTag.c_str(), usedRamMB, totalRamMB, numGuests);
-#else
-    FormatStringToBuffer(buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32}", _currentFPS);
-#endif
+    FormatStringToBuffer(buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32} FPS", _currentFPS);
     const int32_t stringWidth = getStringWidth(buffer, FontStyle::medium);
 
     // Figure out where counter should be rendered

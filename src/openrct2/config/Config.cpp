@@ -242,6 +242,8 @@ namespace OpenRCT2::Config
             model->showFPS = reader->GetBoolean("show_fps", false);
             model->vmIdleSleep = reader->GetBoolean("vm_idle_sleep", true);
             model->highPrecisionTimer = reader->GetBoolean("high_precision_timer", true);
+            model->modernCoasterPhysics = reader->GetBoolean("modern_coaster_physics", true);
+            model->coasterFreedomMode = reader->GetBoolean("coaster_freedom_mode", false);
 #ifdef _DEBUG
             // Always have multi-threading disabled in debug builds, this makes things slower.
             model->multiThreading = false;
@@ -346,6 +348,8 @@ namespace OpenRCT2::Config
         writer->WriteBoolean("show_fps", model->showFPS);
         writer->WriteBoolean("vm_idle_sleep", model->vmIdleSleep);
         writer->WriteBoolean("high_precision_timer", model->highPrecisionTimer);
+        writer->WriteBoolean("modern_coaster_physics", model->modernCoasterPhysics);
+        writer->WriteBoolean("coaster_freedom_mode", model->coasterFreedomMode);
         writer->WriteBoolean("multithreading", model->multiThreading);
         writer->WriteBoolean("trap_cursor", model->trapCursor);
         writer->WriteBoolean("auto_open_shops", model->autoOpenShops);

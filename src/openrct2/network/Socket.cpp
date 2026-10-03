@@ -393,13 +393,19 @@ namespace OpenRCT2::Network
                 }
                 else
                 {
+                    // Network optimizations for 10/100 Mbps and vintage NICs:
+                    SetOption(socket, IPPROTO_TCP, TCP_NODELAY, true);
+                    SetOption(socket, SOL_SOCKET, SO_KEEPALIVE, true);
+                    int32_t netBufSize = 262144; // 256 KiB buffer prevents TCP window stalls on 10M/100M
+                    setsockopt(socket, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<const char*>(&netBufSize), sizeof(netBufSize));
+                    setsockopt(socket, SOL_SOCKET, SO_SNDBUF, reinterpret_cast<const char*>(&netBufSize), sizeof(netBufSize));
+
                     auto ipAddress = GetIpAddressFromSocket(reinterpret_cast<sockaddr_in*>(&client_addr));
 
                     char hostName[NI_MAXHOST];
                     int32_t rc = getnameinfo(
                         reinterpret_cast<struct sockaddr*>(&client_addr), client_len, hostName, sizeof(hostName), nullptr, 0,
                         NI_NUMERICHOST | NI_NUMERICSERV);
-                    SetNoDelay(true);
 
                     if (rc == 0)
                     {
@@ -440,7 +446,13 @@ namespace OpenRCT2::Network
                     throw SocketException("Unable to create socket.");
                 }
 
-                SetNoDelay(true);
+                // Network optimizations for 10/100 Mbps and vintage NICs:
+                SetOption(_socket, IPPROTO_TCP, TCP_NODELAY, true);
+                SetOption(_socket, SOL_SOCKET, SO_KEEPALIVE, true);
+                int32_t netBufSize = 262144; // 256 KiB
+                setsockopt(_socket, SOL_SOCKET, SO_RCVBUF, reinterpret_cast<const char*>(&netBufSize), sizeof(netBufSize));
+                setsockopt(_socket, SOL_SOCKET, SO_SNDBUF, reinterpret_cast<const char*>(&netBufSize), sizeof(netBufSize));
+
                 if (!SetNonBlocking(_socket, true))
                 {
                     throw SocketException("Failed to set non-blocking mode.");

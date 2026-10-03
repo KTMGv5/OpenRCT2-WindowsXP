@@ -13,6 +13,7 @@
 #include "../Context.h"
 #include "../GameState.h"
 #include "../OpenRCT2.h"
+#include "../config/Config.h"
 #include "../core/Guard.hpp"
 #include "../core/Money.hpp"
 #include "../core/UnitConversion.h"
@@ -1692,10 +1693,22 @@ namespace OpenRCT2
 
         // Apply maximum negative G force factor
         fixed16_2dp gforce = ride.maxNegativeVerticalG;
-        result.excitement += (std::clamp<fixed16_2dp>(gforce, -RideRating::make(2, 50), RideRating::make(0, 00)) * -15728)
-            >> 16;
-        result.intensity += ((gforce - RideRating::make(1, 00)) * -52428) >> 16;
-        result.nausea += ((gforce - RideRating::make(1, 00)) * -14563) >> 16;
+        if (Config::Get().general.modernCoasterPhysics)
+        {
+            // Modern coaster physics (RMC, Intamin, Mack): Ejector airtime is prized for excitement!
+            result.excitement += (std::clamp<fixed16_2dp>(gforce, -RideRating::make(2, 20), RideRating::make(0, 00)) * -31456)
+                >> 16;
+            // Modern trains & restraints handle negative Gs comfortably - halve the intensity penalty
+            result.intensity += ((gforce - RideRating::make(1, 00)) * -26214) >> 16;
+            result.nausea += ((gforce - RideRating::make(1, 00)) * -7281) >> 16;
+        }
+        else
+        {
+            result.excitement += (std::clamp<fixed16_2dp>(gforce, -RideRating::make(2, 50), RideRating::make(0, 00)) * -15728)
+                >> 16;
+            result.intensity += ((gforce - RideRating::make(1, 00)) * -52428) >> 16;
+            result.nausea += ((gforce - RideRating::make(1, 00)) * -14563) >> 16;
+        }
 
         // Apply lateral G force factor
         result.excitement += (std::min<fixed16_2dp>(RideRating::make(1, 50), ride.maxLateralG) * 26214) >> 16;
@@ -1742,6 +1755,12 @@ namespace OpenRCT2
         RideRatingsAdd(
             result, ((ride.highestDropHeight * 2) * 16000) >> 16, ((ride.highestDropHeight * 2) * 32000) >> 16,
             ((ride.highestDropHeight * 2) * 10240) >> 16);
+
+        // Modern coaster physics: reward total airtime duration with up to +1.25 excitement bonus
+        if (Config::Get().general.modernCoasterPhysics && ride.totalAirTime > 0)
+        {
+            result.excitement += (std::min<int32_t>(ride.totalAirTime, 1000) * 8192) >> 16;
+        }
 
         return result;
     }
@@ -2140,6 +2159,11 @@ namespace OpenRCT2
 
     static void RideRatingsApplyRequirementNegativeGs(RideRating::Tuple& ratings, const Ride& ride, RatingsModifier modifier)
     {
+        if (Config::Get().general.modernCoasterPhysics)
+        {
+            // Modern coasters safely accommodate high negative Gs without dropping ratings
+            return;
+        }
         if (ride.maxNegativeVerticalG >= modifier.threshold)
         {
             ratings.excitement /= modifier.excitement;
@@ -2225,6 +2249,23 @@ namespace OpenRCT2
     static RideRating::Tuple ride_ratings_get_excessive_lateral_g_penalty(const Ride& ride)
     {
         RideRating::Tuple result{};
+        if (Config::Get().general.modernCoasterPhysics)
+        {
+            // Modern coaster engineering (heartlining and parabolic transitions) allows higher lateral tolerances
+            if (ride.maxLateralG > MakeFixed16_2dp(3, 20))
+            {
+                result.intensity = RideRating::make(2, 50);
+                result.nausea = RideRating::make(1, 50);
+            }
+            if (ride.maxLateralG > MakeFixed16_2dp(3, 60))
+            {
+                result.excitement = -RideRating::make(1, 00);
+                result.intensity = RideRating::make(6, 00);
+                result.nausea = RideRating::make(3, 00);
+            }
+            return result;
+        }
+
         if (ride.maxLateralG > MakeFixed16_2dp(2, 80))
         {
             result.intensity = RideRating::make(3, 75);

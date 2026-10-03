@@ -1795,7 +1795,7 @@ enum : StringId
     STR_GUESTS_LEAVING_PARK = 7062,
     STR_GUESTS_WATCHING_NEW_RIDE_BEING_CONSTRUCTED = 7063,
 
-    // Windows XP Edition Features & VM Tuning
+    // System Optimizer & Coaster Masterworks
     STR_SET_DESKTOP_WALLPAPER = 7064,
     STR_SET_DESKTOP_WALLPAPER_TIP = 7065,
     STR_WINDOWS_XP_TUNING = 7066,
@@ -1816,6 +1816,13 @@ enum : StringId
     STR_RUN_BENCHMARK_TIP = 7081,
     STR_TEST_NOTIFICATION_BTN = 7082,
     STR_TEST_NOTIFICATION_TIP = 7083,
+    STR_MODERN_COASTER_RATINGS = 7084,
+    STR_MODERN_COASTER_RATINGS_TIP = 7085,
+    STR_COASTER_FREEDOM_MODE = 7086,
+    STR_COASTER_FREEDOM_MODE_TIP = 7087,
+    STR_COASTER_PHYSICS_GROUP = 7088,
+    STR_NETWORK_OPTIMIZER_LABEL = 7089,
+    STR_NETWORK_OPTIMIZER_TIP = 7090,
 
     // Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
     /* MAX_STR_COUNT = 32768 */ // MAX_STR_COUNT - upper limit for number of strings, not the current count strings

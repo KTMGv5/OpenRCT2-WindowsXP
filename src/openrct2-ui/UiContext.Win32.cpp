@@ -89,7 +89,7 @@ namespace OpenRCT2::Ui
             {
                 nid.hIcon = LoadIconA(nullptr, IDI_APPLICATION);
             }
-            strncpy(nid.szTip, "OpenRCT2: Windows XP Edition", sizeof(nid.szTip) - 1);
+            strncpy(nid.szTip, "OpenRCT2", sizeof(nid.szTip) - 1);
             strncpy(nid.szInfoTitle, title.c_str(), sizeof(nid.szInfoTitle) - 1);
             strncpy(nid.szInfo, message.c_str(), sizeof(nid.szInfo) - 1);
             nid.dwInfoFlags = NIIF_INFO;

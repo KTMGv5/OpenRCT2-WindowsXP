@@ -22,8 +22,8 @@
 namespace OpenRCT2::Network
 {
     static constexpr size_t kDisconnectReasonBufSize = 256;
-    static constexpr size_t kBufferSize = 1024 * 128; // 128 KiB.
-    static constexpr size_t kNoDataTimeout = 40;      // Seconds.
+    static constexpr size_t kBufferSize = 1024 * 256; // 256 KiB buffer for 10M/100M networks
+    static constexpr size_t kNoDataTimeout = 120;     // 120 Seconds timeout (avoids disconnects on slow/vintage links)
 
     Connection::Connection() noexcept
     {
@@ -222,12 +222,19 @@ namespace OpenRCT2::Network
 
         if (bytesSent > 0)
         {
+            _lastReceiveTime = Platform::GetTicks();
             _outboundBuffer.erase(_outboundBuffer.begin(), _outboundBuffer.begin() + bytesSent);
         }
     }
 
     bool Connection::receivedDataRecently() const noexcept
     {
+        // Don't time out if we are actively transmitting outbound data (e.g. large park map transfer)
+        if (!_outboundBuffer.empty())
+        {
+            return true;
+        }
+
         constexpr auto kTimeoutMs = kNoDataTimeout * 1000;
 
         const auto timeSinceLastRecv = Platform::GetTicks() - _lastReceiveTime;
