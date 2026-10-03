@@ -359,7 +359,19 @@ private:
                 if (pitch == width * 4)
                 {
                     uint32_t* dst = static_cast<uint32_t*>(pixels);
-                    for (int32_t i = width * height; i > 0; i--)
+                    int32_t count = width * height;
+                    int32_t blocks = count / 4;
+                    int32_t remainder = count % 4;
+                    while (blocks-- > 0)
+                    {
+                        dst[0] = palette[EnumValue(src[0])];
+                        dst[1] = palette[EnumValue(src[1])];
+                        dst[2] = palette[EnumValue(src[2])];
+                        dst[3] = palette[EnumValue(src[3])];
+                        src += 4;
+                        dst += 4;
+                    }
+                    while (remainder-- > 0)
                     {
                         *dst++ = palette[EnumValue(*src++)];
                     }
@@ -370,7 +382,18 @@ private:
                     for (int32_t y = 0; y < height; y++)
                     {
                         uint32_t* dst = reinterpret_cast<uint32_t*>(rowDst);
-                        for (int32_t x = 0; x < width; x++)
+                        int32_t blocks = width / 4;
+                        int32_t remainder = width % 4;
+                        while (blocks-- > 0)
+                        {
+                            dst[0] = palette[EnumValue(src[0])];
+                            dst[1] = palette[EnumValue(src[1])];
+                            dst[2] = palette[EnumValue(src[2])];
+                            dst[3] = palette[EnumValue(src[3])];
+                            src += 4;
+                            dst += 4;
+                        }
+                        while (remainder-- > 0)
                         {
                             *dst++ = palette[EnumValue(*src++)];
                         }
@@ -384,7 +407,18 @@ private:
                 for (int32_t y = 0; y < height; y++)
                 {
                     uint16_t* dst = reinterpret_cast<uint16_t*>(rowDst);
-                    for (int32_t x = 0; x < width; x++)
+                    int32_t blocks = width / 4;
+                    int32_t remainder = width % 4;
+                    while (blocks-- > 0)
+                    {
+                        dst[0] = static_cast<uint16_t>(palette[EnumValue(src[0])]);
+                        dst[1] = static_cast<uint16_t>(palette[EnumValue(src[1])]);
+                        dst[2] = static_cast<uint16_t>(palette[EnumValue(src[2])]);
+                        dst[3] = static_cast<uint16_t>(palette[EnumValue(src[3])]);
+                        src += 4;
+                        dst += 4;
+                    }
+                    while (remainder-- > 0)
                     {
                         *dst++ = static_cast<uint16_t>(palette[EnumValue(*src++)]);
                     }

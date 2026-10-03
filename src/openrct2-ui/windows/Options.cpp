@@ -485,10 +485,23 @@ namespace OpenRCT2::Ui::Windows
     };
     // clang-format on
 
+    static constexpr DrawingEngine kDrawingEngines[] = {
+        DrawingEngine::softwareWithHardwareDisplay,
+#ifndef DISABLE_OPENGL
+        DrawingEngine::openGL,
+#endif
+#if defined(_WIN32)
+        DrawingEngine::direct3D9,
+#endif
+    };
+
     static constexpr StringId kDrawingEngineStringIds[] = {
         STR_DRAWING_ENGINE_SOFTWARE,
 #ifndef DISABLE_OPENGL
         STR_DRAWING_ENGINE_OPENGL,
+#endif
+#if defined(_WIN32)
+        STR_DRAWING_ENGINE_DIRECT3D9,
 #endif
     };
 
@@ -866,12 +879,17 @@ namespace OpenRCT2::Ui::Windows
                 case WIDX_DRAWING_ENGINE_DROPDOWN:
                 {
                     const auto numItems = static_cast<int32_t>(std::size(kDrawingEngineStringIds));
+                    int32_t activeItem = 0;
                     for (int32_t i = 0; i < numItems; i++)
                     {
                         gDropdown.items[i] = Dropdown::MenuLabel(kDrawingEngineStringIds[i]);
+                        if (kDrawingEngines[i] == Config::Get().general.drawingEngine)
+                        {
+                            activeItem = i;
+                        }
                     }
                     ShowDropdown(widget, numItems);
-                    gDropdown.items[EnumValue(Config::Get().general.drawingEngine)].setChecked(true);
+                    gDropdown.items[activeItem].setChecked(true);
                     break;
                 }
                 case WIDX_SCALE_UP:
@@ -944,14 +962,16 @@ namespace OpenRCT2::Ui::Windows
                     }
                     break;
                 case WIDX_DRAWING_ENGINE_DROPDOWN:
-                    if (dropdownIndex != EnumValue(Config::Get().general.drawingEngine))
+                    if (dropdownIndex >= 0 && dropdownIndex < static_cast<int32_t>(std::size(kDrawingEngines)))
                     {
-                        DrawingEngine dstEngine = static_cast<DrawingEngine>(dropdownIndex);
-
-                        Config::Get().general.drawingEngine = dstEngine;
-                        RefreshVideo();
-                        Config::Save();
-                        invalidate();
+                        DrawingEngine dstEngine = kDrawingEngines[dropdownIndex];
+                        if (dstEngine != Config::Get().general.drawingEngine)
+                        {
+                            Config::Get().general.drawingEngine = dstEngine;
+                            RefreshVideo();
+                            Config::Save();
+                            invalidate();
+                        }
                     }
                     break;
                 case WIDX_FRAME_RATE_LIMIT_DROPDOWN:
@@ -1002,7 +1022,16 @@ namespace OpenRCT2::Ui::Windows
 
             // Dropdown captions for straightforward strings.
             widgets[WIDX_FULLSCREEN].text = FullscreenModeNames[Config::Get().general.fullscreenMode];
-            widgets[WIDX_DRAWING_ENGINE].text = kDrawingEngineStringIds[EnumValue(Config::Get().general.drawingEngine)];
+            StringId engineStringId = STR_DRAWING_ENGINE_SOFTWARE;
+            for (size_t i = 0; i < std::size(kDrawingEngines); i++)
+            {
+                if (kDrawingEngines[i] == Config::Get().general.drawingEngine)
+                {
+                    engineStringId = kDrawingEngineStringIds[i];
+                    break;
+                }
+            }
+            widgets[WIDX_DRAWING_ENGINE].text = engineStringId;
 
             static constexpr StringId kFrameRateLimitStringIds[] = {
                 STR_FRAME_RATE_LIMIT_DEFAULT,
@@ -1142,7 +1171,8 @@ namespace OpenRCT2::Ui::Windows
 
             setCheckboxValue(WIDX_ENABLE_LIGHT_FX_CHECKBOX, Config::Get().general.enableLightFx);
             const bool lightFxEnabled = Config::Get().general.dayNightCycle
-                && Config::Get().general.drawingEngine == DrawingEngine::softwareWithHardwareDisplay;
+                && (Config::Get().general.drawingEngine == DrawingEngine::softwareWithHardwareDisplay
+                    || Config::Get().general.drawingEngine == DrawingEngine::direct3D9);
             setWidgetDisabled(WIDX_ENABLE_LIGHT_FX_CHECKBOX, !lightFxEnabled);
             if (!lightFxEnabled)
                 Config::Get().general.enableLightFx = false;

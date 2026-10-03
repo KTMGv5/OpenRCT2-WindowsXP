@@ -110,6 +110,7 @@ namespace OpenRCT2::Config
     static const auto Enum_DrawingEngine = ConfigEnum<DrawingEngine>({
         ConfigEnumEntry<DrawingEngine>("SOFTWARE_HWD", DrawingEngine::softwareWithHardwareDisplay),
         ConfigEnumEntry<DrawingEngine>("OPENGL", DrawingEngine::openGL),
+        ConfigEnumEntry<DrawingEngine>("DIRECT3D9", DrawingEngine::direct3D9),
     });
 
     static const auto Enum_Temperature = ConfigEnum<TemperatureUnit>({
@@ -232,7 +233,8 @@ namespace OpenRCT2::Config
 
             // Default config setting is false until the games canvas can be separated from the effect
             model->dayNightCycle = reader->GetBoolean("day_night_cycle", false);
-            const bool supportsLightFx = model->drawingEngine == DrawingEngine::softwareWithHardwareDisplay;
+            const bool supportsLightFx = model->drawingEngine == DrawingEngine::softwareWithHardwareDisplay
+                || model->drawingEngine == DrawingEngine::direct3D9;
             model->enableLightFx = supportsLightFx && reader->GetBoolean("enable_light_fx", false);
             model->enableLightFxForVehicles = supportsLightFx && reader->GetBoolean("enable_light_fx_for_vehicles", false);
             model->upperCaseBanners = reader->GetBoolean("upper_case_banners", false);

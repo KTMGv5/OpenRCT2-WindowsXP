@@ -21,6 +21,9 @@ namespace OpenRCT2::Ui
 #ifndef DISABLE_OPENGL
     [[nodiscard]] std::unique_ptr<Drawing::IDrawingEngine> CreateOpenGLDrawingEngine(IUiContext& uiContext);
 #endif
+#if defined(_WIN32)
+    [[nodiscard]] std::unique_ptr<Drawing::IDrawingEngine> CreateD3D9DrawingEngine(IUiContext& uiContext);
+#endif
 
     class DrawingEngineFactory final : public Drawing::IDrawingEngineFactory
     {
@@ -34,6 +37,10 @@ namespace OpenRCT2::Ui
 #ifndef DISABLE_OPENGL
                 case DrawingEngine::openGL:
                     return CreateOpenGLDrawingEngine(uiContext);
+#endif
+#if defined(_WIN32)
+                case DrawingEngine::direct3D9:
+                    return CreateD3D9DrawingEngine(uiContext);
 #endif
                 default:
                     Guard::Fail("Unknown renderer: %u", static_cast<uint32_t>(type));

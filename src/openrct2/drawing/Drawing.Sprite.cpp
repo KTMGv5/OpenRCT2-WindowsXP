@@ -325,6 +325,11 @@ static auto GetMaskFunction()
         LOG_VERBOSE("registering SSE4.1 mask function");
         return MaskSse4_1;
     }
+    else if (Platform::SSE2Available())
+    {
+        LOG_VERBOSE("registering SSE2 mask function");
+        return MaskSse2;
+    }
     else
     {
         LOG_VERBOSE("registering scalar mask function");

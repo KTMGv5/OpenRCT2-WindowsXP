@@ -21,6 +21,7 @@ enum class DrawingEngine : int32_t
     none = -1,
     softwareWithHardwareDisplay,
     openGL,
+    direct3D9,
     count,
 };
 

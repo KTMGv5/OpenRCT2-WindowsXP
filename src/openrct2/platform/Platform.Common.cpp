@@ -224,6 +224,23 @@ namespace OpenRCT2::Platform
     }
 #endif // OPENRCT2_X86
 
+    bool SSE2Available()
+    {
+#ifdef OPENRCT2_X86
+    #if defined(__x86_64__) || defined(_M_X64)
+        return true;
+    #else
+        // SSE2 support is declared as the 26th bit of EDX with CPUID(EAX = 1).
+        uint32_t regs[4] = { 0 };
+        if (CPUIDX86(regs, 1))
+        {
+            return (regs[3] & (1 << 26)) != 0;
+        }
+    #endif
+#endif
+        return false;
+    }
+
     bool SSE41Available()
     {
 #ifdef OPENRCT2_X86

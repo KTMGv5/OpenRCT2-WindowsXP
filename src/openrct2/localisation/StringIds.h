@@ -1818,6 +1818,7 @@ enum : StringId
     STR_TEST_NOTIFICATION_TIP = 7119,
     STR_NETWORK_OPTIMIZER_LABEL = 7120,
     STR_NETWORK_OPTIMIZER_TIP = 7121,
+    STR_DRAWING_ENGINE_DIRECT3D9 = 7122,
 
     // Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
     /* MAX_STR_COUNT = 32768 */ // MAX_STR_COUNT - upper limit for number of strings, not the current count strings

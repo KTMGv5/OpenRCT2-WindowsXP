@@ -228,6 +228,7 @@ namespace OpenRCT2::Platform
 
     void Sleep(uint32_t ms);
 
+    bool SSE2Available();
     bool SSE41Available();
     bool AVX2Available();
 
