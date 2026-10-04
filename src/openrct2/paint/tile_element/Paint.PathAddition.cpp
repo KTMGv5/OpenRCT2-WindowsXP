@@ -275,27 +275,20 @@ void PaintLampLightEffects(PaintSession& session, const PathElement& pathEl, uin
 
     if (LightFx::IsAvailable())
     {
+        // At zoom 2+ (high overview of park), individual footpath lamps are culled,
+        // matching OpenRCT2's LOD system and keeping FPS high without giant light blobs.
+        if (session.rt.zoom_level > ZoomLevel{ 1 })
+        {
+            return;
+        }
+
         if (pathEl.hasAddition() && !(pathEl.isBroken()))
         {
             auto* pathAddEntry = pathEl.getAdditionEntry();
             if (pathAddEntry != nullptr && pathAddEntry->flags.has(PathAdditionFlag::lamp))
             {
-                if (!(pathEl.getEdges() & EDGE_NE))
-                {
-                    LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, -16, 0, height + 23, LightType::lantern3);
-                }
-                if (!(pathEl.getEdges() & EDGE_SE))
-                {
-                    LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 16, height + 23, LightType::lantern3);
-                }
-                if (!(pathEl.getEdges() & EDGE_SW))
-                {
-                    LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 16, 0, height + 23, LightType::lantern3);
-                }
-                if (!(pathEl.getEdges() & EDGE_NW))
-                {
-                    LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, -16, height + 23, LightType::lantern3);
-                }
+                // Each lit footpath tile emits a single balanced light pool
+                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 23, LightType::lantern2);
             }
         }
     }

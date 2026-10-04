@@ -64,8 +64,9 @@ namespace OpenRCT2::Drawing::LightFx
         uint8_t lightLinger;
     };
 
-    static LightListEntry _LightListA[16000];
-    static LightListEntry _LightListB[16000];
+    static constexpr uint32_t kMaxLights = 32000;
+    static LightListEntry _LightListA[kMaxLights];
+    static LightListEntry _LightListB[kMaxLights];
 
     static LightListEntry* _LightListBack;
     static LightListEntry* _LightListFront;
@@ -481,37 +482,12 @@ namespace OpenRCT2::Drawing::LightFx
     static void Add3DLight(
         const uint32_t lightHash, const Qualifier qualifier, const uint8_t id, const CoordsXYZ& loc, const LightType lightType)
     {
-        if (LightListCurrentCountBack == 15999)
+        if (LightListCurrentCountBack >= kMaxLights)
         {
-            return;
-        }
-
-        //  LOG_WARNING("%i lights in back", LightListCurrentCountBack);
-
-        for (uint32_t i = 0; i < LightListCurrentCountBack; i++)
-        {
-            LightListEntry& entry = _LightListBack[i];
-            if (entry.lightHash != lightHash)
-                continue;
-            if (entry.qualifier != qualifier)
-                continue;
-            if (entry.lightID != id)
-                continue;
-
-            entry.position = loc;
-            entry.viewCoords = Translate3DTo2DWithZ(GetCurrentRotation(), loc);
-            entry.type = lightType;
-            entry.lightIntensity = 0xFF;
-            entry.lightHash = lightHash;
-            entry.qualifier = qualifier;
-            entry.lightID = id;
-            entry.lightLinger = 1;
-
             return;
         }
 
         LightListEntry* entry = &_LightListBack[LightListCurrentCountBack++];
-
         entry->position = loc;
         entry->viewCoords = Translate3DTo2DWithZ(GetCurrentRotation(), loc);
         entry->type = lightType;
@@ -520,13 +496,12 @@ namespace OpenRCT2::Drawing::LightFx
         entry->qualifier = qualifier;
         entry->lightID = id;
         entry->lightLinger = 1;
-
-        //  LOG_WARNING("new 3d light");
     }
 
     static void Add3DLight(const CoordsXYZ& loc, const LightType lightType)
     {
-        Add3DLight(((loc.x << 16) | loc.y), Qualifier::map, loc.z, loc, lightType);
+        uint32_t hash = (static_cast<uint32_t>(static_cast<uint16_t>(loc.x)) << 16) | static_cast<uint16_t>(loc.y);
+        Add3DLight(hash, Qualifier::map, static_cast<uint8_t>(loc.z & 0xFF), loc, lightType);
     }
 
     void Add3DLight(const EntityBase& entity, const uint8_t id, const CoordsXYZ& loc, const LightType lightType)
@@ -644,47 +619,12 @@ namespace OpenRCT2::Drawing::LightFx
 
     void AddKioskLights(const CoordsXY& mapPosition, const int32_t height, const uint8_t zOffset)
     {
-        uint8_t relativeRotation = (4 - GetCurrentRotation()) % 4;
-        CoordsXY lanternOffset1 = CoordsXY(0, 16).rotate(relativeRotation);
-        CoordsXY lanternOffset2 = CoordsXY(16, 0).rotate(relativeRotation);
-        Add3DLightMagicFromDrawingTile(mapPosition, lanternOffset1.x, lanternOffset1.y, height + zOffset, LightType::lantern3);
-        Add3DLightMagicFromDrawingTile(mapPosition, lanternOffset2.x, lanternOffset2.y, height + zOffset, LightType::lantern3);
-        Add3DLightMagicFromDrawingTile(mapPosition, 8, 32, height, LightType::spot1);
-        Add3DLightMagicFromDrawingTile(mapPosition, 32, 8, height, LightType::spot1);
-        Add3DLightMagicFromDrawingTile(mapPosition, -32, 8, height, LightType::spot1);
-        Add3DLightMagicFromDrawingTile(mapPosition, 8, -32, height, LightType::spot1);
-        Add3DLightMagicFromDrawingTile(mapPosition, -8, 32, height, LightType::spot1);
-        Add3DLightMagicFromDrawingTile(mapPosition, 32, -8, height, LightType::spot1);
-        Add3DLightMagicFromDrawingTile(mapPosition, -32, -8, height, LightType::spot1);
-        Add3DLightMagicFromDrawingTile(mapPosition, -8, -32, height, LightType::spot1);
+        Add3DLightMagicFromDrawingTile(mapPosition, 0, 0, height + zOffset, LightType::lantern2);
     }
 
     void AddShopLights(const CoordsXY& mapPosition, const uint8_t direction, const int32_t height, const uint8_t zOffset)
     {
-        if (direction == (4 - GetCurrentRotation()) % 4) // Back Right Facing Stall
-        {
-            CoordsXY spotOffset1 = CoordsXY(-32, 8).rotate(direction);
-            CoordsXY spotOffset2 = CoordsXY(-32, 4).rotate(direction);
-            Add3DLightMagicFromDrawingTile(mapPosition, spotOffset1.x, spotOffset1.y, height, LightType::spot1);
-            Add3DLightMagicFromDrawingTile(mapPosition, spotOffset2.x, spotOffset2.y, height, LightType::spot2);
-        }
-        else if (direction == (7 - GetCurrentRotation()) % 4) // Back left Facing Stall
-        {
-            CoordsXY spotOffset1 = CoordsXY(-32, -8).rotate(direction);
-            CoordsXY spotOffset2 = CoordsXY(-32, -4).rotate(direction);
-            Add3DLightMagicFromDrawingTile(mapPosition, spotOffset1.x, spotOffset1.y, height, LightType::spot1);
-            Add3DLightMagicFromDrawingTile(mapPosition, spotOffset2.x, spotOffset2.y, height, LightType::spot2);
-        }
-        else // Forward Facing Stall
-        {
-            CoordsXY spotOffset1 = CoordsXY(-32, 8).rotate(direction);
-            CoordsXY spotOffset2 = CoordsXY(-32, -8).rotate(direction);
-            CoordsXY lanternOffset = CoordsXY(-16, 0).rotate(direction);
-            Add3DLightMagicFromDrawingTile(
-                mapPosition, lanternOffset.x, lanternOffset.y, height + zOffset, LightType::lantern3);
-            Add3DLightMagicFromDrawingTile(mapPosition, spotOffset1.x, spotOffset1.y, height, LightType::spot1);
-            Add3DLightMagicFromDrawingTile(mapPosition, spotOffset2.x, spotOffset2.y, height, LightType::spot1);
-        }
+        Add3DLightMagicFromDrawingTile(mapPosition, 0, 0, height + zOffset, LightType::lantern2);
     }
 
     void ApplyPaletteFilter(uint8_t i, uint8_t* r, uint8_t* g, uint8_t* b)
@@ -701,9 +641,9 @@ namespace OpenRCT2::Drawing::LightFx
         float natLightG = 1.0f;
         float natLightB = 1.0f;
 
-        float elecMultR = 0.88f;
-        float elecMultG = 0.76f;
-        float elecMultB = 0.50f;
+        float elecMultR = 0.82f;
+        float elecMultG = 0.70f;
+        float elecMultB = 0.45f;
 
         static float wetness = 0.0f;
         static float fogginess = 0.0f;
