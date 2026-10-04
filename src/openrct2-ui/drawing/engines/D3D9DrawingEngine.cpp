@@ -28,7 +28,6 @@
 #include <openrct2/Diagnostic.h>
 #include <openrct2/Game.h>
 #include <openrct2/config/Config.h>
-#include <openrct2/core/Guard.hpp>
 #include <openrct2/drawing/IDrawingEngine.h>
 #include <openrct2/drawing/LightFX.h>
 #include <openrct2/drawing/X8DrawingEngine.h>
@@ -56,6 +55,8 @@ private:
     D3DPRESENT_PARAMETERS _d3dpp = {};
     bool _isDynamicTexture = false;
     bool _useVsync = true;
+    uint32_t _backBufferWidth = 0;
+    uint32_t _backBufferHeight = 0;
 
     uint32_t _paletteHWMapped[256] = { 0 };
     uint32_t _lightPaletteHWMapped[256] = { 0 };
@@ -148,12 +149,30 @@ public:
             throw std::runtime_error("Direct3D 9: Direct3DCreate9 returned null");
         }
 
+        int initWidth = 0, initHeight = 0;
+        SDL_GetWindowSize(_window, &initWidth, &initHeight);
+        if (initWidth <= 0 || initHeight <= 0)
+        {
+            RECT rcClient = {};
+            if (GetClientRect(_hwnd, &rcClient))
+            {
+                initWidth = rcClient.right - rcClient.left;
+                initHeight = rcClient.bottom - rcClient.top;
+            }
+        }
+        if (initWidth <= 0)
+            initWidth = 1280;
+        if (initHeight <= 0)
+            initHeight = 720;
+
         _d3dpp = {};
         _d3dpp.Windowed = TRUE;
         _d3dpp.SwapEffect = D3DSWAPEFFECT_DISCARD;
         _d3dpp.hDeviceWindow = _hwnd;
         _d3dpp.BackBufferFormat = D3DFMT_UNKNOWN;
         _d3dpp.BackBufferCount = 1;
+        _d3dpp.BackBufferWidth = static_cast<UINT>(initWidth);
+        _d3dpp.BackBufferHeight = static_cast<UINT>(initHeight);
         _d3dpp.EnableAutoDepthStencil = FALSE;
         _d3dpp.PresentationInterval = _useVsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 
@@ -182,7 +201,19 @@ public:
             throw std::runtime_error("Direct3D 9: Failed to create Direct3D 9 HAL device");
         }
 
-        LOG_INFO("Direct3D 9 hardware drawing engine initialised successfully");
+        _backBufferWidth = static_cast<uint32_t>(initWidth);
+        _backBufferHeight = static_cast<uint32_t>(initHeight);
+
+        D3DVIEWPORT9 vp = {};
+        vp.X = 0;
+        vp.Y = 0;
+        vp.Width = static_cast<DWORD>(initWidth);
+        vp.Height = static_cast<DWORD>(initHeight);
+        vp.MinZ = 0.0f;
+        vp.MaxZ = 1.0f;
+        _device->SetViewport(&vp);
+
+        LOG_INFO("Direct3D 9 hardware drawing engine initialised successfully (%ux%u)", _backBufferWidth, _backBufferHeight);
     }
 
     void SetVSync(bool vsync) override
@@ -192,14 +223,17 @@ public:
             _useVsync = vsync;
             if (_device != nullptr)
             {
-                _d3dpp.PresentationInterval = _useVsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
-                if (_screenTexture != nullptr)
+                int winW = 0, winH = 0;
+                SDL_GetWindowSize(_window, &winW, &winH);
+                if (winW <= 0 || winH <= 0)
                 {
-                    _screenTexture->Release();
-                    _screenTexture = nullptr;
+                    winW = static_cast<int>(_backBufferWidth);
+                    winH = static_cast<int>(_backBufferHeight);
                 }
-                _device->Reset(&_d3dpp);
-                Resize(_width, _height);
+                if (winW > 0 && winH > 0)
+                {
+                    ResetDevice(winW, winH, _width, _height);
+                }
             }
         }
     }
@@ -211,47 +245,31 @@ public:
             return;
         }
 
-        if (_screenTexture != nullptr)
+        int windowWidth = 0, windowHeight = 0;
+        SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
+        if (windowWidth <= 0 || windowHeight <= 0)
         {
-            _screenTexture->Release();
-            _screenTexture = nullptr;
+            RECT rcClient = {};
+            if (_hwnd != nullptr && GetClientRect(_hwnd, &rcClient))
+            {
+                windowWidth = rcClient.right - rcClient.left;
+                windowHeight = rcClient.bottom - rcClient.top;
+            }
         }
 
-        // Try dynamic texture in D3DPOOL_DEFAULT first
-        HRESULT hr = _device->CreateTexture(
-            width,
-            height,
-            1,
-            D3DUSAGE_DYNAMIC,
-            D3DFMT_X8R8G8B8,
-            D3DPOOL_DEFAULT,
-            &_screenTexture,
-            nullptr);
-
-        if (SUCCEEDED(hr) && _screenTexture != nullptr)
+        bool resetDone = false;
+        if (windowWidth > 0 && windowHeight > 0 && (_hwnd == nullptr || !IsIconic(_hwnd)))
         {
-            _isDynamicTexture = true;
-        }
-        else
-        {
-            // Fall back to managed texture
-            hr = _device->CreateTexture(
-                width,
-                height,
-                1,
-                0,
-                D3DFMT_X8R8G8B8,
-                D3DPOOL_MANAGED,
-                &_screenTexture,
-                nullptr);
-            _isDynamicTexture = false;
+            if (static_cast<uint32_t>(windowWidth) != _backBufferWidth ||
+                static_cast<uint32_t>(windowHeight) != _backBufferHeight)
+            {
+                resetDone = ResetDevice(windowWidth, windowHeight, width, height);
+            }
         }
 
-        Guard::Assert(_screenTexture != nullptr, "Failed to create Direct3D 9 screen texture (%ux%u)", width, height);
-
-        if (_hasPalette)
+        if (!resetDone)
         {
-            SetPalette(_lastPalette);
+            CreateScreenTexture(width, height);
         }
 
         X8DrawingEngine::Resize(width, height);
@@ -316,9 +334,137 @@ protected:
     }
 
 private:
+    bool ResetDevice(int windowWidth, int windowHeight, uint32_t canvasWidth, uint32_t canvasHeight)
+    {
+        if (_device == nullptr || windowWidth <= 0 || windowHeight <= 0)
+        {
+            return false;
+        }
+
+        if (_hwnd != nullptr && IsIconic(_hwnd))
+        {
+            return false;
+        }
+
+        // Must release all D3DPOOL_DEFAULT resources before resetting the device
+        if (_screenTexture != nullptr)
+        {
+            _screenTexture->Release();
+            _screenTexture = nullptr;
+        }
+
+        _d3dpp.BackBufferWidth = static_cast<UINT>(windowWidth);
+        _d3dpp.BackBufferHeight = static_cast<UINT>(windowHeight);
+        _d3dpp.PresentationInterval = _useVsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
+
+        HRESULT hr = _device->Reset(&_d3dpp);
+        if (FAILED(hr))
+        {
+            LOG_WARNING("Direct3D 9: Device Reset failed (0x%08lX)", static_cast<unsigned long>(hr));
+            return false;
+        }
+
+        _backBufferWidth = static_cast<uint32_t>(windowWidth);
+        _backBufferHeight = static_cast<uint32_t>(windowHeight);
+
+        D3DVIEWPORT9 vp = {};
+        vp.X = 0;
+        vp.Y = 0;
+        vp.Width = static_cast<DWORD>(windowWidth);
+        vp.Height = static_cast<DWORD>(windowHeight);
+        vp.MinZ = 0.0f;
+        vp.MaxZ = 1.0f;
+        _device->SetViewport(&vp);
+
+        if (canvasWidth > 0 && canvasHeight > 0)
+        {
+            CreateScreenTexture(canvasWidth, canvasHeight);
+        }
+
+        GfxInvalidateScreen();
+        return true;
+    }
+
+    bool CreateScreenTexture(uint32_t width, uint32_t height)
+    {
+        if (_device == nullptr || width == 0 || height == 0)
+        {
+            return false;
+        }
+
+        if (_screenTexture != nullptr)
+        {
+            _screenTexture->Release();
+            _screenTexture = nullptr;
+        }
+
+        // Try dynamic texture in D3DPOOL_DEFAULT first
+        HRESULT hr = _device->CreateTexture(
+            width,
+            height,
+            1,
+            D3DUSAGE_DYNAMIC,
+            D3DFMT_X8R8G8B8,
+            D3DPOOL_DEFAULT,
+            &_screenTexture,
+            nullptr);
+
+        if (SUCCEEDED(hr) && _screenTexture != nullptr)
+        {
+            _isDynamicTexture = true;
+        }
+        else
+        {
+            // Fall back to managed texture
+            hr = _device->CreateTexture(
+                width,
+                height,
+                1,
+                0,
+                D3DFMT_X8R8G8B8,
+                D3DPOOL_MANAGED,
+                &_screenTexture,
+                nullptr);
+
+            if (SUCCEEDED(hr) && _screenTexture != nullptr)
+            {
+                _isDynamicTexture = false;
+            }
+            else
+            {
+                LOG_WARNING("Direct3D 9: Failed to create screen texture (%ux%u): 0x%08lX", width, height, static_cast<unsigned long>(hr));
+                return false;
+            }
+        }
+
+        if (_hasPalette)
+        {
+            SetPalette(_lastPalette);
+        }
+
+        return true;
+    }
+
     void Display()
     {
-        if (_device == nullptr || _screenTexture == nullptr || _width == 0 || _height == 0)
+        if (_device == nullptr || _width == 0 || _height == 0)
+        {
+            return;
+        }
+
+        int windowWidth = 0, windowHeight = 0;
+        SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
+        if (windowWidth <= 0 || windowHeight <= 0)
+        {
+            RECT rcClient = {};
+            if (_hwnd != nullptr && GetClientRect(_hwnd, &rcClient))
+            {
+                windowWidth = rcClient.right - rcClient.left;
+                windowHeight = rcClient.bottom - rcClient.top;
+            }
+        }
+
+        if (windowWidth <= 0 || windowHeight <= 0 || (_hwnd != nullptr && IsIconic(_hwnd)))
         {
             return;
         }
@@ -328,22 +474,27 @@ private:
         {
             return;
         }
-        else if (hrCoop == D3DERR_DEVICENOTRESET)
+        else if (hrCoop == D3DERR_DEVICENOTRESET ||
+                 static_cast<uint32_t>(windowWidth) != _backBufferWidth ||
+                 static_cast<uint32_t>(windowHeight) != _backBufferHeight)
         {
-            if (_screenTexture != nullptr)
-            {
-                _screenTexture->Release();
-                _screenTexture = nullptr;
-            }
-            if (FAILED(_device->Reset(&_d3dpp)))
+            if (!ResetDevice(windowWidth, windowHeight, _width, _height))
             {
                 return;
             }
-            Resize(_width, _height);
-            if (_screenTexture == nullptr)
+        }
+
+        if (_screenTexture == nullptr)
+        {
+            if (!CreateScreenTexture(_width, _height))
             {
                 return;
             }
+        }
+
+        if (_bits == nullptr)
+        {
+            return;
         }
 
         D3DLOCKED_RECT lockedRect = {};
@@ -364,13 +515,6 @@ private:
                     static_cast<int32_t>(_height), _paletteHWMapped);
             }
             _screenTexture->UnlockRect(0);
-        }
-
-        int windowWidth = 0, windowHeight = 0;
-        SDL_GetWindowSize(_window, &windowWidth, &windowHeight);
-        if (windowWidth <= 0 || windowHeight <= 0)
-        {
-            return;
         }
 
         float x1 = -0.5f;
@@ -394,6 +538,15 @@ private:
         _device->SetSamplerState(0, D3DSAMP_MINFILTER, filter);
         _device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
         _device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+
+        D3DVIEWPORT9 vp = {};
+        vp.X = 0;
+        vp.Y = 0;
+        vp.Width = static_cast<DWORD>(windowWidth);
+        vp.Height = static_cast<DWORD>(windowHeight);
+        vp.MinZ = 0.0f;
+        vp.MaxZ = 1.0f;
+        _device->SetViewport(&vp);
 
         if (SUCCEEDED(_device->BeginScene()))
         {
@@ -443,26 +596,29 @@ private:
         else
         {
             uint8_t* rowDst = static_cast<uint8_t*>(pixels);
+            const PaletteIndex* rowSrc = src;
             for (int32_t y = 0; y < height; y++)
             {
                 uint32_t* dst = reinterpret_cast<uint32_t*>(rowDst);
+                const PaletteIndex* s = rowSrc;
                 int32_t blocks = width / 4;
                 int32_t remainder = width % 4;
 
                 while (blocks-- > 0)
                 {
-                    dst[0] = palette[EnumValue(src[0])];
-                    dst[1] = palette[EnumValue(src[1])];
-                    dst[2] = palette[EnumValue(src[2])];
-                    dst[3] = palette[EnumValue(src[3])];
-                    src += 4;
+                    dst[0] = palette[EnumValue(s[0])];
+                    dst[1] = palette[EnumValue(s[1])];
+                    dst[2] = palette[EnumValue(s[2])];
+                    dst[3] = palette[EnumValue(s[3])];
+                    s += 4;
                     dst += 4;
                 }
                 while (remainder-- > 0)
                 {
-                    *dst++ = palette[EnumValue(*src++)];
+                    *dst++ = palette[EnumValue(*s++)];
                 }
                 rowDst += pitch;
+                rowSrc += width;
             }
         }
     }
@@ -494,6 +650,11 @@ private:
 
     void RenderDirtyVisuals(int windowWidth, int windowHeight)
     {
+        if (_width == 0 || _height == 0)
+        {
+            return;
+        }
+
         float scaleX = static_cast<float>(windowWidth) / static_cast<float>(_width);
         float scaleY = static_cast<float>(windowHeight) / static_cast<float>(_height);
 
