@@ -23,6 +23,7 @@
 #include <SDL_video.h>
 #include <d3d9.h>
 #include <cmath>
+#include <cstring>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -651,7 +652,7 @@ private:
                 }
                 else
                 {
-                    const uint8_t* srcRow = _bits;
+                    const uint8_t* srcRow = reinterpret_cast<const uint8_t*>(_bits);
                     uint8_t* dstRow = static_cast<uint8_t*>(lockedRect.pBits);
                     for (uint32_t y = 0; y < _height; y++)
                     {
