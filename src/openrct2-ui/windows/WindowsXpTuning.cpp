@@ -31,7 +31,7 @@
 namespace OpenRCT2::Ui::Windows
 {
     static constexpr StringId kWindowTitle = STR_WINDOWS_XP_TUNING;
-    static constexpr ScreenSize kWindowSize = { 430, 346 };
+    static constexpr ScreenSize kWindowSize = { 430, 368 };
 
     enum WindowXpTuningWidgetIdx : WidgetIndex
     {
@@ -45,6 +45,7 @@ namespace OpenRCT2::Ui::Windows
         WIDX_VM_IDLE_SLEEP,
         WIDX_HIGH_PRECISION_TIMER,
         WIDX_HARDWARE_HUD,
+        WIDX_D3D9_SHADER_EFFECT,
 
         WIDX_GROUP_ACTIONS,
         WIDX_SET_DESKTOP_WALLPAPER,
@@ -60,16 +61,17 @@ namespace OpenRCT2::Ui::Windows
         makeWidget({ 6, 20 }, { 418, 120 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_DIAGNOSTICS_GROUP),
 
         // Group 2: Engine & Performance Tuning
-        makeWidget({ 6, 146 }, { 418, 76 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_TUNING_GROUP),
+        makeWidget({ 6, 146 }, { 418, 98 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_TUNING_GROUP),
         makeWidget({ 14, 162 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_VM_IDLE_SLEEP_LABEL, STR_VM_IDLE_SLEEP_TIP),
         makeWidget({ 14, 180 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_HIGH_PRECISION_TIMER_LABEL, STR_HIGH_PRECISION_TIMER_TIP),
         makeWidget({ 14, 198 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_HARDWARE_HUD_LABEL, STR_HARDWARE_HUD_TIP),
+        makeWidget({ 14, 216 }, { 402, 22 }, WidgetType::button,   WindowColour::secondary),
 
         // Group 3: Tools & Desktop Integration
-        makeWidget({ 6, 228 }, { 418, 88 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_ACTIONS_GROUP),
-        makeWidget({ 14, 244 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_SET_DESKTOP_WALLPAPER, STR_SET_DESKTOP_WALLPAPER_TIP),
-        makeWidget({ 14, 272 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP),
-        makeWidget({ 218, 272 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_TEST_NOTIFICATION_BTN, STR_TEST_NOTIFICATION_TIP)
+        makeWidget({ 6, 250 }, { 418, 88 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_ACTIONS_GROUP),
+        makeWidget({ 14, 266 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_SET_DESKTOP_WALLPAPER, STR_SET_DESKTOP_WALLPAPER_TIP),
+        makeWidget({ 14, 294 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP),
+        makeWidget({ 218, 294 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_TEST_NOTIFICATION_BTN, STR_TEST_NOTIFICATION_TIP)
     );
     // clang-format on
 
@@ -78,6 +80,7 @@ namespace OpenRCT2::Ui::Windows
     private:
         std::string _benchmarkScore = "Not run yet - click benchmark below";
         std::string _actionStatus;
+        std::string _shaderButtonText;
 
     public:
         void onOpen() override
@@ -91,6 +94,18 @@ namespace OpenRCT2::Ui::Windows
             setCheckboxValue(WIDX_VM_IDLE_SLEEP, Config::Get().general.vmIdleSleep);
             setCheckboxValue(WIDX_HIGH_PRECISION_TIMER, Config::Get().general.highPrecisionTimer);
             setCheckboxValue(WIDX_HARDWARE_HUD, Config::Get().general.showFPS);
+
+            static const char* kD3D9EffectNames[] = {
+                "Direct3D 9 Shader: Smooth Bilinear (Auto)",
+                "Direct3D 9 Shader: Crisp 1:1 Pixel Art",
+                "Direct3D 9 Shader: CRT Retro Scanlines",
+                "Direct3D 9 Shader: Vibrant Color Boost"
+            };
+            int32_t eff = Config::Get().general.d3d9ShaderEffect;
+            if (eff < 0 || eff > 3)
+                eff = 0;
+            _shaderButtonText = kD3D9EffectNames[eff];
+            widgets[WIDX_D3D9_SHADER_EFFECT].setString(_shaderButtonText.c_str());
         }
 
         void onMouseUp(WidgetIndex widgetIndex) override
@@ -113,6 +128,12 @@ namespace OpenRCT2::Ui::Windows
                     break;
                 case WIDX_HARDWARE_HUD:
                     Config::Get().general.showFPS = !Config::Get().general.showFPS;
+                    Config::Save();
+                    Drawing::GfxInvalidateScreen();
+                    invalidate();
+                    break;
+                case WIDX_D3D9_SHADER_EFFECT:
+                    Config::Get().general.d3d9ShaderEffect = (Config::Get().general.d3d9ShaderEffect + 1) % 4;
                     Config::Save();
                     Drawing::GfxInvalidateScreen();
                     invalidate();

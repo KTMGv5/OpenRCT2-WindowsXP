@@ -42,6 +42,7 @@ namespace OpenRCT2::Config
         float windowScale;
         bool inferDisplayDPI;
         ::DrawingEngine drawingEngine;
+        int32_t d3d9ShaderEffect;
         bool uncapFPS;
         bool useVSync;
         bool showFPS;

@@ -196,7 +196,7 @@ namespace OpenRCT2::Ui::Windows
 
     static constexpr std::array _guestWindowPageSizes = {
         std::array{ ScreenSize{ 192, 159 }, ScreenSize{ 500, 450 } }, // WINDOW_GUEST_OVERVIEW
-        std::array{ ScreenSize{ 192, 202 }, ScreenSize{ 192, 202 } }, // WINDOW_GUEST_STATS
+        std::array{ ScreenSize{ 192, 218 }, ScreenSize{ 192, 218 } }, // WINDOW_GUEST_STATS
         std::array{ ScreenSize{ 192, 180 }, ScreenSize{ 500, 400 } }, // WINDOW_GUEST_RIDES
         std::array{ ScreenSize{ 210, 148 }, ScreenSize{ 210, 148 } }, // WINDOW_GUEST_FINANCE
         std::array{ ScreenSize{ 192, 159 }, ScreenSize{ 500, 450 } }, // WINDOW_GUEST_THOUGHTS

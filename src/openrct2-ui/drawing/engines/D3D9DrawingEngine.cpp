@@ -59,6 +59,7 @@ private:
     IDirect3DPixelShader9* _pixelShader = nullptr;
     IDirect3DPixelShader9* _pixelShaderSmooth = nullptr;
     IDirect3DPixelShader9* _pixelShaderCRT = nullptr;
+    IDirect3DPixelShader9* _pixelShaderVibrant = nullptr;
     D3DFORMAT _screenTextureFormat = D3DFMT_UNKNOWN;
     bool _usePixelShader = false;
     D3DPRESENT_PARAMETERS _d3dpp = {};
@@ -112,6 +113,11 @@ public:
         {
             _pixelShaderCRT->Release();
             _pixelShaderCRT = nullptr;
+        }
+        if (_pixelShaderVibrant != nullptr)
+        {
+            _pixelShaderVibrant->Release();
+            _pixelShaderVibrant = nullptr;
         }
         if (_paletteTexture != nullptr)
         {
@@ -272,6 +278,8 @@ public:
                 reinterpret_cast<const DWORD*>(g_ps_palette_smooth), &_pixelShaderSmooth);
             _device->CreatePixelShader(
                 reinterpret_cast<const DWORD*>(g_ps_palette_crt), &_pixelShaderCRT);
+            _device->CreatePixelShader(
+                reinterpret_cast<const DWORD*>(g_ps_palette_vibrant), &_pixelShaderVibrant);
 
             if (SUCCEEDED(hrPS))
             {
@@ -615,13 +623,24 @@ private:
         {
             return;
         }
-        else if (hrCoop == D3DERR_DEVICENOTRESET ||
-                 static_cast<uint32_t>(windowWidth) != _backBufferWidth ||
-                 static_cast<uint32_t>(windowHeight) != _backBufferHeight)
+        else if (hrCoop == D3DERR_DEVICENOTRESET)
         {
             if (!ResetDevice(windowWidth, windowHeight, _width, _height))
             {
                 return;
+            }
+        }
+        else if (static_cast<uint32_t>(windowWidth) != _backBufferWidth ||
+                 static_cast<uint32_t>(windowHeight) != _backBufferHeight)
+        {
+            GetContext()->GetUiContext().TriggerResize();
+            if (static_cast<uint32_t>(windowWidth) != _backBufferWidth ||
+                static_cast<uint32_t>(windowHeight) != _backBufferHeight)
+            {
+                if (!ResetDevice(windowWidth, windowHeight, _width, _height))
+                {
+                    return;
+                }
             }
         }
 
@@ -726,7 +745,27 @@ private:
                 _device->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
                 _device->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
-                if ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
+                int32_t shaderEffect = Config::Get().general.d3d9ShaderEffect;
+                if (shaderEffect == 2 && _pixelShaderCRT != nullptr)
+                {
+                    float crtParams[4] = {
+                        static_cast<float>(_width),
+                        static_cast<float>(_height),
+                        static_cast<float>(windowWidth),
+                        static_cast<float>(windowHeight)
+                    };
+                    _device->SetPixelShaderConstantF(0, crtParams, 1);
+                    _device->SetPixelShader(_pixelShaderCRT);
+                }
+                else if (shaderEffect == 3 && _pixelShaderVibrant != nullptr)
+                {
+                    _device->SetPixelShader(_pixelShaderVibrant);
+                }
+                else if (shaderEffect == 1)
+                {
+                    _device->SetPixelShader(_pixelShader);
+                }
+                else if ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
                     && _pixelShaderSmooth != nullptr)
                 {
                     float canvasParams[4] = {

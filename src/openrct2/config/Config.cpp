@@ -215,6 +215,7 @@ namespace OpenRCT2::Config
             model->defaultDisplay = reader->GetInt32("default_display", 0);
             model->drawingEngine = reader->GetEnum<DrawingEngine>(
                 "drawing_engine", DrawingEngine::softwareWithHardwareDisplay, Enum_DrawingEngine);
+            model->d3d9ShaderEffect = reader->GetInt32("d3d9_shader_effect", 0);
             model->uncapFPS = reader->GetBoolean("uncap_fps", false);
             model->useVSync = reader->GetBoolean("use_vsync", true);
             model->virtualFloorStyle = reader->GetEnum<VirtualFloorStyles>(
@@ -326,6 +327,7 @@ namespace OpenRCT2::Config
         writer->WriteInt32("window_width", model->windowWidth);
         writer->WriteInt32("default_display", model->defaultDisplay);
         writer->WriteEnum<DrawingEngine>("drawing_engine", model->drawingEngine, Enum_DrawingEngine);
+        writer->WriteInt32("d3d9_shader_effect", model->d3d9ShaderEffect);
         writer->WriteBoolean("uncap_fps", model->uncapFPS);
         writer->WriteBoolean("use_vsync", model->useVSync);
         writer->WriteEnum<int32_t>("date_format", model->dateFormat, Enum_DateFormat);

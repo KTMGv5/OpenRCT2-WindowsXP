@@ -211,6 +211,14 @@ public:
 
             // TODO try another display mode rather than just exiting the game
         }
+
+        int32_t currentWidth = 0;
+        int32_t currentHeight = 0;
+        SDL_GetWindowSize(_window, &currentWidth, &currentHeight);
+        if (currentWidth > 0 && currentHeight > 0)
+        {
+            OnResize(currentWidth, currentHeight);
+        }
 #else
         if (mode == FullscreenMode::fullscreen)
         {
@@ -362,7 +370,7 @@ public:
                     ContextQuit();
                     break;
                 case SDL_WINDOWEVENT:
-                    if (e.window.event == SDL_WINDOWEVENT_RESIZED)
+                    if (e.window.event == SDL_WINDOWEVENT_RESIZED || e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
                     {
                         LOG_VERBOSE("New Window size: %ux%u\n", e.window.data1, e.window.data2);
                         OnResize(e.window.data1, e.window.data2);
@@ -371,6 +379,7 @@ public:
                     switch (e.window.event)
                     {
                         case SDL_WINDOWEVENT_RESIZED:
+                        case SDL_WINDOWEVENT_SIZE_CHANGED:
                         case SDL_WINDOWEVENT_MOVED:
                         case SDL_WINDOWEVENT_MAXIMIZED:
                         case SDL_WINDOWEVENT_RESTORED:
@@ -851,9 +860,16 @@ private:
 
     void OnResize(int32_t width, int32_t height)
     {
+        int32_t targetWidth = static_cast<int32_t>(width / Config::Get().general.windowScale);
+        int32_t targetHeight = static_cast<int32_t>(height / Config::Get().general.windowScale);
+        if (targetWidth == _width && targetHeight == _height)
+        {
+            return;
+        }
+
         // Scale the native window size to the game's canvas size
-        _width = static_cast<int32_t>(width / Config::Get().general.windowScale);
-        _height = static_cast<int32_t>(height / Config::Get().general.windowScale);
+        _width = targetWidth;
+        _height = targetHeight;
 
         DrawingEngineResize();
 
