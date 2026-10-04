@@ -906,7 +906,7 @@ namespace OpenRCT2
 
         _paintColumns.clear();
 
-        bool useMultithreading = Config::Get().general.multiThreading;
+        bool useMultithreading = Config::Get().general.multiThreading && (std::thread::hardware_concurrency() > 1);
         if (useMultithreading && _paintJobs == nullptr)
         {
             _paintJobs = std::make_unique<JobPool>();

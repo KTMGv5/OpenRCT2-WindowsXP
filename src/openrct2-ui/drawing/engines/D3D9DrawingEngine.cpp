@@ -177,22 +177,24 @@ public:
         _d3dpp.EnableAutoDepthStencil = FALSE;
         _d3dpp.PresentationInterval = _useVsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 
+        DWORD behaviorFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED;
         HRESULT hr = _d3d->CreateDevice(
             D3DADAPTER_DEFAULT,
             D3DDEVTYPE_HAL,
             _hwnd,
-            D3DCREATE_HARDWARE_VERTEXPROCESSING,
+            behaviorFlags,
             &_d3dpp,
             &_device);
 
         if (FAILED(hr))
         {
             LOG_VERBOSE("Direct3D 9: Hardware vertex processing not available, trying software vertex processing...");
+            behaviorFlags = D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED;
             hr = _d3d->CreateDevice(
                 D3DADAPTER_DEFAULT,
                 D3DDEVTYPE_HAL,
                 _hwnd,
-                D3DCREATE_SOFTWARE_VERTEXPROCESSING,
+                behaviorFlags,
                 &_d3dpp,
                 &_device);
         }
@@ -274,6 +276,11 @@ public:
         }
 
         X8DrawingEngine::Resize(width, height);
+    }
+
+    DrawingEngineFlags GetFlags() override
+    {
+        return { DrawingEngineFlag::dirtyOptimisations };
     }
 
     void SetPalette(const GamePalette& palette) override

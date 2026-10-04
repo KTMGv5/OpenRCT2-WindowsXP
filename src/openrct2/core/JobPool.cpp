@@ -21,6 +21,7 @@ JobPool::TaskData::TaskData(std::function<void()> workFn, std::function<void()> 
 JobPool::JobPool(size_t maxThreads)
 {
     maxThreads = std::min<size_t>(maxThreads, std::max(1u, std::thread::hardware_concurrency()));
+    _threads.reserve(maxThreads);
     for (size_t n = 0; n < maxThreads; n++)
     {
         _threads.emplace_back(&JobPool::ProcessQueue, this);
