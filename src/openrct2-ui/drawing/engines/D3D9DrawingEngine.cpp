@@ -17,6 +17,7 @@
 #undef small
 
 #include "DrawingEngineFactory.hpp"
+#include "D3D9Shaders.h"
 
 #include <SDL_syswm.h>
 #include <SDL_video.h>
@@ -53,6 +54,12 @@ private:
     IDirect3D9* _d3d = nullptr;
     IDirect3DDevice9* _device = nullptr;
     IDirect3DTexture9* _screenTexture = nullptr;
+    IDirect3DTexture9* _paletteTexture = nullptr;
+    IDirect3DPixelShader9* _pixelShader = nullptr;
+    IDirect3DPixelShader9* _pixelShaderSmooth = nullptr;
+    IDirect3DPixelShader9* _pixelShaderCRT = nullptr;
+    D3DFORMAT _screenTextureFormat = D3DFMT_UNKNOWN;
+    bool _usePixelShader = false;
     D3DPRESENT_PARAMETERS _d3dpp = {};
     bool _isDynamicTexture = false;
     bool _useVsync = true;
@@ -90,6 +97,26 @@ public:
 
     ~D3D9DrawingEngine() override
     {
+        if (_pixelShader != nullptr)
+        {
+            _pixelShader->Release();
+            _pixelShader = nullptr;
+        }
+        if (_pixelShaderSmooth != nullptr)
+        {
+            _pixelShaderSmooth->Release();
+            _pixelShaderSmooth = nullptr;
+        }
+        if (_pixelShaderCRT != nullptr)
+        {
+            _pixelShaderCRT->Release();
+            _pixelShaderCRT = nullptr;
+        }
+        if (_paletteTexture != nullptr)
+        {
+            _paletteTexture->Release();
+            _paletteTexture = nullptr;
+        }
         if (_screenTexture != nullptr)
         {
             _screenTexture->Release();
@@ -216,6 +243,53 @@ public:
         vp.MaxZ = 1.0f;
         _device->SetViewport(&vp);
 
+        // Initialize HLSL Pixel Shader palette pipeline if L8 texture format is supported
+        bool l8Supported = SUCCEEDED(_d3d->CheckDeviceFormat(
+            D3DADAPTER_DEFAULT,
+            D3DDEVTYPE_HAL,
+            _d3dpp.BackBufferFormat,
+            D3DUSAGE_DYNAMIC,
+            D3DRTYPE_TEXTURE,
+            D3DFMT_L8));
+
+        if (!l8Supported)
+        {
+            l8Supported = SUCCEEDED(_d3d->CheckDeviceFormat(
+                D3DADAPTER_DEFAULT,
+                D3DDEVTYPE_HAL,
+                _d3dpp.BackBufferFormat,
+                0,
+                D3DRTYPE_TEXTURE,
+                D3DFMT_L8));
+        }
+
+        if (l8Supported)
+        {
+            HRESULT hrPS = _device->CreatePixelShader(
+                reinterpret_cast<const DWORD*>(g_ps_palette), &_pixelShader);
+            _device->CreatePixelShader(
+                reinterpret_cast<const DWORD*>(g_ps_palette_smooth), &_pixelShaderSmooth);
+            _device->CreatePixelShader(
+                reinterpret_cast<const DWORD*>(g_ps_palette_crt), &_pixelShaderCRT);
+
+            if (SUCCEEDED(hrPS))
+            {
+                HRESULT hrPal = _device->CreateTexture(
+                    256, 1, 1, 0, D3DFMT_A8R8G8B8, D3DPOOL_MANAGED, &_paletteTexture, nullptr);
+
+                if (SUCCEEDED(hrPal) && _paletteTexture != nullptr)
+                {
+                    _usePixelShader = true;
+                    LOG_INFO("Direct3D 9: Hardware Pixel Shader palette conversion active (SM 2.0)");
+                }
+            }
+        }
+
+        if (!_usePixelShader)
+        {
+            LOG_INFO("Direct3D 9: Using software palette conversion with hardware blit");
+        }
+
         LOG_INFO("Direct3D 9 hardware drawing engine initialised successfully (%ux%u)", _backBufferWidth, _backBufferHeight);
     }
 
@@ -294,6 +368,16 @@ public:
                 | (static_cast<uint32_t>(palette[i].red) << 16)
                 | (static_cast<uint32_t>(palette[i].green) << 8)
                 | static_cast<uint32_t>(palette[i].blue);
+        }
+
+        if (_paletteTexture != nullptr)
+        {
+            D3DLOCKED_RECT lr = {};
+            if (SUCCEEDED(_paletteTexture->LockRect(0, &lr, nullptr, 0)))
+            {
+                std::memcpy(lr.pBits, _paletteHWMapped, 256 * sizeof(uint32_t));
+                _paletteTexture->UnlockRect(0);
+            }
         }
 
         if (Config::Get().general.enableLightFx)
@@ -406,13 +490,17 @@ private:
             _screenTexture = nullptr;
         }
 
+        D3DFORMAT targetFormat = (_usePixelShader && !Config::Get().general.enableLightFx)
+            ? D3DFMT_L8
+            : D3DFMT_X8R8G8B8;
+
         // Try dynamic texture in D3DPOOL_DEFAULT first
         HRESULT hr = _device->CreateTexture(
             width,
             height,
             1,
             D3DUSAGE_DYNAMIC,
-            D3DFMT_X8R8G8B8,
+            targetFormat,
             D3DPOOL_DEFAULT,
             &_screenTexture,
             nullptr);
@@ -420,6 +508,7 @@ private:
         if (SUCCEEDED(hr) && _screenTexture != nullptr)
         {
             _isDynamicTexture = true;
+            _screenTextureFormat = targetFormat;
         }
         else
         {
@@ -429,7 +518,7 @@ private:
                 height,
                 1,
                 0,
-                D3DFMT_X8R8G8B8,
+                targetFormat,
                 D3DPOOL_MANAGED,
                 &_screenTexture,
                 nullptr);
@@ -437,6 +526,49 @@ private:
             if (SUCCEEDED(hr) && _screenTexture != nullptr)
             {
                 _isDynamicTexture = false;
+                _screenTextureFormat = targetFormat;
+            }
+            else if (targetFormat != D3DFMT_X8R8G8B8)
+            {
+                // Fall back to standard X8R8G8B8 format
+                hr = _device->CreateTexture(
+                    width,
+                    height,
+                    1,
+                    D3DUSAGE_DYNAMIC,
+                    D3DFMT_X8R8G8B8,
+                    D3DPOOL_DEFAULT,
+                    &_screenTexture,
+                    nullptr);
+
+                if (SUCCEEDED(hr) && _screenTexture != nullptr)
+                {
+                    _isDynamicTexture = true;
+                    _screenTextureFormat = D3DFMT_X8R8G8B8;
+                }
+                else
+                {
+                    hr = _device->CreateTexture(
+                        width,
+                        height,
+                        1,
+                        0,
+                        D3DFMT_X8R8G8B8,
+                        D3DPOOL_MANAGED,
+                        &_screenTexture,
+                        nullptr);
+
+                    if (SUCCEEDED(hr) && _screenTexture != nullptr)
+                    {
+                        _isDynamicTexture = false;
+                        _screenTextureFormat = D3DFMT_X8R8G8B8;
+                    }
+                    else
+                    {
+                        LOG_WARNING("Direct3D 9: Failed to create screen texture (%ux%u): 0x%08lX", width, height, static_cast<unsigned long>(hr));
+                        return false;
+                    }
+                }
             }
             else
             {
@@ -505,22 +637,45 @@ private:
             return;
         }
 
+        bool usingHardwarePalette = (_screenTextureFormat == D3DFMT_L8 && _paletteTexture != nullptr && _pixelShader != nullptr);
+
         D3DLOCKED_RECT lockedRect = {};
         DWORD lockFlags = _isDynamicTexture ? D3DLOCK_DISCARD : 0;
         if (SUCCEEDED(_screenTexture->LockRect(0, &lockedRect, nullptr, lockFlags)))
         {
-            auto* viewport = WindowGetViewport(WindowGetMain());
-            if (Config::Get().general.enableLightFx && viewport != nullptr)
+            if (usingHardwarePalette)
             {
-                LightFx::RenderToTexture(
-                    *viewport, lockedRect.pBits, lockedRect.Pitch, _bits, _width, _height,
-                    _paletteHWMapped, _lightPaletteHWMapped);
+                if (lockedRect.Pitch == static_cast<int32_t>(_width))
+                {
+                    std::memcpy(lockedRect.pBits, _bits, _width * _height);
+                }
+                else
+                {
+                    const uint8_t* srcRow = _bits;
+                    uint8_t* dstRow = static_cast<uint8_t*>(lockedRect.pBits);
+                    for (uint32_t y = 0; y < _height; y++)
+                    {
+                        std::memcpy(dstRow, srcRow, _width);
+                        dstRow += lockedRect.Pitch;
+                        srcRow += _width;
+                    }
+                }
             }
             else
             {
-                CopyBitsToTexture(
-                    lockedRect.pBits, lockedRect.Pitch, _bits, static_cast<int32_t>(_width),
-                    static_cast<int32_t>(_height), _paletteHWMapped);
+                auto* viewport = WindowGetViewport(WindowGetMain());
+                if (Config::Get().general.enableLightFx && viewport != nullptr)
+                {
+                    LightFx::RenderToTexture(
+                        *viewport, lockedRect.pBits, lockedRect.Pitch, _bits, _width, _height,
+                        _paletteHWMapped, _lightPaletteHWMapped);
+                }
+                else
+                {
+                    CopyBitsToTexture(
+                        lockedRect.pBits, lockedRect.Pitch, _bits, static_cast<int32_t>(_width),
+                        static_cast<int32_t>(_height), _paletteHWMapped);
+                }
             }
             _screenTexture->UnlockRect(0);
         }
@@ -538,14 +693,6 @@ private:
         };
 
         ScaleQuality scaleQuality = GetContext()->GetUiContext().GetScaleQuality();
-        D3DTEXTUREFILTERTYPE filter = (scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
-            ? D3DTEXF_LINEAR
-            : D3DTEXF_POINT;
-
-        _device->SetSamplerState(0, D3DSAMP_MAGFILTER, filter);
-        _device->SetSamplerState(0, D3DSAMP_MINFILTER, filter);
-        _device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
-        _device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
         D3DVIEWPORT9 vp = {};
         vp.X = 0;
@@ -558,14 +705,63 @@ private:
 
         if (SUCCEEDED(_device->BeginScene()))
         {
-            _device->SetTexture(0, _screenTexture);
             _device->SetFVF(kD3DFVF);
             _device->SetRenderState(D3DRS_LIGHTING, FALSE);
             _device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
             _device->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
             _device->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 
+            if (usingHardwarePalette)
+            {
+                _device->SetTexture(0, _screenTexture);
+                _device->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+                _device->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+                _device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                _device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+
+                _device->SetTexture(1, _paletteTexture);
+                _device->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+                _device->SetSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+                _device->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                _device->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+
+                if ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
+                    && _pixelShaderSmooth != nullptr)
+                {
+                    float canvasParams[4] = {
+                        static_cast<float>(_width),
+                        static_cast<float>(_height),
+                        1.0f / static_cast<float>(_width),
+                        1.0f / static_cast<float>(_height)
+                    };
+                    _device->SetPixelShaderConstantF(0, canvasParams, 1);
+                    _device->SetPixelShader(_pixelShaderSmooth);
+                }
+                else
+                {
+                    _device->SetPixelShader(_pixelShader);
+                }
+            }
+            else
+            {
+                _device->SetTexture(0, _screenTexture);
+                _device->SetTexture(1, nullptr);
+                _device->SetPixelShader(nullptr);
+
+                D3DTEXTUREFILTERTYPE filter = (scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
+                    ? D3DTEXF_LINEAR
+                    : D3DTEXF_POINT;
+
+                _device->SetSamplerState(0, D3DSAMP_MAGFILTER, filter);
+                _device->SetSamplerState(0, D3DSAMP_MINFILTER, filter);
+                _device->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+                _device->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+            }
+
             _device->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, vertices, sizeof(D3DVertex));
+
+            _device->SetPixelShader(nullptr);
+            _device->SetTexture(1, nullptr);
 
             if (gShowDirtyVisuals)
             {
