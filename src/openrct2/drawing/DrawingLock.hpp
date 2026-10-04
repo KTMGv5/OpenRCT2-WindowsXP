@@ -17,20 +17,16 @@ template<typename T>
 class DrawingUniqueLock
 {
     T& _mutex;
-    const bool _enabled;
 
 public:
     DrawingUniqueLock(T& mutex)
         : _mutex(mutex)
-        , _enabled(Config::Get().general.multiThreading)
     {
-        if (_enabled)
-            _mutex.lock();
+        _mutex.lock();
     }
     ~DrawingUniqueLock()
     {
-        if (_enabled)
-            _mutex.unlock();
+        _mutex.unlock();
     }
 };
 
@@ -38,19 +34,15 @@ template<typename T>
 class DrawingSharedLock
 {
     T& _mutex;
-    const bool _enabled;
 
 public:
     DrawingSharedLock(T& mutex)
         : _mutex(mutex)
-        , _enabled(Config::Get().general.multiThreading)
     {
-        if (_enabled)
-            _mutex.lock_shared();
+        _mutex.lock_shared();
     }
     ~DrawingSharedLock()
     {
-        if (_enabled)
-            _mutex.unlock_shared();
+        _mutex.unlock_shared();
     }
 };

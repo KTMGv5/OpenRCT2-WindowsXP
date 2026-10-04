@@ -13,6 +13,7 @@
  */
 
 #include <cmath>
+#include <thread>
 #include <openrct2-ui/interface/Dropdown.h>
 #include <openrct2-ui/interface/Theme.h>
 #include <openrct2-ui/interface/Widget.h>
@@ -813,8 +814,11 @@ namespace OpenRCT2::Ui::Windows
                     invalidate();
                     break;
                 case WIDX_MULTITHREADING_CHECKBOX:
-                    Config::Get().general.multiThreading ^= 1;
-                    Config::Save();
+                    if (std::thread::hardware_concurrency() > 1)
+                    {
+                        Config::Get().general.multiThreading ^= 1;
+                        Config::Save();
+                    }
                     invalidate();
                     break;
                 case WIDX_MINIMIZE_FOCUS_LOSS:
@@ -1016,7 +1020,11 @@ namespace OpenRCT2::Ui::Windows
             setWidgetDisabled(WIDX_RESOLUTION_LABEL, disableResolution);
 
             setCheckboxValue(WIDX_SHOW_FPS_CHECKBOX, Config::Get().general.showFPS);
-            setCheckboxValue(WIDX_MULTITHREADING_CHECKBOX, Config::Get().general.multiThreading);
+            const bool disableMultithreading = (std::thread::hardware_concurrency() <= 1);
+            setWidgetDisabled(WIDX_MULTITHREADING_CHECKBOX, disableMultithreading);
+            setCheckboxValue(
+                WIDX_MULTITHREADING_CHECKBOX,
+                disableMultithreading ? false : static_cast<bool>(Config::Get().general.multiThreading));
             setCheckboxValue(WIDX_MINIMIZE_FOCUS_LOSS, Config::Get().general.minimizeFullscreenFocusLoss);
             setCheckboxValue(WIDX_DISABLE_SCREENSAVER_LOCK, Config::Get().general.disableScreensaver);
 

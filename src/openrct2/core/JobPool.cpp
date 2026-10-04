@@ -36,10 +36,10 @@ JobPool::~JobPool()
         _pending.clear();
         _condPending.notify_all();
     }
-    _condPending.notify_all();
 
     for (auto& th : _threads)
     {
+        _condPending.notify_all();
         if (th.joinable())
         {
             th.join();
@@ -130,7 +130,13 @@ void JobPool::ProcessQueue()
 
             lock.unlock();
 
-            taskData.WorkFn();
+            try
+            {
+                taskData.WorkFn();
+            }
+            catch (...)
+            {
+            }
 
             lock.lock();
 

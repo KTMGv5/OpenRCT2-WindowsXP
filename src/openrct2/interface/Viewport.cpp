@@ -911,11 +911,6 @@ namespace OpenRCT2
         {
             _paintJobs = std::make_unique<JobPool>();
         }
-        else if (useMultithreading == false && _paintJobs != nullptr)
-        {
-            _paintJobs->Join();
-            _paintJobs.reset();
-        }
 
         bool useParallelDrawing = false;
         if (useMultithreading && rt.DrawingEngine->GetFlags().has(DrawingEngineFlag::parallelDrawing))
