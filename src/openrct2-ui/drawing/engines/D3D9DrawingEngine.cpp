@@ -28,6 +28,7 @@
 #include <openrct2/Diagnostic.h>
 #include <openrct2/Game.h>
 #include <openrct2/config/Config.h>
+#include <openrct2/drawing/Drawing.Screen.h>
 #include <openrct2/drawing/IDrawingEngine.h>
 #include <openrct2/drawing/LightFX.h>
 #include <openrct2/drawing/X8DrawingEngine.h>
@@ -137,7 +138,7 @@ public:
         }
 
         using Direct3DCreate9Fn = IDirect3D9* (WINAPI*)(UINT);
-        auto pfnDirect3DCreate9 = reinterpret_cast<Direct3DCreate9Fn>(GetProcAddress(_d3d9Module, "Direct3DCreate9"));
+        auto pfnDirect3DCreate9 = reinterpret_cast<Direct3DCreate9Fn>(reinterpret_cast<void*>(GetProcAddress(_d3d9Module, "Direct3DCreate9")));
         if (pfnDirect3DCreate9 == nullptr)
         {
             throw std::runtime_error("Direct3D 9: Direct3DCreate9 export not found in d3d9.dll");
