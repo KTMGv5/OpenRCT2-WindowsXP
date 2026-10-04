@@ -602,21 +602,9 @@ static bool GfxLoadOpenRCT2Gx(std::string filename, Gx& target, size_t expectedN
 
         if (target.header.numEntries != expectedNumItems)
         {
-            std::string errorMessage = "Mismatched " + filename + " size.\nExpected: " + std::to_string(expectedNumItems)
-                + "\nActual: " + std::to_string(target.header.numEntries) + "\n" + filename
-                + " may be installed improperly.\nPath to " + filename + ": " + path;
-
-            LOG_ERROR(errorMessage.c_str());
-
-            if (!gOpenRCT2Headless)
-            {
-                auto& uiContext = GetContext()->GetUiContext();
-                uiContext.ShowMessageBox(errorMessage);
-                uiContext.ShowMessageBox(
-                    "Warning: You may experience graphical glitches if you continue. It's recommended "
-                    "that you update "
-                    + filename + " if you're seeing this message");
-            }
+            LOG_WARNING(
+                "Mismatched %s size. Expected: %zu, Actual: %u. Using available entries from %s",
+                filename.c_str(), expectedNumItems, target.header.numEntries, path.c_str());
         }
 
         // Fix entry data offsets

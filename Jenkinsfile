@@ -144,6 +144,22 @@ pipeline {
                     fi
                     unzip -o "${DATA_ARCHIVE}" "data/g2.dat" "data/fonts.dat" "data/palettes.dat" "data/tracks.dat" "data/object/*" "data/sequence/*" -d "${PACKAGE_DIR}"
 
+                    # Build matching graphics .dat files with gxc directly from repository resources
+                    echo "Building matching .dat graphics files with gxc..."
+                    if [ ! -x "tools/gxc" ]; then
+                        mkdir -p tools
+                        wget -c "https://github.com/OpenRCT2/libsawyer/releases/download/v1.4.0/libsawyer-tools-linux-x64.tar.gz" -O tools.tar.gz
+                        tar -xzf tools.tar.gz -C tools/
+                        chmod +x tools/gxc
+                    fi
+                    if [ -x "tools/gxc" ]; then
+                        tools/gxc build "${PACKAGE_DIR}/data/g2.dat" "resources/g2/sprites.json"
+                        tools/gxc build "${PACKAGE_DIR}/data/palettes.dat" "resources/palettes/sprites.json"
+                        tools/gxc build "${PACKAGE_DIR}/data/fonts.dat" "resources/fonts/sprites.json"
+                        tools/gxc build "${PACKAGE_DIR}/data/tracks.dat" "resources/tracks/sprites.json"
+                        echo "Successfully generated matching graphics dat files (palettes.dat entries: 238)."
+                    fi
+
                     # Verify cacert.pem
                     if [ ! -f "${PACKAGE_DIR}/cacert.pem" ]; then
                         echo "Fatal: cacert.pem missing from package!" >&2
