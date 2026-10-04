@@ -114,17 +114,20 @@ namespace OpenRCT2::Drawing::LightFx
                     float u = dist / radius; // 0.0 at center, 1.0 at edge
                     float oneMinusU2 = 1.0f - (u * u);
                     float val;
+                    float maxIntensity;
                     if (isSpot)
                     {
                         // Focused spotlight: smooth cubic falloff
                         val = oneMinusU2 * oneMinusU2 * std::sqrt(oneMinusU2);
+                        maxIntensity = 220.0f;
                     }
                     else
                     {
-                        // Omnidirectional lantern: smooth quadratic falloff
+                        // Omnidirectional lantern: smooth quadratic falloff with soft ambient peak
                         val = oneMinusU2 * oneMinusU2;
+                        maxIntensity = 180.0f;
                     }
-                    *target++ = static_cast<uint8_t>(std::clamp(val * 255.0f, 0.0f, 255.0f));
+                    *target++ = static_cast<uint8_t>(std::clamp(val * maxIntensity, 0.0f, 255.0f));
                 }
             }
         }
@@ -281,7 +284,7 @@ namespace OpenRCT2::Drawing::LightFx
         _current_view_x_front = _current_view_x_back;
         _current_view_y_front = _current_view_y_back;
         _current_view_rotation_front = _current_view_rotation_back;
-        _current_view_zoom_front = _current_view_zoom_back_delay;
+        _current_view_zoom_front = _current_view_zoom_back;
         _current_view_zoom_back_delay = _current_view_zoom_back;
     }
 
@@ -438,9 +441,9 @@ namespace OpenRCT2::Drawing::LightFx
                 {
                     for (int32_t x = 0; x < bufWriteWidth; x++)
                     {
-                        *bufWriteBase = std::min(0xFF, *bufWriteBase + *bufReadBase);
-                        bufWriteBase++;
-                        bufReadBase++;
+                        uint32_t a = *bufWriteBase;
+                        uint32_t b = *bufReadBase++;
+                        *bufWriteBase++ = static_cast<uint8_t>(a + b - ((a * b) >> 8));
                     }
 
                     bufWriteBase += bufWriteSkip;
@@ -453,9 +456,9 @@ namespace OpenRCT2::Drawing::LightFx
                 {
                     for (int32_t x = 0; x < bufWriteWidth; x++)
                     {
-                        *bufWriteBase = std::min(0xFF, *bufWriteBase + (((*bufReadBase) * (1 + entry.lightIntensity)) >> 8));
-                        bufWriteBase++;
-                        bufReadBase++;
+                        uint32_t a = *bufWriteBase;
+                        uint32_t b = ((*bufReadBase++) * (1 + entry.lightIntensity)) >> 8;
+                        *bufWriteBase++ = static_cast<uint8_t>(a + b - ((a * b) >> 8));
                     }
 
                     bufWriteBase += bufWriteSkip;
@@ -698,9 +701,9 @@ namespace OpenRCT2::Drawing::LightFx
         float natLightG = 1.0f;
         float natLightB = 1.0f;
 
-        float elecMultR = 1.05f;
-        float elecMultG = 0.98f;
-        float elecMultB = 0.75f;
+        float elecMultR = 0.88f;
+        float elecMultG = 0.76f;
+        float elecMultB = 0.50f;
 
         static float wetness = 0.0f;
         static float fogginess = 0.0f;
@@ -892,9 +895,9 @@ namespace OpenRCT2::Drawing::LightFx
         uint32_t r = static_cast<uint32_t>(std::clamp(r0 + (((r1 - r0) * factor) >> 8), 0, 255));
 
         // Subtle warm luminous core for peak lamp/spotlight centers
-        if (intensity > 200)
+        if (intensity > 215)
         {
-            uint32_t glow = (intensity - 200) >> 2; // 0..13
+            uint32_t glow = (intensity - 215) >> 2; // 0..10
             b = std::min<uint32_t>(255, b + (glow >> 1)); // warm tungsten
             g = std::min<uint32_t>(255, g + glow);
             r = std::min<uint32_t>(255, r + glow);

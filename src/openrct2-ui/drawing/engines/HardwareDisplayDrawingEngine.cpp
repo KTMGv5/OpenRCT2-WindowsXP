@@ -24,6 +24,7 @@
 #include <openrct2/interface/Window.h>
 #include <openrct2/paint/Paint.h>
 #include <openrct2/ui/UiContext.h>
+#include <openrct2/world/Weather.h>
 #include <vector>
 
 using namespace OpenRCT2;
@@ -283,6 +284,20 @@ public:
         X8DrawingEngine::EndDraw();
 
         Display();
+    }
+
+    void PaintWindows() override
+    {
+        float night = static_cast<float>(pow(gDayNightCycle, 1.5));
+        if ((Config::Get().general.enableLightFx && night > 0.001f) || Weather::hasWeatherEffect() || gPaintForceRedraw)
+        {
+            WindowUpdateAllViewports();
+            WindowDrawAll(_mainRT, 0, 0, static_cast<int32_t>(_width), static_cast<int32_t>(_height));
+        }
+        else
+        {
+            X8DrawingEngine::PaintWindows();
+        }
     }
 
 protected:
