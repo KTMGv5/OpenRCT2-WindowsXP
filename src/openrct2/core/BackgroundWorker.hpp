@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <condition_variable>
 #include <deque>
 #include <functional>
@@ -195,6 +196,7 @@ namespace OpenRCT2
             {
                 std::lock_guard lock(_mtx);
                 _shouldStop = true;
+                _cv.notify_all();
             }
             _cv.notify_all();
             for (auto& thread : _workThreads)
@@ -302,11 +304,18 @@ namespace OpenRCT2
                 std::shared_ptr<Detail::JobBase> job;
                 {
                     std::unique_lock lock(_mtx);
-                    _cv.wait(lock, [this] { return !_pending.empty() || _shouldStop; });
+                    _cv.wait_for(lock, std::chrono::milliseconds(50), [this] {
+                        return !_pending.empty() || _shouldStop;
+                    });
 
                     if (_shouldStop)
                     {
                         break;
+                    }
+
+                    if (_pending.empty())
+                    {
+                        continue;
                     }
 
                     job = _pending.front();

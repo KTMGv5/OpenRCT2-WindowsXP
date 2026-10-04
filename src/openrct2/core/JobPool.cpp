@@ -10,6 +10,7 @@
 #include "JobPool.h"
 
 #include <cassert>
+#include <chrono>
 
 JobPool::TaskData::TaskData(std::function<void()> workFn, std::function<void()> completionFn)
     : WorkFn(std::move(workFn))
@@ -31,13 +32,17 @@ JobPool::~JobPool()
     {
         std::lock_guard lock(_mutex);
         _shouldStop = true;
+        _pending.clear();
+        _condPending.notify_all();
     }
     _condPending.notify_all();
 
     for (auto& th : _threads)
     {
-        assert(th.joinable() != false);
-        th.join();
+        if (th.joinable())
+        {
+            th.join();
+        }
     }
 }
 
@@ -56,7 +61,10 @@ void JobPool::Join(std::function<void()> reportFn)
     while (true)
     {
         // Wait for the queue to become empty or having completed tasks.
-        _condComplete.wait(lock, [this]() { return (_pending.empty() && _processing == 0) || !_completed.empty(); });
+        // Use wait_for with a timeout to avoid lost wakeup deadlocks on Windows XP winpthreads.
+        _condComplete.wait_for(lock, std::chrono::milliseconds(50), [this]() {
+            return (_pending.empty() && _processing == 0) || !_completed.empty() || _shouldStop;
+        });
 
         // Dispatch all completion callbacks if there are any.
         while (!_completed.empty())
@@ -84,7 +92,7 @@ void JobPool::Join(std::function<void()> reportFn)
         }
 
         // If everything is empty and no more work has to be done we can stop waiting.
-        if (_completed.empty() && _pending.empty() && _processing == 0)
+        if ((_completed.empty() && _pending.empty() && _processing == 0) || _shouldStop)
         {
             break;
         }
@@ -102,8 +110,15 @@ void JobPool::ProcessQueue()
     std::unique_lock lock(_mutex);
     do
     {
-        // Wait for work or cancellation.
-        _condPending.wait(lock, [this]() { return _shouldStop || !_pending.empty(); });
+        // Wait for work or cancellation with a timeout to avoid lost wakeup deadlocks on Windows XP winpthreads.
+        _condPending.wait_for(lock, std::chrono::milliseconds(50), [this]() {
+            return _shouldStop || !_pending.empty();
+        });
+
+        if (_shouldStop && _pending.empty())
+        {
+            break;
+        }
 
         if (!_pending.empty())
         {
@@ -121,7 +136,7 @@ void JobPool::ProcessQueue()
             _completed.push_back(std::move(taskData));
 
             _processing--;
-            _condComplete.notify_one();
+            _condComplete.notify_all();
         }
     } while (!_shouldStop);
 }

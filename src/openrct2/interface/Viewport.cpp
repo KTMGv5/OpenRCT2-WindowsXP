@@ -913,6 +913,7 @@ namespace OpenRCT2
         }
         else if (useMultithreading == false && _paintJobs != nullptr)
         {
+            _paintJobs->Join();
             _paintJobs.reset();
         }
 
