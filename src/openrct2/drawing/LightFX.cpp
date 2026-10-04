@@ -528,81 +528,58 @@ namespace OpenRCT2::Drawing::LightFx
     };
     void AddLightsMagicVehicle_ObservationTower(const Vehicle* vehicle)
     {
-        Add3DLight(*vehicle, 0, { vehicle->x, vehicle->y + 16, vehicle->z }, LightType::spot3);
-        Add3DLight(*vehicle, 1, { vehicle->x + 16, vehicle->y, vehicle->z }, LightType::spot3);
-        Add3DLight(*vehicle, 2, { vehicle->x - 16, vehicle->y, vehicle->z }, LightType::spot3);
-        Add3DLight(*vehicle, 3, { vehicle->x, vehicle->y - 16, vehicle->z }, LightType::spot3);
+        Add3DLight(*vehicle, 0, { vehicle->x, vehicle->y + 16, vehicle->z }, LightType::lantern1);
+        Add3DLight(*vehicle, 1, { vehicle->x + 16, vehicle->y, vehicle->z }, LightType::lantern1);
+        Add3DLight(*vehicle, 2, { vehicle->x - 16, vehicle->y, vehicle->z }, LightType::lantern1);
+        Add3DLight(*vehicle, 3, { vehicle->x, vehicle->y - 16, vehicle->z }, LightType::lantern1);
     }
 
     void AddLightsMagicVehicle_MineTrainCoaster(const Vehicle* vehicle)
     {
         if (vehicle == vehicle->TrainHead())
         {
-            int16_t place_x = vehicle->x - kOffsetLookup[(vehicle->orientation + 0) % 32] * 2;
-            int16_t place_y = vehicle->y - kOffsetLookup[(vehicle->orientation + 8) % 32] * 2;
-            Add3DLight(*vehicle, 0, { place_x, place_y, vehicle->z }, LightType::spot3);
+            int16_t place_x = vehicle->x - (kOffsetLookup[(vehicle->orientation + 0) % 32] * 3) / 4;
+            int16_t place_y = vehicle->y - (kOffsetLookup[(vehicle->orientation + 8) % 32] * 3) / 4;
+            Add3DLight(*vehicle, 0, { place_x, place_y, vehicle->z + 4 }, LightType::lantern1);
         }
     }
 
     void AddLightsMagicVehicle_ChairLift(const Vehicle* vehicle)
     {
-        Add3DLight(*vehicle, 0, { vehicle->x, vehicle->y, vehicle->z - 16 }, LightType::lantern2);
+        Add3DLight(*vehicle, 0, { vehicle->x, vehicle->y, vehicle->z - 8 }, LightType::lantern1);
     }
     void AddLightsMagicVehicle_BoatHire(const Vehicle* vehicle)
     {
-        Vehicle* vehicle_draw = vehicle->TrainHead();
-        auto* nextVeh = getGameState().entities.getEntity<Vehicle>(vehicle_draw->next_vehicle_on_train);
-        if (nextVeh != nullptr)
+        if (vehicle != vehicle->TrainHead())
         {
-            vehicle_draw = nextVeh;
+            return;
         }
-        int16_t place_x = vehicle_draw->x;
-        int16_t place_y = vehicle_draw->y;
-        place_x -= kOffsetLookup[(vehicle_draw->orientation + 0) % 32];
-        place_y -= kOffsetLookup[(vehicle_draw->orientation + 8) % 32];
-        Add3DLight(*vehicle, 0, { place_x, place_y, vehicle_draw->z }, LightType::spot2);
-        place_x -= kOffsetLookup[(vehicle_draw->orientation + 0) % 32];
-        place_y -= kOffsetLookup[(vehicle_draw->orientation + 8) % 32];
-        Add3DLight(*vehicle, 1, { place_x, place_y, vehicle_draw->z }, LightType::spot2);
+        int16_t place_x = vehicle->x - (kOffsetLookup[(vehicle->orientation + 0) % 32] * 3) / 4;
+        int16_t place_y = vehicle->y - (kOffsetLookup[(vehicle->orientation + 8) % 32] * 3) / 4;
+        Add3DLight(*vehicle, 0, { place_x, place_y, vehicle->z + 4 }, LightType::lantern1);
     }
     void AddLightsMagicVehicle_Monorail(const Vehicle* vehicle)
     {
-        Add3DLight(*vehicle, 0, { vehicle->x, vehicle->y, vehicle->z + 12 }, LightType::spot2);
-        int16_t place_x = vehicle->x;
-        int16_t place_y = vehicle->y;
         if (vehicle == vehicle->TrainHead())
         {
-            place_x -= kOffsetLookup[(vehicle->orientation + 0) % 32] * 2;
-            place_y -= kOffsetLookup[(vehicle->orientation + 8) % 32] * 2;
-            Add3DLight(*vehicle, 1, { place_x, place_y, vehicle->z + 10 }, LightType::lantern3);
-            place_x -= kOffsetLookup[(vehicle->orientation + 0) % 32] * 3;
-            place_y -= kOffsetLookup[(vehicle->orientation + 8) % 32] * 3;
-            Add3DLight(*vehicle, 2, { place_x, place_y, vehicle->z + 2 }, LightType::lantern3);
+            int16_t place_x = vehicle->x - (kOffsetLookup[(vehicle->orientation + 0) % 32] * 3) / 4;
+            int16_t place_y = vehicle->y - (kOffsetLookup[(vehicle->orientation + 8) % 32] * 3) / 4;
+            Add3DLight(*vehicle, 1, { place_x, place_y, vehicle->z + 4 }, LightType::lantern1);
         }
-        if (vehicle == vehicle->TrainTail())
+        else if (vehicle == vehicle->TrainTail())
         {
-            place_x += kOffsetLookup[(vehicle->orientation + 0) % 32] * 2;
-            place_y += kOffsetLookup[(vehicle->orientation + 8) % 32] * 2;
-            Add3DLight(*vehicle, 3, { place_x, place_y, vehicle->z + 10 }, LightType::lantern3);
-            place_x += kOffsetLookup[(vehicle->orientation + 0) % 32] * 2;
-            place_y += kOffsetLookup[(vehicle->orientation + 8) % 32] * 2;
-            Add3DLight(*vehicle, 4, { place_x, place_y, vehicle->z + 2 }, LightType::lantern3);
+            int16_t place_x = vehicle->x + (kOffsetLookup[(vehicle->orientation + 0) % 32] * 3) / 4;
+            int16_t place_y = vehicle->y + (kOffsetLookup[(vehicle->orientation + 8) % 32] * 3) / 4;
+            Add3DLight(*vehicle, 2, { place_x, place_y, vehicle->z + 4 }, LightType::lantern1);
         }
     }
     void AddLightsMagicVehicle_MiniatureRailway(const Vehicle* vehicle)
     {
         if (vehicle == vehicle->TrainHead())
         {
-            int16_t place_x = vehicle->x - kOffsetLookup[(vehicle->orientation + 0) % 32] * 2;
-            int16_t place_y = vehicle->y - kOffsetLookup[(vehicle->orientation + 8) % 32] * 2;
-            Add3DLight(*vehicle, 1, { place_x, place_y, vehicle->z + 10 }, LightType::lantern3);
-            place_x -= kOffsetLookup[(vehicle->orientation + 0) % 32] * 2;
-            place_y -= kOffsetLookup[(vehicle->orientation + 8) % 32] * 2;
-            Add3DLight(*vehicle, 2, { place_x, place_y, vehicle->z + 2 }, LightType::lantern3);
-        }
-        else
-        {
-            Add3DLight(*vehicle, 0, { vehicle->x, vehicle->y, vehicle->z + 10 }, LightType::lantern3);
+            int16_t place_x = vehicle->x - (kOffsetLookup[(vehicle->orientation + 0) % 32] * 3) / 4;
+            int16_t place_y = vehicle->y - (kOffsetLookup[(vehicle->orientation + 8) % 32] * 3) / 4;
+            Add3DLight(*vehicle, 1, { place_x, place_y, vehicle->z + 4 }, LightType::lantern1);
         }
     }
 
@@ -641,9 +618,9 @@ namespace OpenRCT2::Drawing::LightFx
         float natLightG = 1.0f;
         float natLightB = 1.0f;
 
-        float elecMultR = 0.82f;
-        float elecMultG = 0.70f;
-        float elecMultB = 0.45f;
+        float elecMultR = 1.02f;
+        float elecMultG = 0.96f;
+        float elecMultB = 0.82f;
 
         static float wetness = 0.0f;
         static float fogginess = 0.0f;

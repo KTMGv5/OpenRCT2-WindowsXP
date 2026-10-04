@@ -234,13 +234,13 @@ static void PaintParkEntranceScrollingText(
     PaintAddImageAsChild(session, imageIndex, { 0, 0, textHeight }, { { 2, 2, textHeight }, { 28, 28, 47 } });
 }
 
-static void PaintParkEntranceLightEffects(PaintSession& session)
+static void PaintParkEntranceLightEffects(PaintSession& session, int32_t height)
 {
     PROFILED_FUNCTION();
 
     if (LightFx::IsAvailable())
     {
-        LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, 155, LightType::lantern3);
+        LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 24, LightType::lantern2);
     }
 }
 
@@ -251,7 +251,7 @@ static void PaintParkEntrance(PaintSession& session, uint8_t direction, int32_t 
     if (gTrackDesignSaveMode || session.ViewFlags.has(ViewportFlag::highlightPathIssues))
         return;
 
-    PaintParkEntranceLightEffects(session);
+    PaintParkEntranceLightEffects(session, height);
 
     session.InteractionType = ViewportInteractionItem::parkEntrance;
 
