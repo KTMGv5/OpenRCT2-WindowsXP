@@ -50,7 +50,6 @@ namespace OpenRCT2::Ui::Windows
         WIDX_GROUP_ACTIONS,
         WIDX_SET_DESKTOP_WALLPAPER,
         WIDX_RUN_BENCHMARK,
-        WIDX_TEST_NOTIFICATION,
     };
 
     // clang-format off
@@ -70,8 +69,7 @@ namespace OpenRCT2::Ui::Windows
         // Group 3: Tools & Desktop Integration
         makeWidget({ 6, 250 }, { 418, 88 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_ACTIONS_GROUP),
         makeWidget({ 14, 266 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_SET_DESKTOP_WALLPAPER, STR_SET_DESKTOP_WALLPAPER_TIP),
-        makeWidget({ 14, 294 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP),
-        makeWidget({ 218, 294 }, { 198, 22 }, WidgetType::button, WindowColour::secondary, STR_TEST_NOTIFICATION_BTN, STR_TEST_NOTIFICATION_TIP)
+        makeWidget({ 14, 294 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP)
     );
     // clang-format on
 
@@ -145,13 +143,6 @@ namespace OpenRCT2::Ui::Windows
                     break;
                 case WIDX_RUN_BENCHMARK:
                     RunBenchmark();
-                    invalidate();
-                    break;
-                case WIDX_TEST_NOTIFICATION:
-                    GetContext()->GetUiContext().ShowNotification(
-                        "OpenRCT2",
-                        "Desktop notifications are active and functioning!");
-                    _actionStatus = "Notification dispatched to desktop notification area!";
                     invalidate();
                     break;
             }

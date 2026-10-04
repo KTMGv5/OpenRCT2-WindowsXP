@@ -19,8 +19,11 @@
 #include "../ride/RideData.h"
 #include "../ride/Vehicle.h"
 #include "../util/Util.h"
+#include "../world/Map.h"
+#include "../world/tile_element/SurfaceElement.h"
 #include "../world/tile_element/TileElement.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -92,42 +95,38 @@ namespace OpenRCT2::Drawing::LightFx
         return static_cast<LightType>((static_cast<uint8_t>(type) & ~0x3) | size);
     }
 
-    static uint8_t CalcLightIntensityLantern(int32_t x, int32_t y)
+    static void GenerateLightTexture(uint8_t* target, int32_t size, bool isSpot)
     {
-        double distance = static_cast<double>(x * x + y * y);
-
-        double light = 0.03 + std::pow(10.0 / (1.0 + distance / 100.0), 0.55);
-        light *= std::min(1.0, std::max(0.0, 2.0 - std::sqrt(distance) / 64));
-        light *= 0.1f;
-
-        return static_cast<uint8_t>(std::min(255.0, light * 255.0));
-    }
-
-    static uint8_t CalcLightIntensitySpot(int32_t x, int32_t y)
-    {
-        double distance = static_cast<double>(x * x + y * y);
-
-        double light = 0.3 + std::pow(10.0 / (1.0 + distance / 100.0), 0.75);
-        light *= std::min(1.0, std::max(0.0, 2.0 - std::sqrt(distance) / 64));
-        light *= 0.5f;
-
-        return static_cast<uint8_t>(std::min(255.0, light * 255.0)) >> 4;
-    }
-
-    static void CalcRescaleLightHalf(uint8_t* target, uint8_t* source, uint32_t targetWidth, uint32_t targetHeight)
-    {
-        uint8_t* parcerRead = source;
-        uint8_t* parcerWrite = target;
-
-        for (uint32_t y = 0; y < targetHeight; y++)
+        float radius = static_cast<float>(size) / 2.0f;
+        for (int32_t y = 0; y < size; y++)
         {
-            for (uint32_t x = 0; x < targetWidth; x++)
+            float dy = (static_cast<float>(y) + 0.5f) - radius;
+            for (int32_t x = 0; x < size; x++)
             {
-                *parcerWrite = (*parcerRead);
-                parcerWrite++;
-                parcerRead += 2;
+                float dx = (static_cast<float>(x) + 0.5f) - radius;
+                float dist = std::sqrt(dx * dx + dy * dy);
+                if (dist >= radius)
+                {
+                    *target++ = 0;
+                }
+                else
+                {
+                    float u = dist / radius; // 0.0 at center, 1.0 at edge
+                    float oneMinusU2 = 1.0f - (u * u);
+                    float val;
+                    if (isSpot)
+                    {
+                        // Focused spotlight: smooth cubic falloff
+                        val = oneMinusU2 * oneMinusU2 * std::sqrt(oneMinusU2);
+                    }
+                    else
+                    {
+                        // Omnidirectional lantern: smooth quadratic falloff
+                        val = oneMinusU2 * oneMinusU2;
+                    }
+                    *target++ = static_cast<uint8_t>(std::clamp(val * 255.0f, 0.0f, 255.0f));
+                }
             }
-            parcerRead += targetWidth * 2;
         }
     }
 
@@ -151,40 +150,15 @@ namespace OpenRCT2::Drawing::LightFx
         _LightListBack = _LightListA;
         _LightListFront = _LightListB;
 
-        std::fill_n(_bakedLightTexture_lantern_0, 32 * 32, 0xFF);
-        std::fill_n(_bakedLightTexture_lantern_1, 64 * 64, 0xFF);
-        std::fill_n(_bakedLightTexture_lantern_2, 128 * 128, 0xFF);
-        std::fill_n(_bakedLightTexture_lantern_3, 256 * 256, 0xFF);
+        GenerateLightTexture(_bakedLightTexture_lantern_0, 32, false);
+        GenerateLightTexture(_bakedLightTexture_lantern_1, 64, false);
+        GenerateLightTexture(_bakedLightTexture_lantern_2, 128, false);
+        GenerateLightTexture(_bakedLightTexture_lantern_3, 256, false);
 
-        uint8_t* parcer = _bakedLightTexture_lantern_3;
-
-        for (int32_t y = 0; y < 256; y++)
-        {
-            for (int32_t x = 0; x < 256; x++)
-            {
-                *parcer = CalcLightIntensityLantern(x - 128, y - 128);
-                parcer++;
-            }
-        }
-
-        parcer = _bakedLightTexture_spot_3;
-
-        for (int32_t y = 0; y < 256; y++)
-        {
-            for (int32_t x = 0; x < 256; x++)
-            {
-                *parcer = CalcLightIntensitySpot(x - 128, y - 128);
-                parcer++;
-            }
-        }
-
-        CalcRescaleLightHalf(_bakedLightTexture_lantern_2, _bakedLightTexture_lantern_3, 128, 128);
-        CalcRescaleLightHalf(_bakedLightTexture_lantern_1, _bakedLightTexture_lantern_2, 64, 64);
-        CalcRescaleLightHalf(_bakedLightTexture_lantern_0, _bakedLightTexture_lantern_1, 32, 32);
-
-        CalcRescaleLightHalf(_bakedLightTexture_spot_2, _bakedLightTexture_spot_3, 128, 128);
-        CalcRescaleLightHalf(_bakedLightTexture_spot_1, _bakedLightTexture_spot_2, 64, 64);
-        CalcRescaleLightHalf(_bakedLightTexture_spot_0, _bakedLightTexture_spot_1, 32, 32);
+        GenerateLightTexture(_bakedLightTexture_spot_0, 32, true);
+        GenerateLightTexture(_bakedLightTexture_spot_1, 64, true);
+        GenerateLightTexture(_bakedLightTexture_spot_2, 128, true);
+        GenerateLightTexture(_bakedLightTexture_spot_3, 256, true);
     }
 
     void UpdateBuffers(RenderTarget& info)
@@ -219,184 +193,63 @@ namespace OpenRCT2::Drawing::LightFx
                 continue;
             }
 
-            uint32_t lightIntensityOccluded = 0x0;
-
-            int32_t dirVecX = 707;
-            int32_t dirVecY = 707;
-
-            switch (_current_view_rotation_front)
+            CoordsXY mapLoc{ static_cast<int16_t>(entry.position.x), static_cast<int16_t>(entry.position.y) };
+            if (!MapIsLocationValid(mapLoc))
             {
-                case 0:
-                    dirVecX = 707;
-                    dirVecY = 707;
-                    break;
-                case 1:
-                    dirVecX = -707;
-                    dirVecY = 707;
-                    break;
-                case 2:
-                    dirVecX = -707;
-                    dirVecY = -707;
-                    break;
-                case 3:
-                    dirVecX = 707;
-                    dirVecY = -707;
-                    break;
-                default:
-                    dirVecX = 0;
-                    dirVecY = 0;
-                    break;
+                entry.type = LightType::none;
+                continue;
             }
 
-            int32_t tileOffsetX = 0;
-            int32_t tileOffsetY = 0;
-            switch (_current_view_rotation_front)
+            // 1. Underground occlusion
+            if (!vp.flags.has(ViewportFlag::undergroundInside))
             {
-                case 0:
-                    tileOffsetX = 0;
-                    tileOffsetY = 0;
-                    break;
-                case 1:
-                    tileOffsetX = 16;
-                    tileOffsetY = 0;
-                    break;
-                case 2:
-                    tileOffsetX = 32;
-                    tileOffsetY = 32;
-                    break;
-                case 3:
-                    tileOffsetX = 0;
-                    tileOffsetY = 16;
-                    break;
-            }
-
-            // clang-format off
-            static int16_t offsetPattern[26] = {
-                0, 0,
-                -4, 0, 0, -3, 4, 0, 0, 3,
-                -2, -1, -1, -1, 2, 1, 1, 1,
-                -3, -2, -3, 2, 3, -2, 3, 2,
-            };
-            // clang-format on
-
-            // Light occlusion code
-            if (true)
-            {
-                int32_t totalSamplePoints = 5;
-                int32_t startSamplePoint = 1;
-
-                if (entry.qualifier == Qualifier::map)
-                {
-                    startSamplePoint = 0;
-                    totalSamplePoints = 1;
-                }
-
-                for (int32_t pat = startSamplePoint; pat < totalSamplePoints; pat++)
-                {
-                    CoordsXY mapCoord{};
-
-                    TileElement* tileElement = nullptr;
-
-                    ViewportInteractionItem interactionType = ViewportInteractionItem::none;
-
-                    // NOTE: When ViewportFlag::renderingInhibited is set we cannot create a paint graph.
-                    if (!vp.flags.has(ViewportFlag::renderingInhibited))
-                    {
-                        // based on GetMapCoordinatesFromPosWindow
-                        RenderTarget rt;
-                        rt.zoom_level = _current_view_zoom_front;
-                        rt.x = _current_view_zoom_front.ApplyInversedTo(entry.viewCoords.x + offsetPattern[0 + pat * 2]);
-                        rt.y = _current_view_zoom_front.ApplyInversedTo(entry.viewCoords.y + offsetPattern[1 + pat * 2]);
-                        rt.height = 1;
-                        rt.width = 1;
-
-                        rt.cullingX = rt.x;
-                        rt.cullingY = rt.y;
-                        rt.cullingWidth = rt.width;
-                        rt.cullingHeight = rt.height;
-
-                        PaintSession* session = PaintSessionAlloc(rt, vp.flags, vp.rotation);
-                        PaintSessionGenerate(*session);
-                        PaintSessionArrange(*session);
-                        auto info = SetInteractionInfoFromPaintSession(session, vp.flags, kViewportInteractionItemAll);
-                        PaintSessionFree(session);
-
-                        mapCoord = info.Loc;
-                        mapCoord.x += tileOffsetX;
-                        mapCoord.y += tileOffsetY;
-                        interactionType = info.interactionType;
-                        tileElement = info.Element;
-                    }
-
-                    int32_t minDist = 0;
-                    int32_t baseHeight = (-999) * kCoordsZStep;
-
-                    if (interactionType != ViewportInteractionItem::entity && tileElement != nullptr)
-                    {
-                        baseHeight = tileElement->getBaseZ();
-                    }
-
-                    minDist = (baseHeight - entry.position.z) / 2;
-
-                    int32_t deltaX = mapCoord.x - entry.position.x;
-                    int32_t deltaY = mapCoord.y - entry.position.y;
-
-                    int32_t projDot = (dirVecX * deltaX + dirVecY * deltaY) / 1000;
-
-                    projDot = std::max(minDist, projDot);
-
-                    if (projDot < 5)
-                    {
-                        lightIntensityOccluded += 100;
-                    }
-                    else
-                    {
-                        lightIntensityOccluded += std::max(0, 200 - (projDot * 20));
-                    }
-
-                    //  LOG_WARNING("light %i [%i, %i, %i], [%i, %i] minDist to %i: %i; projdot: %i", light, coord_3d.x,
-                    //  coord_3d.y, coord_3d.z, mapCoord.x, mapCoord.y, baseHeight, minDist, projDot);
-
-                    if (pat == 0)
-                    {
-                        if (lightIntensityOccluded == 100)
-                            break;
-                        if (_current_view_zoom_front > ZoomLevel{ 2 })
-                            break;
-                        totalSamplePoints += 4;
-                    }
-                    else if (pat == 4)
-                    {
-                        if (_current_view_zoom_front > ZoomLevel{ 1 })
-                            break;
-                        if (lightIntensityOccluded == 0 || lightIntensityOccluded == 500)
-                            break;
-                        // lastSampleCount = lightIntensityOccluded / 500;
-                        //  break;
-                        totalSamplePoints += 4;
-                    }
-                    else if (pat == 8)
-                    {
-                        break;
-                    }
-                }
-
-                totalSamplePoints -= startSamplePoint;
-
-                if (lightIntensityOccluded == 0)
+                const auto* surface = MapGetSurfaceElementAt(mapLoc);
+                if (surface != nullptr && surface->getClearanceZ() > entry.position.z)
                 {
                     entry.type = LightType::none;
                     continue;
                 }
+            }
 
-                entry.lightIntensity = static_cast<uint8_t>(
-                    std::min<uint32_t>(0xFF, (entry.lightIntensity * lightIntensityOccluded) / (totalSamplePoints * 100)));
+            // 2. Line of sight isometric elevation occlusion towards camera
+            static constexpr CoordsXY kStepByRotation[4] = {
+                { 32, 32 },   // Rotation 0: looking from SW (+X, +Y are in front)
+                { -32, 32 },  // Rotation 1: looking from NW (-X, +Y are in front)
+                { -32, -32 }, // Rotation 2: looking from NE (-X, -Y are in front)
+                { 32, -32 },  // Rotation 3: looking from SE (+X, -Y are in front)
+            };
+            uint8_t rot = _current_view_rotation_front & 3;
+            CoordsXY step = kStepByRotation[rot];
+
+            bool occluded = false;
+            for (int32_t stepIdx = 1; stepIdx <= 2; stepIdx++)
+            {
+                CoordsXY checkPos = { static_cast<int16_t>(mapLoc.x + step.x * stepIdx),
+                                      static_cast<int16_t>(mapLoc.y + step.y * stepIdx) };
+                if (!MapIsLocationValid(checkPos))
+                    break;
+                const auto* s = MapGetSurfaceElementAt(checkPos);
+                if (s != nullptr)
+                {
+                    int32_t heightLimit = entry.position.z + (stepIdx * 16);
+                    if (s->getBaseZ() > heightLimit)
+                    {
+                        occluded = true;
+                        break;
+                    }
+                }
+            }
+
+            if (occluded)
+            {
+                entry.type = LightType::none;
+                continue;
             }
 
             if (_current_view_zoom_front > ZoomLevel{ 0 })
             {
                 const int8_t zoomNumber = static_cast<int8_t>(_current_view_zoom_front);
-                entry.lightIntensity -= 5 * zoomNumber;
+                entry.lightIntensity = static_cast<uint8_t>(std::max(0, static_cast<int32_t>(entry.lightIntensity) - 5 * zoomNumber));
                 if (GetLightTypeSize(entry.type) < zoomNumber)
                 {
                     entry.type = LightType::none;
@@ -411,10 +264,6 @@ namespace OpenRCT2::Drawing::LightFx
     static void SwapBuffers()
     {
         void* tmp = _light_rendered_buffer_back;
-        _light_rendered_buffer_back = _light_rendered_buffer_front;
-        _light_rendered_buffer_front = tmp;
-
-        tmp = _light_rendered_buffer_back;
         _light_rendered_buffer_back = _light_rendered_buffer_front;
         _light_rendered_buffer_front = tmp;
 
@@ -1011,13 +860,33 @@ namespace OpenRCT2::Drawing::LightFx
         }
     }
 
-    static uint8_t MixLight(uint32_t a, uint32_t b, uint32_t intensity)
+    static inline uint32_t LerpColour(uint32_t darkC, uint32_t lightC, uint32_t intensity)
     {
-        intensity = intensity * 6;
-        uint32_t bMul = (b * intensity) >> 8;
-        uint32_t ab = a + bMul;
-        uint8_t result = static_cast<uint8_t>(std::min<uint32_t>(255, ab));
-        return result;
+        // Symmetric 32-bit channel interpolation preserving native alpha layout
+        int32_t b0 = static_cast<int32_t>(darkC & 0xFF);
+        int32_t g0 = static_cast<int32_t>((darkC >> 8) & 0xFF);
+        int32_t r0 = static_cast<int32_t>((darkC >> 16) & 0xFF);
+        uint32_t a0 = darkC & 0xFF000000;
+
+        int32_t b1 = static_cast<int32_t>(lightC & 0xFF);
+        int32_t g1 = static_cast<int32_t>((lightC >> 8) & 0xFF);
+        int32_t r1 = static_cast<int32_t>((lightC >> 16) & 0xFF);
+
+        int32_t factor = static_cast<int32_t>(intensity);
+        uint32_t b = static_cast<uint32_t>(std::clamp(b0 + (((b1 - b0) * factor) >> 8), 0, 255));
+        uint32_t g = static_cast<uint32_t>(std::clamp(g0 + (((g1 - g0) * factor) >> 8), 0, 255));
+        uint32_t r = static_cast<uint32_t>(std::clamp(r0 + (((r1 - r0) * factor) >> 8), 0, 255));
+
+        // Subtle warm luminous core for peak lamp/spotlight centers
+        if (intensity > 200)
+        {
+            uint32_t glow = (intensity - 200) >> 2; // 0..13
+            b = std::min<uint32_t>(255, b + (glow >> 1)); // warm tungsten
+            g = std::min<uint32_t>(255, g + glow);
+            r = std::min<uint32_t>(255, r + glow);
+        }
+
+        return a0 | (r << 16) | (g << 8) | b;
     }
 
     void RenderToTexture(
@@ -1039,26 +908,22 @@ namespace OpenRCT2::Drawing::LightFx
         {
             uintptr_t dstOffset = static_cast<uintptr_t>(y * dstPitch);
             uint32_t* dst = reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(dstPixels) + dstOffset);
+            const uint32_t rowOffset = y * width;
             for (uint32_t x = 0; x < width; x++)
             {
-                PaletteIndex src = bits[y * width + x];
+                uint8_t lightIntensity = lightBits[rowOffset + x];
+                PaletteIndex src = bits[rowOffset + x];
                 uint32_t darkColour = palette[EnumValue(src)];
-                uint32_t lightColour = lightPalette[EnumValue(src)];
-                uint8_t lightIntensity = lightBits[y * width + x];
 
-                uint32_t colour = 0;
                 if (lightIntensity == 0)
                 {
-                    colour = darkColour;
+                    *dst++ = darkColour;
                 }
                 else
                 {
-                    colour |= MixLight((darkColour >> 0) & 0xFF, (lightColour >> 0) & 0xFF, lightIntensity);
-                    colour |= MixLight((darkColour >> 8) & 0xFF, (lightColour >> 8) & 0xFF, lightIntensity) << 8;
-                    colour |= MixLight((darkColour >> 16) & 0xFF, (lightColour >> 16) & 0xFF, lightIntensity) << 16;
-                    colour |= MixLight((darkColour >> 24) & 0xFF, (lightColour >> 24) & 0xFF, lightIntensity) << 24;
+                    uint32_t lightColour = lightPalette[EnumValue(src)];
+                    *dst++ = LerpColour(darkColour, lightColour, lightIntensity);
                 }
-                *dst++ = colour;
             }
         }
     }

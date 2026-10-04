@@ -60,6 +60,8 @@ private:
     IDirect3DPixelShader9* _pixelShaderSmooth = nullptr;
     IDirect3DPixelShader9* _pixelShaderCRT = nullptr;
     IDirect3DPixelShader9* _pixelShaderVibrant = nullptr;
+    IDirect3DPixelShader9* _pixelShaderRGBVibrant = nullptr;
+    IDirect3DPixelShader9* _pixelShaderRGBCRT = nullptr;
     D3DFORMAT _screenTextureFormat = D3DFMT_UNKNOWN;
     bool _usePixelShader = false;
     D3DPRESENT_PARAMETERS _d3dpp = {};
@@ -118,6 +120,16 @@ public:
         {
             _pixelShaderVibrant->Release();
             _pixelShaderVibrant = nullptr;
+        }
+        if (_pixelShaderRGBVibrant != nullptr)
+        {
+            _pixelShaderRGBVibrant->Release();
+            _pixelShaderRGBVibrant = nullptr;
+        }
+        if (_pixelShaderRGBCRT != nullptr)
+        {
+            _pixelShaderRGBCRT->Release();
+            _pixelShaderRGBCRT = nullptr;
         }
         if (_paletteTexture != nullptr)
         {
@@ -293,6 +305,12 @@ public:
                 }
             }
         }
+
+        // Create 32-bit RGB pixel shaders (for Full-Color and LightFX Beta modes)
+        _device->CreatePixelShader(
+            reinterpret_cast<const DWORD*>(g_ps_rgb_vibrant), &_pixelShaderRGBVibrant);
+        _device->CreatePixelShader(
+            reinterpret_cast<const DWORD*>(g_ps_rgb_crt), &_pixelShaderRGBCRT);
 
         if (!_usePixelShader)
         {
@@ -786,11 +804,33 @@ private:
             {
                 _device->SetTexture(0, _screenTexture);
                 _device->SetTexture(1, nullptr);
-                _device->SetPixelShader(nullptr);
 
-                D3DTEXTUREFILTERTYPE filter = (scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
-                    ? D3DTEXF_LINEAR
-                    : D3DTEXF_POINT;
+                int32_t shaderEffect = Config::Get().general.d3d9ShaderEffect;
+                if (shaderEffect == 2 && _pixelShaderRGBCRT != nullptr)
+                {
+                    float crtParams[4] = {
+                        static_cast<float>(_width),
+                        static_cast<float>(_height),
+                        static_cast<float>(windowWidth),
+                        static_cast<float>(windowHeight)
+                    };
+                    _device->SetPixelShaderConstantF(0, crtParams, 1);
+                    _device->SetPixelShader(_pixelShaderRGBCRT);
+                }
+                else if (shaderEffect == 3 && _pixelShaderRGBVibrant != nullptr)
+                {
+                    _device->SetPixelShader(_pixelShaderRGBVibrant);
+                }
+                else
+                {
+                    _device->SetPixelShader(nullptr);
+                }
+
+                D3DTEXTUREFILTERTYPE filter = (shaderEffect == 1)
+                    ? D3DTEXF_POINT
+                    : ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour || shaderEffect == 0)
+                        ? D3DTEXF_LINEAR
+                        : D3DTEXF_POINT);
 
                 _device->SetSamplerState(0, D3DSAMP_MAGFILTER, filter);
                 _device->SetSamplerState(0, D3DSAMP_MINFILTER, filter);
