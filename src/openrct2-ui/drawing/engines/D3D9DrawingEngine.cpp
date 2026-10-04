@@ -31,6 +31,7 @@
 #include <openrct2/Game.h>
 #include <openrct2/config/Config.h>
 #include <openrct2/drawing/Drawing.Screen.h>
+#include <openrct2/drawing/Drawing.h>
 #include <openrct2/drawing/IDrawingEngine.h>
 #include <openrct2/drawing/LightFX.h>
 #include <openrct2/drawing/X8DrawingEngine.h>
