@@ -686,6 +686,10 @@ namespace OpenRCT2::Drawing::LightFx
 
     void ApplyPaletteFilter(uint8_t i, uint8_t* r, uint8_t* g, uint8_t* b)
     {
+        const uint8_t dayR = *r;
+        const uint8_t dayG = *g;
+        const uint8_t dayB = *b;
+
         auto& gameState = getGameState();
 
         float night = static_cast<float>(pow(gDayNightCycle, 1.5));
@@ -694,9 +698,9 @@ namespace OpenRCT2::Drawing::LightFx
         float natLightG = 1.0f;
         float natLightB = 1.0f;
 
-        float elecMultR = 1.0f;
-        float elecMultG = 0.95f;
-        float elecMultB = 0.45f;
+        float elecMultR = 1.05f;
+        float elecMultG = 0.98f;
+        float elecMultB = 0.75f;
 
         static float wetness = 0.0f;
         static float fogginess = 0.0f;
@@ -850,13 +854,23 @@ namespace OpenRCT2::Drawing::LightFx
                     0.0f,
                     (-overExpose + static_cast<float>(*b) * reduceColourNat * natLightB + envFog * fogB + addLightNatB))));
 
+            float litR = static_cast<float>(dayR) * elecMultR * boost + lightFog;
+            float litG = static_cast<float>(dayG) * elecMultG * boost + lightFog;
+            float litB = static_cast<float>(dayB) * elecMultB * boost + lightFog;
+
             auto dstEntry = &gPalette_light[i];
-            dstEntry->red = static_cast<uint8_t>(
-                std::min<float>(0xFF, (static_cast<float>(*r) * reduceColourLit * boost + lightFog) * elecMultR));
-            dstEntry->green = static_cast<uint8_t>(
-                std::min<float>(0xFF, (static_cast<float>(*g) * reduceColourLit * boost + lightFog) * elecMultG));
-            dstEntry->blue = static_cast<uint8_t>(
-                std::min<float>(0xFF, (static_cast<float>(*b) * reduceColourLit * boost + lightFog) * elecMultB));
+            dstEntry->red = static_cast<uint8_t>(std::clamp(FLerp(static_cast<float>(dayR), litR, night), 0.0f, 255.0f));
+            dstEntry->green = static_cast<uint8_t>(std::clamp(FLerp(static_cast<float>(dayG), litG, night), 0.0f, 255.0f));
+            dstEntry->blue = static_cast<uint8_t>(std::clamp(FLerp(static_cast<float>(dayB), litB, night), 0.0f, 255.0f));
+            dstEntry->alpha = 0;
+        }
+        else
+        {
+            auto dstEntry = &gPalette_light[i];
+            dstEntry->red = dayR;
+            dstEntry->green = dayG;
+            dstEntry->blue = dayB;
+            dstEntry->alpha = 0;
         }
     }
 
@@ -893,6 +907,24 @@ namespace OpenRCT2::Drawing::LightFx
         const Viewport& vp, void* dstPixels, uint32_t dstPitch, PaletteIndex* bits, uint32_t width, uint32_t height,
         const uint32_t* palette, const uint32_t* lightPalette)
     {
+        float night = static_cast<float>(pow(gDayNightCycle, 1.5));
+        if (night <= 0.001f)
+        {
+            // Broad daylight fast-path: artificial lights have negligible contrast against full sunlight.
+            // Directly blit the daytime palette, saving 100% of light rasterization overhead and guaranteeing zero smudges.
+            for (uint32_t y = 0; y < height; y++)
+            {
+                uintptr_t dstOffset = static_cast<uintptr_t>(y * dstPitch);
+                uint32_t* dst = reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(dstPixels) + dstOffset);
+                const PaletteIndex* srcRow = bits + (y * width);
+                for (uint32_t x = 0; x < width; x++)
+                {
+                    *dst++ = palette[EnumValue(srcRow[x])];
+                }
+            }
+            return;
+        }
+
         UpdateViewportSettings(vp);
         SwapBuffers();
         PrepareLightList(vp);
@@ -909,10 +941,13 @@ namespace OpenRCT2::Drawing::LightFx
             uintptr_t dstOffset = static_cast<uintptr_t>(y * dstPitch);
             uint32_t* dst = reinterpret_cast<uint32_t*>(reinterpret_cast<uintptr_t>(dstPixels) + dstOffset);
             const uint32_t rowOffset = y * width;
+            const PaletteIndex* srcRow = bits + rowOffset;
+            const uint8_t* lightRow = lightBits + rowOffset;
+
             for (uint32_t x = 0; x < width; x++)
             {
-                uint8_t lightIntensity = lightBits[rowOffset + x];
-                PaletteIndex src = bits[rowOffset + x];
+                uint8_t lightIntensity = lightRow[x];
+                PaletteIndex src = srcRow[x];
                 uint32_t darkColour = palette[EnumValue(src)];
 
                 if (lightIntensity == 0)
