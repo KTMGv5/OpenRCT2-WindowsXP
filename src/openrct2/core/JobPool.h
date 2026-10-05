@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <deque>
@@ -22,8 +23,8 @@ class JobPool
 private:
     struct TaskData
     {
-        const std::function<void()> WorkFn;
-        const std::function<void()> CompletionFn;
+        std::function<void()> WorkFn;
+        std::function<void()> CompletionFn;
 
         TaskData(std::function<void()> workFn, std::function<void()> completionFn);
     };
@@ -44,6 +45,17 @@ public:
     void AddTask(std::function<void()> workFn, std::function<void()> completionFn = nullptr);
     void Join(std::function<void()> reportFn = nullptr);
     bool IsBusy();
+
+    /**
+     * Executes @p fn in parallel for each index in [0, count) across worker threads
+     * and the calling thread with minimal lock contention and zero dynamic memory allocations.
+     */
+    void ParallelFor(size_t count, const std::function<void(size_t index)>& fn);
+
+    size_t GetThreadCount() const
+    {
+        return _threads.size();
+    }
 
 private:
     void ProcessQueue();

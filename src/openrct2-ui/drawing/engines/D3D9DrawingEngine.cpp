@@ -381,7 +381,7 @@ public:
 
     DrawingEngineFlags GetFlags() override
     {
-        return { DrawingEngineFlag::dirtyOptimisations };
+        return { DrawingEngineFlag::dirtyOptimisations, DrawingEngineFlag::parallelDrawing };
     }
 
     void SetPalette(const GamePalette& palette) override

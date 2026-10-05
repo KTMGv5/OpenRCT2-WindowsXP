@@ -143,6 +143,7 @@ private:
     ID3D11BlendState* _blendStateAlpha = nullptr;
 
     bool _useVsync = true;
+    bool _allowTearing = false;
     uint32_t _backBufferWidth = 0;
     uint32_t _backBufferHeight = 0;
 
@@ -313,7 +314,7 @@ public:
         _backBufferWidth = static_cast<uint32_t>(winW);
         _backBufferHeight = static_cast<uint32_t>(winH);
 
-        // First attempt modern DXGI Flip-Discard swap chain (DXGI_SWAP_EFFECT_FLIP_DISCARD)
+        // First attempt modern DXGI Flip-Discard swap chain with tearing support (DXGI_SWAP_EFFECT_FLIP_DISCARD)
         // FLIP_DISCARD requires at least 2 buffers and BGRA8 / RGBA8 format.
         // It provides zero-copy DWM presentation, lowest latency, and highest FPS on Win 10/11.
         DXGI_SWAP_CHAIN_DESC sd = {};
@@ -329,9 +330,25 @@ public:
         sd.SampleDesc.Quality = 0;
         sd.Windowed = TRUE;
         sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-        sd.Flags = 0;
+        sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
         hr = dxgiFactory1->CreateSwapChain(_device, &sd, &_swapChain);
+        if (SUCCEEDED(hr) && _swapChain != nullptr)
+        {
+            _allowTearing = true;
+            LOG_VERBOSE("Direct3D 11: Created FLIP_DISCARD swap chain with ALLOW_TEARING");
+        }
+        else
+        {
+            // Retry FLIP_DISCARD without ALLOW_TEARING
+            sd.Flags = 0;
+            hr = dxgiFactory1->CreateSwapChain(_device, &sd, &_swapChain);
+            if (SUCCEEDED(hr) && _swapChain != nullptr)
+            {
+                _allowTearing = false;
+                LOG_VERBOSE("Direct3D 11: Created FLIP_DISCARD swap chain without ALLOW_TEARING");
+            }
+        }
 
         // Fallback for Windows 7 / 8 without FLIP_DISCARD support
         if (FAILED(hr) || _swapChain == nullptr)
@@ -339,6 +356,8 @@ public:
             LOG_VERBOSE("Direct3D 11: FLIP_DISCARD swap chain creation failed, falling back to DISCARD model");
             sd.BufferCount = 1;
             sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+            sd.Flags = 0;
+            _allowTearing = false;
             hr = dxgiFactory1->CreateSwapChain(_device, &sd, &_swapChain);
         }
 
@@ -587,12 +606,13 @@ private:
 
         SafeRelease(_renderTargetView);
 
+        UINT swapChainFlags = _allowTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
         HRESULT hr = _swapChain->ResizeBuffers(
             0,
             static_cast<UINT>(windowWidth),
             static_cast<UINT>(windowHeight),
             DXGI_FORMAT_UNKNOWN,
-            0);
+            swapChainFlags);
 
         if (FAILED(hr))
         {
@@ -735,7 +755,12 @@ private:
 
         // Present
         UINT syncInterval = _useVsync ? 1 : 0;
-        _swapChain->Present(syncInterval, 0);
+        UINT presentFlags = (!_useVsync && _allowTearing) ? DXGI_PRESENT_ALLOW_TEARING : 0;
+        HRESULT hr = _swapChain->Present(syncInterval, presentFlags);
+        if (FAILED(hr) && presentFlags != 0)
+        {
+            _swapChain->Present(syncInterval, 0);
+        }
     }
 
     uint32_t GetDirtyVisualTime(uint32_t x, uint32_t y)

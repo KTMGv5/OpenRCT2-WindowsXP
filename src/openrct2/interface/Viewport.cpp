@@ -956,36 +956,36 @@ namespace OpenRCT2
             columnRT.cullingWidth = columnWidth;
             columnRT.cullingHeight = cullingY * 2;
 
-            if (useMultithreading)
-            {
-                _paintJobs->AddTask([session]() -> void { ViewportFillColumn(*session); });
-            }
-            else
+        }
+
+        // Fill columns (Pass 1)
+        if (useMultithreading && _paintJobs != nullptr)
+        {
+            _paintJobs->ParallelFor(_paintColumns.size(), [](size_t i) {
+                ViewportFillColumn(*_paintColumns[i]);
+            });
+        }
+        else
+        {
+            for (auto* session : _paintColumns)
             {
                 ViewportFillColumn(*session);
             }
         }
 
-        if (useMultithreading)
+        // Paint columns (Pass 2)
+        if (useParallelDrawing && _paintJobs != nullptr)
         {
-            _paintJobs->Join();
+            _paintJobs->ParallelFor(_paintColumns.size(), [](size_t i) {
+                ViewportPaintColumn(*_paintColumns[i]);
+            });
         }
-
-        // Paint columns.
-        for (auto* session : _paintColumns)
+        else
         {
-            if (useParallelDrawing)
-            {
-                _paintJobs->AddTask([session]() -> void { ViewportPaintColumn(*session); });
-            }
-            else
+            for (auto* session : _paintColumns)
             {
                 ViewportPaintColumn(*session);
             }
-        }
-        if (useParallelDrawing)
-        {
-            _paintJobs->Join();
         }
 
         // Release resources.

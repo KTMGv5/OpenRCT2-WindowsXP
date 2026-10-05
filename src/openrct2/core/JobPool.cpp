@@ -9,6 +9,7 @@
 
 #include "JobPool.h"
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 
@@ -20,9 +21,21 @@ JobPool::TaskData::TaskData(std::function<void()> workFn, std::function<void()> 
 
 JobPool::JobPool(size_t maxThreads)
 {
-    maxThreads = std::min<size_t>(maxThreads, std::max(1u, std::thread::hardware_concurrency()));
-    _threads.reserve(maxThreads);
-    for (size_t n = 0; n < maxThreads; n++)
+    size_t numCores = std::max(1u, std::thread::hardware_concurrency());
+    size_t targetThreads = std::max<size_t>(1u, numCores);
+    if (maxThreads == 255)
+    {
+        // For general job pools, if multi-core, reserve 1 core for the calling thread
+        // so background threads don't oversubscribe the CPU.
+        targetThreads = (numCores > 1) ? (numCores - 1) : 1;
+    }
+    else
+    {
+        targetThreads = std::min(maxThreads, numCores);
+    }
+    targetThreads = std::max<size_t>(1u, targetThreads);
+    _threads.reserve(targetThreads);
+    for (size_t n = 0; n < targetThreads; n++)
     {
         _threads.emplace_back(&JobPool::ProcessQueue, this);
     }
@@ -51,7 +64,7 @@ void JobPool::AddTask(std::function<void()> workFn, std::function<void()> comple
 {
     {
         std::lock_guard lock(_mutex);
-        _pending.emplace_back(workFn, completionFn);
+        _pending.emplace_back(std::move(workFn), std::move(completionFn));
     }
     _condPending.notify_one();
 }
@@ -59,14 +72,35 @@ void JobPool::AddTask(std::function<void()> workFn, std::function<void()> comple
 void JobPool::Join(std::function<void()> reportFn)
 {
     std::unique_lock lock(_mutex);
+
+    // Calling thread helps process pending tasks to minimize idle latency
+    while (!_pending.empty())
+    {
+        auto taskData = std::move(_pending.front());
+        _pending.pop_front();
+        _processing++;
+
+        lock.unlock();
+
+        try
+        {
+            taskData.WorkFn();
+        }
+        catch (...)
+        {
+        }
+
+        lock.lock();
+
+        _processing--;
+        if (taskData.CompletionFn)
+        {
+            _completed.push_back(std::move(taskData));
+        }
+    }
+
     while (true)
     {
-        // Wait for the queue to become empty or having completed tasks.
-        // Use wait_for with a timeout to avoid lost wakeup deadlocks on Windows XP winpthreads.
-        _condComplete.wait_for(lock, std::chrono::milliseconds(50), [this]() {
-            return (_pending.empty() && _processing == 0) || !_completed.empty() || _shouldStop;
-        });
-
         // Dispatch all completion callbacks if there are any.
         while (!_completed.empty())
         {
@@ -93,10 +127,20 @@ void JobPool::Join(std::function<void()> reportFn)
         }
 
         // If everything is empty and no more work has to be done we can stop waiting.
-        if ((_completed.empty() && _pending.empty() && _processing == 0) || _shouldStop)
+        if (_completed.empty() && _pending.empty() && _processing == 0)
         {
             break;
         }
+
+        if (_shouldStop)
+        {
+            break;
+        }
+
+        // Wait for workers to finish. 2ms timeout to avoid lost wakeup deadlocks on Windows XP winpthreads.
+        _condComplete.wait_for(lock, std::chrono::milliseconds(2), [this]() {
+            return (_pending.empty() && _processing == 0) || !_completed.empty() || _shouldStop;
+        });
     }
 }
 
@@ -106,13 +150,83 @@ bool JobPool::IsBusy()
     return _processing != 0 || !_pending.empty();
 }
 
+void JobPool::ParallelFor(size_t count, const std::function<void(size_t index)>& fn)
+{
+    if (count == 0)
+    {
+        return;
+    }
+
+    if (count == 1 || _threads.empty())
+    {
+        for (size_t i = 0; i < count; i++)
+        {
+            try
+            {
+                fn(i);
+            }
+            catch (...)
+            {
+            }
+        }
+        return;
+    }
+
+    std::atomic<size_t> currentIndex(0);
+    const size_t numWorkers = std::min(_threads.size(), count - 1);
+
+    {
+        std::lock_guard lock(_mutex);
+        for (size_t i = 0; i < numWorkers; i++)
+        {
+            _pending.emplace_back([&currentIndex, count, &fn]() {
+                while (true)
+                {
+                    size_t idx = currentIndex.fetch_add(1, std::memory_order_relaxed);
+                    if (idx >= count)
+                    {
+                        break;
+                    }
+                    try
+                    {
+                        fn(idx);
+                    }
+                    catch (...)
+                    {
+                    }
+                }
+            }, nullptr);
+        }
+    }
+    _condPending.notify_all();
+
+    // Calling thread also processes items directly
+    while (true)
+    {
+        size_t idx = currentIndex.fetch_add(1, std::memory_order_relaxed);
+        if (idx >= count)
+        {
+            break;
+        }
+        try
+        {
+            fn(idx);
+        }
+        catch (...)
+        {
+        }
+    }
+
+    Join();
+}
+
 void JobPool::ProcessQueue()
 {
     std::unique_lock lock(_mutex);
-    do
+    while (true)
     {
-        // Wait for work or cancellation with a timeout to avoid lost wakeup deadlocks on Windows XP winpthreads.
-        _condPending.wait_for(lock, std::chrono::milliseconds(50), [this]() {
+        // Wait for work or cancellation with a 2ms timeout to avoid lost wakeup deadlocks on Windows XP winpthreads.
+        _condPending.wait_for(lock, std::chrono::milliseconds(2), [this]() {
             return _shouldStop || !_pending.empty();
         });
 
@@ -140,10 +254,17 @@ void JobPool::ProcessQueue()
 
             lock.lock();
 
-            _completed.push_back(std::move(taskData));
-
             _processing--;
-            _condComplete.notify_all();
+
+            if (taskData.CompletionFn)
+            {
+                _completed.push_back(std::move(taskData));
+                _condComplete.notify_one();
+            }
+            else if (_pending.empty() && _processing == 0)
+            {
+                _condComplete.notify_all();
+            }
         }
-    } while (!_shouldStop);
+    }
 }
