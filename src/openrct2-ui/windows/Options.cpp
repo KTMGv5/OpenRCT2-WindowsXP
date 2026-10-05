@@ -483,9 +483,6 @@ namespace OpenRCT2::Ui::Windows
     // clang-format on
 
 #if defined(_WIN32)
-    extern "C" __declspec(dllimport) void* __stdcall LoadLibraryA(const char* lpLibFileName);
-    extern "C" __declspec(dllimport) int __stdcall FreeLibrary(void* hLibModule);
-
     static bool IsD3D11Available()
     {
         static int32_t s_isAvailable = -1;

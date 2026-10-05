@@ -47,10 +47,10 @@
 #include <openrct2/world/Weather.h>
 
 #ifndef DXGI_SWAP_EFFECT_FLIP_DISCARD
-    #define DXGI_SWAP_EFFECT_FLIP_DISCARD ((DXGI_SWAP_EFFECT)4)
+    #define DXGI_SWAP_EFFECT_FLIP_DISCARD static_cast<DXGI_SWAP_EFFECT>(4)
 #endif
 #ifndef DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
-    #define DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL ((DXGI_SWAP_EFFECT)3)
+    #define DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL static_cast<DXGI_SWAP_EFFECT>(3)
 #endif
 #ifndef DXGI_PRESENT_ALLOW_TEARING
     #define DXGI_PRESENT_ALLOW_TEARING 0x00000200UL
@@ -59,7 +59,7 @@
     #define DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING 2048
 #endif
 #ifndef D3D_FEATURE_LEVEL_11_1
-    #define D3D_FEATURE_LEVEL_11_1 ((D3D_FEATURE_LEVEL)0xb100)
+    #define D3D_FEATURE_LEVEL_11_1 static_cast<D3D_FEATURE_LEVEL>(0xb100)
 #endif
 #ifndef D3D11_CREATE_DEVICE_BGRA_SUPPORT
     #define D3D11_CREATE_DEVICE_BGRA_SUPPORT 0x20
@@ -243,9 +243,9 @@ public:
         }
 
         auto pfnD3D11CreateDevice = reinterpret_cast<PFN_D3D11_CREATE_DEVICE>(
-            GetProcAddress(_d3d11Module, "D3D11CreateDevice"));
+            reinterpret_cast<void*>(GetProcAddress(_d3d11Module, "D3D11CreateDevice")));
         auto pfnCreateDXGIFactory1 = reinterpret_cast<PFN_CREATE_DXGI_FACTORY1>(
-            GetProcAddress(_dxgiModule, "CreateDXGIFactory1"));
+            reinterpret_cast<void*>(GetProcAddress(_dxgiModule, "CreateDXGIFactory1")));
 
         if (pfnD3D11CreateDevice == nullptr || pfnCreateDXGIFactory1 == nullptr)
         {
