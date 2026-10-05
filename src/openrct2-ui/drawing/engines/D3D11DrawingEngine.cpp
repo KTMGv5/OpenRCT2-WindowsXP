@@ -67,7 +67,6 @@
 
 static constexpr IID kIID_IDXGIFactory1 = { 0x770aae78, 0xf26f, 0x4dba, { 0xa8, 0x29, 0x25, 0x3c, 0x83, 0xd1, 0xb3, 0x87 } };
 static constexpr IID kIID_ID3D11Texture2D = { 0x6f15aaf2, 0xd208, 0x4e89, { 0x9a, 0xb4, 0x48, 0x95, 0x35, 0xd3, 0x4f, 0x9c } };
-static constexpr IID kIID_IDXGISwapChain = { 0x310d36a0, 0xd2e7, 0x4c0a, { 0xaa, 0x04, 0x6a, 0x9d, 0x23, 0xb8, 0x88, 0x6a } };
 static constexpr IID kIID_IDXGIFactory = { 0x7b716634, 0x20c7, 0x44ae, { 0xb2, 0xea, 0x53, 0x77, 0xb3, 0x29, 0x68, 0x88 } };
 
 typedef HRESULT (WINAPI *PFN_D3D11_CREATE_DEVICE)(
@@ -697,7 +696,7 @@ private:
         // Shader selection
         ID3D11PixelShader* selectedPS = _psPalette;
         int32_t shaderEffect = Config::Get().general.d3d9ShaderEffect;
-        auto scaleQuality = Config::Get().general.scaleQuality;
+        ScaleQuality scaleQuality = _uiContext.GetScaleQuality();
 
         if (shaderEffect == 2 && _psPaletteCRT != nullptr)
         {
