@@ -31,6 +31,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstring>
 
 using namespace OpenRCT2;
@@ -188,7 +189,7 @@ void X8DrawingEngine::EndDraw()
 
 void X8DrawingEngine::PaintWindows()
 {
-    float night = static_cast<float>(pow(gDayNightCycle, 1.5));
+    float night = static_cast<float>(std::pow(gDayNightCycle, 1.5f));
     if ((Config::Get().general.enableLightFx && night > 0.001f) || gPaintForceRedraw)
     {
         WindowUpdateAllViewports();
