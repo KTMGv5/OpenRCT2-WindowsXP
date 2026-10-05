@@ -9,7 +9,6 @@
 
 #include "Paint.Entity.h"
 
-#include "../drawing/LightFX.h"
 #include "../entity/EntityList.h"
 #include "../entity/Staff.h"
 #include "../interface/Viewport.h"
@@ -133,10 +132,6 @@ void EntityPaintSetup(PaintSession& session, const CoordsXY& pos)
         {
             case EntityType::vehicle:
                 PaintVehicle(session, *entity->cast<Vehicle>(), image_direction);
-                if (LightFx::ForVehiclesIsAvailable())
-                {
-                    LightFx::AddLightsMagicVehicle(entity->cast<Vehicle>());
-                }
                 break;
             case EntityType::guest:
                 PaintGuest(session, *entity->cast<Guest>(), image_direction);

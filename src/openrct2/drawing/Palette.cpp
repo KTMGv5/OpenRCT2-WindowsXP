@@ -20,7 +20,6 @@
 #include "Drawing.Screen.h"
 #include "Drawing.Sprite.h"
 #include "FilterPaletteIds.h"
-#include "LightFX.h"
 #include "NewDrawing.h"
 
 namespace OpenRCT2::Drawing
@@ -47,19 +46,12 @@ namespace OpenRCT2::Drawing
             uint8_t g = colour.green;
             uint8_t r = colour.red;
 
-            if (LightFx::IsAvailable())
+            float night = gDayNightCycle;
+            if (night >= 0 && Weather::gLightningFlash == 0)
             {
-                LightFx::ApplyPaletteFilter(i, &r, &g, &b);
-            }
-            else
-            {
-                float night = gDayNightCycle;
-                if (night >= 0 && Weather::gLightningFlash == 0)
-                {
-                    r = Lerp(r, SoftLight(r, 8), night);
-                    g = Lerp(g, SoftLight(g, 8), night);
-                    b = Lerp(b, SoftLight(b, 128), night);
-                }
+                r = Lerp(r, SoftLight(r, 8), night);
+                g = Lerp(g, SoftLight(g, 8), night);
+                b = Lerp(b, SoftLight(b, 128), night);
             }
 
             gPalette[i].blue = b;

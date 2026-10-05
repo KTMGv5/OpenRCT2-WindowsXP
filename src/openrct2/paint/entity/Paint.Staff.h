@@ -19,4 +19,3 @@ namespace OpenRCT2
 struct PaintSession;
 
 void PaintStaff(PaintSession& session, const OpenRCT2::Staff& staff, int32_t orientation);
-void PaintStaffLightingEffects(const OpenRCT2::Staff& staff);

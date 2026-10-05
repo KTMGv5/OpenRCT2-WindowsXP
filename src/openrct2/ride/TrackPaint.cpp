@@ -12,7 +12,6 @@
 #include "../Diagnostic.h"
 #include "../GameState.h"
 #include "../SpriteIds.h"
-#include "../drawing/LightFX.h"
 #include "../interface/Viewport.h"
 #include "../object/StationObject.h"
 #include "../paint/Boundbox.h"
@@ -1981,21 +1980,6 @@ void PaintTrack(PaintSession& session, Direction direction, int32_t height, cons
 
                 PaintAddImageAsParent(session, imageId, { 16, 16, height + ax + 3 }, { { 1000, 1000, 2047 }, { 1, 1, 0 } });
             }
-        }
-
-        if (LightFx::IsAvailable())
-        {
-            uint8_t zOffset = 16;
-            const auto& rtd = ride->getRideTypeDescriptor();
-            if (rtd.specialType == RtdSpecialType::toilet || rtd.specialType == RtdSpecialType::firstAid
-                || rtd.specialType == RtdSpecialType::cashMachine)
-                zOffset = 23;
-
-            const auto* originElement = ride->getOriginElement(StationIndex::FromUnderlying(0));
-            if (originElement != nullptr && originElement->getTrackType() == TrackElemType::flatTrack1x1B)
-                LightFx::AddKioskLights(session.MapPosition, trackElement.getDirection(), height, zOffset);
-            else if (kRideTypeDescriptors[ride->type].flags.has(RtdFlag::isShopOrFacility))
-                LightFx::AddShopLights(session.MapPosition, trackElement.getDirection(), height, zOffset);
         }
 
         session.InteractionType = ViewportInteractionItem::ride;

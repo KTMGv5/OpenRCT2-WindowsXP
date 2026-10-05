@@ -46,35 +46,35 @@ namespace OpenRCT2::Drawing::LightFx
         spot3 = 11,
     };
 
-    void SetAvailable(bool available);
-    bool IsAvailable();
-    bool ForVehiclesIsAvailable();
+    inline void SetAvailable([[maybe_unused]] bool available) {}
+    constexpr bool IsAvailable() { return false; }
+    constexpr bool ForVehiclesIsAvailable() { return false; }
 
-    void Init();
+    inline void Init() {}
 
-    void UpdateBuffers(RenderTarget&);
+    inline void UpdateBuffers([[maybe_unused]] RenderTarget& rt) {}
     const GamePalette& GetPalette();
 
-    void Add3DLight(const EntityBase& entity, uint8_t id, const CoordsXYZ& loc, LightType lightType, uint8_t orientation = 0xFF);
+    inline void Add3DLight([[maybe_unused]] const EntityBase& entity, [[maybe_unused]] uint8_t id, [[maybe_unused]] const CoordsXYZ& loc, [[maybe_unused]] LightType lightType, [[maybe_unused]] uint8_t orientation = 0xFF) {}
 
-    void Add3DLightMagicFromDrawingTile(
-        const CoordsXY& mapPosition, int16_t offsetX, int16_t offsetY, int16_t offsetZ, LightType lightType);
+    inline void Add3DLightMagicFromDrawingTile(
+        [[maybe_unused]] const CoordsXY& mapPosition, [[maybe_unused]] int16_t offsetX, [[maybe_unused]] int16_t offsetY, [[maybe_unused]] int16_t offsetZ, [[maybe_unused]] LightType lightType) {}
 
-    void AddLightsMagicVehicle(const Vehicle* vehicle);
-    void AddLightsMagicVehicle_ObservationTower(const Vehicle* vehicle);
-    void AddLightsMagicVehicle_MineTrainCoaster(const Vehicle* vehicle);
-    void AddLightsMagicVehicle_ChairLift(const Vehicle* vehicle);
-    void AddLightsMagicVehicle_BoatHire(const Vehicle* vehicle);
-    void AddLightsMagicVehicle_Monorail(const Vehicle* vehicle);
-    void AddLightsMagicVehicle_MiniatureRailway(const Vehicle* vehicle);
+    inline void AddLightsMagicVehicle([[maybe_unused]] const Vehicle* vehicle) {}
+    inline void AddLightsMagicVehicle_ObservationTower([[maybe_unused]] const Vehicle* vehicle) {}
+    inline void AddLightsMagicVehicle_MineTrainCoaster([[maybe_unused]] const Vehicle* vehicle) {}
+    inline void AddLightsMagicVehicle_ChairLift([[maybe_unused]] const Vehicle* vehicle) {}
+    inline void AddLightsMagicVehicle_BoatHire([[maybe_unused]] const Vehicle* vehicle) {}
+    inline void AddLightsMagicVehicle_Monorail([[maybe_unused]] const Vehicle* vehicle) {}
+    inline void AddLightsMagicVehicle_MiniatureRailway([[maybe_unused]] const Vehicle* vehicle) {}
 
-    void AddKioskLights(const CoordsXY& mapPosition, uint8_t direction, int32_t height, uint8_t zOffset);
-    void AddKioskLights(const CoordsXY& mapPosition, int32_t height, uint8_t zOffset);
-    void AddShopLights(const CoordsXY& mapPosition, uint8_t direction, int32_t height, uint8_t zOffset);
+    inline void AddKioskLights([[maybe_unused]] const CoordsXY& mapPosition, [[maybe_unused]] uint8_t direction, [[maybe_unused]] int32_t height, [[maybe_unused]] uint8_t zOffset) {}
+    inline void AddKioskLights([[maybe_unused]] const CoordsXY& mapPosition, [[maybe_unused]] int32_t height, [[maybe_unused]] uint8_t zOffset) {}
+    inline void AddShopLights([[maybe_unused]] const CoordsXY& mapPosition, [[maybe_unused]] uint8_t direction, [[maybe_unused]] int32_t height, [[maybe_unused]] uint8_t zOffset) {}
 
-    void ApplyPaletteFilter(uint8_t i, uint8_t* r, uint8_t* g, uint8_t* b);
-    void RenderToTexture(
-        const Viewport& vp, void* dstPixels, uint32_t dstPitch, Drawing::PaletteIndex* bits, uint32_t width, uint32_t height,
-        const uint32_t* palette, const uint32_t* lightPalette);
+    inline void ApplyPaletteFilter([[maybe_unused]] uint8_t i, [[maybe_unused]] uint8_t* r, [[maybe_unused]] uint8_t* g, [[maybe_unused]] uint8_t* b) {}
+    inline void RenderToTexture(
+        [[maybe_unused]] const Viewport& vp, [[maybe_unused]] void* dstPixels, [[maybe_unused]] uint32_t dstPitch, [[maybe_unused]] Drawing::PaletteIndex* bits, [[maybe_unused]] uint32_t width, [[maybe_unused]] uint32_t height,
+        [[maybe_unused]] const uint32_t* palette, [[maybe_unused]] const uint32_t* lightPalette) {}
 
 } // namespace OpenRCT2::Drawing::LightFx

@@ -804,7 +804,6 @@ void PaintPath(PaintSession& session, uint16_t height, const PathElement& tileEl
         PathPaintBoxSupport(session, tileElement, height, pathPaintInfo, hasSupports, imageTemplate, sceneryImageTemplate);
     }
 
-    PaintLampLightEffects(session, tileElement, height);
 }
 
 static std::pair<uint8_t, uint8_t> PathPaintGetRotatedEdgesAndCorners(

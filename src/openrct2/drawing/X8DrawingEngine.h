@@ -64,8 +64,6 @@ namespace OpenRCT2
 
             RenderTarget _mainRT = {};
 
-            bool _lastLightFXenabled = false;
-
             X8WeatherDrawer _weatherDrawer;
             X8DrawingContext* _drawingContext;
             InvalidationGrid _invalidationGrid;

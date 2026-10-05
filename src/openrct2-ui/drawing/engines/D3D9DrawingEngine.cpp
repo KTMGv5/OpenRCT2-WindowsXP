@@ -33,7 +33,6 @@
 #include <openrct2/drawing/Drawing.Screen.h>
 #include <openrct2/drawing/Drawing.h>
 #include <openrct2/drawing/IDrawingEngine.h>
-#include <openrct2/drawing/LightFX.h>
 #include <openrct2/drawing/X8DrawingEngine.h>
 #include <openrct2/interface/Window.h>
 #include <openrct2/paint/Paint.h>
@@ -73,7 +72,6 @@ private:
     uint32_t _backBufferHeight = 0;
 
     uint32_t _paletteHWMapped[256] = { 0 };
-    uint32_t _lightPaletteHWMapped[256] = { 0 };
     GamePalette _lastPalette = {};
     bool _hasPalette = false;
 
@@ -408,19 +406,6 @@ public:
                 _paletteTexture->UnlockRect(0);
             }
         }
-
-        if (Config::Get().general.enableLightFx)
-        {
-            auto& lightPalette = LightFx::GetPalette();
-            for (int32_t i = 0; i < 256; i++)
-            {
-                const auto& src = lightPalette[i];
-                _lightPaletteHWMapped[i] = (static_cast<uint32_t>(src.alpha) << 24)
-                    | (static_cast<uint32_t>(src.red) << 16)
-                    | (static_cast<uint32_t>(src.green) << 8)
-                    | static_cast<uint32_t>(src.blue);
-            }
-        }
     }
 
     void BeginDraw() override
@@ -436,8 +421,7 @@ public:
 
     void PaintWindows() override
     {
-        float night = static_cast<float>(pow(gDayNightCycle, 1.5));
-        if ((Config::Get().general.enableLightFx && night > 0.001f) || Weather::hasWeatherEffect() || gPaintForceRedraw)
+        if (Weather::hasWeatherEffect() || gPaintForceRedraw)
         {
             WindowUpdateAllViewports();
             WindowDrawAll(_mainRT, 0, 0, static_cast<int32_t>(_width), static_cast<int32_t>(_height));
@@ -533,9 +517,7 @@ private:
             _screenTexture = nullptr;
         }
 
-        D3DFORMAT targetFormat = (_usePixelShader && !Config::Get().general.enableLightFx)
-            ? D3DFMT_L8
-            : D3DFMT_X8R8G8B8;
+        D3DFORMAT targetFormat = _usePixelShader ? D3DFMT_L8 : D3DFMT_X8R8G8B8;
 
         // Try dynamic texture in D3DPOOL_DEFAULT first
         HRESULT hr = _device->CreateTexture(
@@ -717,19 +699,9 @@ private:
             }
             else
             {
-                auto* viewport = WindowGetViewport(WindowGetMain());
-                if (Config::Get().general.enableLightFx && viewport != nullptr)
-                {
-                    LightFx::RenderToTexture(
-                        *viewport, lockedRect.pBits, lockedRect.Pitch, _bits, _width, _height,
-                        _paletteHWMapped, _lightPaletteHWMapped);
-                }
-                else
-                {
-                    CopyBitsToTexture(
-                        lockedRect.pBits, lockedRect.Pitch, _bits, static_cast<int32_t>(_width),
-                        static_cast<int32_t>(_height), _paletteHWMapped);
-                }
+                CopyBitsToTexture(
+                    lockedRect.pBits, lockedRect.Pitch, _bits, static_cast<int32_t>(_width),
+                    static_cast<int32_t>(_height), _paletteHWMapped);
             }
             _screenTexture->UnlockRect(0);
         }

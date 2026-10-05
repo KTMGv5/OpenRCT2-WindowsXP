@@ -20,7 +20,6 @@
 #include <openrct2/core/Guard.hpp>
 #include <openrct2/drawing/Drawing.h>
 #include <openrct2/drawing/IDrawingEngine.h>
-#include <openrct2/drawing/LightFX.h>
 #include <openrct2/drawing/X8DrawingEngine.h>
 #include <openrct2/interface/Window.h>
 #include <openrct2/paint/Paint.h>
@@ -45,7 +44,6 @@ private:
     SDL_Texture* _scaledScreenTexture = nullptr;
     SDL_PixelFormat* _screenTextureFormat = nullptr;
     uint32_t _paletteHWMapped[256] = { 0 };
-    uint32_t _lightPaletteHWMapped[256] = { 0 };
     GamePalette _lastPalette = {};
     bool _hasPalette = false;
 
@@ -262,16 +260,6 @@ public:
             {
                 _paletteHWMapped[i] = SDL_MapRGB(_screenTextureFormat, palette[i].red, palette[i].green, palette[i].blue);
             }
-
-            if (Config::Get().general.enableLightFx)
-            {
-                auto& lightPalette = LightFx::GetPalette();
-                for (int32_t i = 0; i < 256; i++)
-                {
-                    const auto& src = lightPalette[i];
-                    _lightPaletteHWMapped[i] = SDL_MapRGBA(_screenTextureFormat, src.red, src.green, src.blue, src.alpha);
-                }
-            }
         }
     }
 
@@ -289,8 +277,7 @@ public:
 
     void PaintWindows() override
     {
-        float night = static_cast<float>(pow(gDayNightCycle, 1.5));
-        if ((Config::Get().general.enableLightFx && night > 0.001f) || Weather::hasWeatherEffect() || gPaintForceRedraw)
+        if (Weather::hasWeatherEffect() || gPaintForceRedraw)
         {
             WindowUpdateAllViewports();
             WindowDrawAll(_mainRT, 0, 0, static_cast<int32_t>(_width), static_cast<int32_t>(_height));
@@ -324,24 +311,8 @@ protected:
 private:
     void Display()
     {
-        auto* viewport = WindowGetViewport(WindowGetMain());
-
-        if (Config::Get().general.enableLightFx && viewport != nullptr)
-        {
-            void* pixels;
-            int32_t pitch;
-            if (SDL_LockTexture(_screenTexture, nullptr, &pixels, &pitch) == 0)
-            {
-                LightFx::RenderToTexture(
-                    *viewport, pixels, pitch, _bits, _width, _height, _paletteHWMapped, _lightPaletteHWMapped);
-                SDL_UnlockTexture(_screenTexture);
-            }
-        }
-        else
-        {
-            CopyBitsToTexture(
-                _screenTexture, _bits, static_cast<int32_t>(_width), static_cast<int32_t>(_height), _paletteHWMapped);
-        }
+        CopyBitsToTexture(
+            _screenTexture, _bits, static_cast<int32_t>(_width), static_cast<int32_t>(_height), _paletteHWMapped);
         if (smoothNN)
         {
             SDL_SetRenderTarget(_sdlRenderer, _scaledScreenTexture);

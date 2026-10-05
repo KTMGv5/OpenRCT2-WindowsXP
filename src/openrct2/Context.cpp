@@ -46,7 +46,6 @@
 #include "drawing/Font.h"
 #include "drawing/IDrawingEngine.h"
 #include "drawing/Image.h"
-#include "drawing/LightFX.h"
 #include "drawing/Palette.h"
 #include "drawing/PickupPeep.h"
 #include "entity/EntityTweener.h"
@@ -481,7 +480,6 @@ namespace OpenRCT2
                 {
                     return false;
                 }
-                Drawing::LightFx::Init();
             }
 
             ContextInit();

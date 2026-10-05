@@ -34,7 +34,6 @@
     #include <openrct2/drawing/IDrawingContext.h>
     #include <openrct2/drawing/IDrawingEngine.h>
     #include <openrct2/drawing/InvalidationGrid.h>
-    #include <openrct2/drawing/LightFX.h>
     #include <openrct2/drawing/RenderTarget.h>
     #include <openrct2/drawing/TTF.h>
     #include <openrct2/drawing/WeatherDrawer.h>
@@ -235,7 +234,6 @@ public:
     {
         _window = static_cast<SDL_Window*>(_uiContext.GetWindow());
         _mainRT.DrawingEngine = this;
-        LightFx::SetAvailable(false);
     }
 
     ~OpenGLDrawingEngine() override

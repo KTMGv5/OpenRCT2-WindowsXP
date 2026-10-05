@@ -141,8 +141,6 @@ namespace OpenRCT2::Ui::Windows
         WIDX_VIRTUAL_FLOOR_DROPDOWN,
         WIDX_EFFECTS_GROUP,
         WIDX_DAY_NIGHT_CHECKBOX,
-        WIDX_ENABLE_LIGHT_FX_CHECKBOX,
-        WIDX_ENABLE_LIGHT_FX_FOR_VEHICLES_CHECKBOX,
         WIDX_RENDER_WEATHER_EFFECTS_CHECKBOX,
         WIDX_DISABLE_LIGHTNING_EFFECT_CHECKBOX,
 
@@ -323,12 +321,10 @@ namespace OpenRCT2::Ui::Windows
         makeWidget({155, kFrameRenderingStart + 90}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary, kStringIdNone,              STR_VIRTUAL_FLOOR_STYLE_TIP   ), // Virtual floor dropdown
         makeWidget({288, kFrameRenderingStart + 91}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,         STR_VIRTUAL_FLOOR_STYLE_TIP   ), // Virtual floor dropdown
 
-        makeWidget({ 5,  kFrameEffectStart + 0}, {300, 94}, WidgetType::groupbox, WindowColour::secondary, STR_EFFECTS_GROUP                                             ), // Rendering group
+        makeWidget({ 5,  kFrameEffectStart + 0}, {300, 64}, WidgetType::groupbox, WindowColour::secondary, STR_EFFECTS_GROUP                                             ), // Rendering group
         makeWidget({10, kFrameEffectStart + 15}, {281, 12}, WidgetType::checkbox, WindowColour::secondary, STR_CYCLE_DAY_NIGHT,          STR_CYCLE_DAY_NIGHT_TIP         ), // Cycle day-night
-        makeWidget({25, kFrameEffectStart + 30}, {266, 12}, WidgetType::checkbox, WindowColour::secondary, STR_ENABLE_LIGHTING_EFFECTS,  STR_ENABLE_LIGHTING_EFFECTS_TIP ), // Enable light fx
-        makeWidget({40, kFrameEffectStart + 45}, {251, 12}, WidgetType::checkbox, WindowColour::secondary, STR_ENABLE_LIGHTING_VEHICLES, STR_ENABLE_LIGHTING_VEHICLES_TIP), // Enable light fx for vehicles
-        makeWidget({10, kFrameEffectStart + 60}, {281, 12}, WidgetType::checkbox, WindowColour::secondary, STR_RENDER_WEATHER_EFFECTS,   STR_RENDER_WEATHER_EFFECTS_TIP  ), // Render weather effects
-        makeWidget({25, kFrameEffectStart + 75}, {266, 12}, WidgetType::checkbox, WindowColour::secondary, STR_DISABLE_LIGHTNING_EFFECT, STR_DISABLE_LIGHTNING_EFFECT_TIP)  // Disable lightning effect
+        makeWidget({10, kFrameEffectStart + 30}, {281, 12}, WidgetType::checkbox, WindowColour::secondary, STR_RENDER_WEATHER_EFFECTS,   STR_RENDER_WEATHER_EFFECTS_TIP  ), // Render weather effects
+        makeWidget({25, kFrameEffectStart + 45}, {266, 12}, WidgetType::checkbox, WindowColour::secondary, STR_DISABLE_LIGHTNING_EFFECT, STR_DISABLE_LIGHTNING_EFFECT_TIP)  // Disable lightning effect
     );
 
     static constexpr auto window_options_culture_widgets = makeWidgets(
@@ -1091,16 +1087,6 @@ namespace OpenRCT2::Ui::Windows
                     Config::Save();
                     invalidate();
                     break;
-                case WIDX_ENABLE_LIGHT_FX_CHECKBOX:
-                    Config::Get().general.enableLightFx ^= 1;
-                    Config::Save();
-                    invalidate();
-                    break;
-                case WIDX_ENABLE_LIGHT_FX_FOR_VEHICLES_CHECKBOX:
-                    Config::Get().general.enableLightFxForVehicles ^= 1;
-                    Config::Save();
-                    invalidate();
-                    break;
                 case WIDX_UPPER_CASE_BANNERS_CHECKBOX:
                     Config::Get().general.upperCaseBanners ^= 1;
                     Config::Save();
@@ -1176,20 +1162,6 @@ namespace OpenRCT2::Ui::Windows
             };
 
             widgets[WIDX_VIRTUAL_FLOOR].text = _virtualFloorStyleStrings[EnumValue(Config::Get().general.virtualFloorStyle)];
-
-            setCheckboxValue(WIDX_ENABLE_LIGHT_FX_CHECKBOX, Config::Get().general.enableLightFx);
-            const bool lightFxEnabled = Config::Get().general.dayNightCycle
-                && (Config::Get().general.drawingEngine == DrawingEngine::softwareWithHardwareDisplay
-                    || Config::Get().general.drawingEngine == DrawingEngine::direct3D9);
-            setWidgetDisabled(WIDX_ENABLE_LIGHT_FX_CHECKBOX, !lightFxEnabled);
-            if (!lightFxEnabled)
-                Config::Get().general.enableLightFx = false;
-
-            setCheckboxValue(WIDX_ENABLE_LIGHT_FX_FOR_VEHICLES_CHECKBOX, Config::Get().general.enableLightFxForVehicles);
-            const bool lightFxForVehiclesEnabled = lightFxEnabled && Config::Get().general.enableLightFx;
-            setWidgetDisabled(WIDX_ENABLE_LIGHT_FX_FOR_VEHICLES_CHECKBOX, !lightFxForVehiclesEnabled);
-            if (!lightFxForVehiclesEnabled)
-                Config::Get().general.enableLightFxForVehicles = false;
 
             setCheckboxValue(
                 WIDX_RENDER_WEATHER_EFFECTS_CHECKBOX,

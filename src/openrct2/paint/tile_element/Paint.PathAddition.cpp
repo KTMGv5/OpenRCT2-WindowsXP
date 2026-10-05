@@ -10,7 +10,6 @@
 #include "Paint.PathAddition.h"
 
 #include "../../core/Numerics.hpp"
-#include "../../drawing/LightFX.h"
 #include "../../interface/Viewport.h"
 #include "../../object/PathAdditionEntry.h"
 #include "../../paint/Paint.h"
@@ -21,7 +20,6 @@
 using namespace OpenRCT2;
 using namespace OpenRCT2::Drawing;
 
-using OpenRCT2::Drawing::LightFx::LightType;
 
 static ImageIndex GetEdgeImageOffset(edge_t edge)
 {
@@ -266,31 +264,5 @@ void paintPathAddition(PaintSession& session, const PathElement& pathElement, ui
     if (sceneryImageTemplate.IsRemap())
     {
         session.InteractionType = ViewportInteractionItem::none;
-    }
-}
-
-void PaintLampLightEffects(PaintSession& session, const PathElement& pathEl, uint16_t height)
-{
-    PROFILED_FUNCTION();
-
-    if (LightFx::IsAvailable())
-    {
-        // At zoom 2+ (high overview of park), individual footpath lamps are culled,
-        // matching OpenRCT2's LOD system and keeping FPS high without giant light blobs.
-        if (session.rt.zoom_level > ZoomLevel{ 1 })
-        {
-            return;
-        }
-
-        if (pathEl.hasAddition() && !(pathEl.isBroken()))
-        {
-            auto* pathAddEntry = pathEl.getAdditionEntry();
-            if (pathAddEntry != nullptr && pathAddEntry->flags.has(PathAdditionFlag::lamp))
-            {
-                // Single unified, ground-conforming lantern at the lamp post (height + 12)
-                // Naturally covers the 64x32 footpath tile with seamless soft falloff
-                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 12, LightType::lantern1);
-            }
-        }
     }
 }

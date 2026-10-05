@@ -12,7 +12,6 @@
 #include "../../Context.h"
 #include "../../GameState.h"
 #include "../../SpriteIds.h"
-#include "../../drawing/LightFX.h"
 #include "../../drawing/PaletteIndex.h"
 #include "../../drawing/ScrollingText.h"
 #include "../../interface/Viewport.h"
@@ -32,7 +31,6 @@
 using namespace OpenRCT2;
 using namespace OpenRCT2::Drawing;
 
-using OpenRCT2::Drawing::LightFx::LightType;
 
 static void PaintRideEntranceExitScrollingText(
     PaintSession& session, const EntranceElement& entranceEl, const StationObject& stationObj, Direction direction,
@@ -65,19 +63,6 @@ static void PaintRideEntranceExitScrollingText(
         { 0, 0, height + stationObj.Height }, { { 2, 2, height + stationObj.Height }, { 28, 28, 51 } });
 }
 
-static void PaintRideEntranceExitLightEffects(PaintSession& session, int32_t height, const EntranceElement& entranceEl)
-{
-    PROFILED_FUNCTION();
-
-    if (LightFx::IsAvailable())
-    {
-        if (entranceEl.getEntranceType() == EntranceType::rideEntrance)
-        {
-            // A subtle warm lantern under the entrance booth canopy (centered, no edge offset)
-            LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 14, LightType::lantern1);
-        }
-    }
-}
 
 static void PaintRideEntranceExit(PaintSession& session, uint8_t direction, int32_t height, const EntranceElement& entranceEl)
 {
@@ -103,8 +88,6 @@ static void PaintRideEntranceExit(PaintSession& session, uint8_t direction, int3
     }
 
     session.InteractionType = ViewportInteractionItem::ride;
-
-    PaintRideEntranceExitLightEffects(session, height, entranceEl);
 
     auto hasGlass = stationObj->Flags.has(StationObjectFlag::isTransparent);
     auto colourPrimary = ride->trackColours[0].main;
@@ -219,25 +202,12 @@ static void PaintParkEntranceScrollingText(
     PaintAddImageAsChild(session, imageIndex, { 0, 0, textHeight }, { { 2, 2, textHeight }, { 28, 28, 47 } });
 }
 
-static void PaintParkEntranceLightEffects(PaintSession& session, int32_t height)
-{
-    PROFILED_FUNCTION();
-
-    if (LightFx::IsAvailable())
-    {
-        // Warm canopy lantern under the entrance arch (height + 14)
-        LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 14, LightType::lantern1);
-    }
-}
-
 static void PaintParkEntrance(PaintSession& session, uint8_t direction, int32_t height, const EntranceElement& entranceEl)
 {
     PROFILED_FUNCTION();
 
     if (gTrackDesignSaveMode || session.ViewFlags.has(ViewportFlag::highlightPathIssues))
         return;
-
-    PaintParkEntranceLightEffects(session, height);
 
     session.InteractionType = ViewportInteractionItem::parkEntrance;
 

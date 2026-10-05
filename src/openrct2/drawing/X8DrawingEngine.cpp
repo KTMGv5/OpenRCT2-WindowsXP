@@ -24,7 +24,6 @@
 #include "Drawing.h"
 #include "IDrawingEngine.h"
 #include "InvalidationGrid.h"
-#include "LightFX.h"
 #include "Line.h"
 #include "TTF.h"
 #include "WeatherDrawer.h"
@@ -127,8 +126,6 @@ X8DrawingEngine::X8DrawingEngine([[maybe_unused]] IUiContext& uiContext)
 {
     _drawingContext = new X8DrawingContext(this);
     _mainRT.DrawingEngine = this;
-    LightFx::SetAvailable(true);
-    _lastLightFXenabled = Config::Get().general.enableLightFx;
 }
 
 X8DrawingEngine::~X8DrawingEngine()
@@ -169,13 +166,6 @@ void X8DrawingEngine::BeginDraw()
 {
     if (!IntroIsPlaying())
     {
-        // HACK we need to re-configure the bits if light fx has been enabled / disabled
-        if (_lastLightFXenabled != Config::Get().general.enableLightFx)
-        {
-            Resize(_width, _height);
-            GfxInvalidateScreen();
-            _lastLightFXenabled = Config::Get().general.enableLightFx;
-        }
         _weatherDrawer.Restore(_mainRT);
     }
 
@@ -189,8 +179,7 @@ void X8DrawingEngine::EndDraw()
 
 void X8DrawingEngine::PaintWindows()
 {
-    float night = static_cast<float>(std::pow(gDayNightCycle, 1.5f));
-    if ((Config::Get().general.enableLightFx && night > 0.001f) || gPaintForceRedraw)
+    if (gPaintForceRedraw)
     {
         WindowUpdateAllViewports();
         WindowDrawAll(_mainRT, 0, 0, _width, _height);
@@ -330,11 +319,6 @@ void X8DrawingEngine::ConfigureBits(uint32_t width, uint32_t height, uint32_t pi
     rt->pitch = _pitch - width;
 
     ConfigureDirtyGrid();
-
-    if (LightFx::IsAvailable())
-    {
-        LightFx::UpdateBuffers(*rt);
-    }
 }
 
 void X8DrawingEngine::OnDrawDirtyBlock(int32_t, int32_t, int32_t, int32_t)
