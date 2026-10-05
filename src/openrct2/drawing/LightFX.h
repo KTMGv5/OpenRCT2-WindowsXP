@@ -68,6 +68,7 @@ namespace OpenRCT2::Drawing::LightFx
     void AddLightsMagicVehicle_Monorail(const Vehicle* vehicle);
     void AddLightsMagicVehicle_MiniatureRailway(const Vehicle* vehicle);
 
+    void AddKioskLights(const CoordsXY& mapPosition, uint8_t direction, int32_t height, uint8_t zOffset);
     void AddKioskLights(const CoordsXY& mapPosition, int32_t height, uint8_t zOffset);
     void AddShopLights(const CoordsXY& mapPosition, uint8_t direction, int32_t height, uint8_t zOffset);
 

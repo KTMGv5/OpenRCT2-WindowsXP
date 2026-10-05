@@ -10,6 +10,7 @@
 #pragma once
 
 #include "../../../SpriteIds.h"
+#include "../../../drawing/LightFX.h"
 #include "../../RideData.h"
 #include "../../RideStringIds.h"
 #include "../../ShopItem.h"
@@ -71,6 +72,7 @@ constexpr RideTypeDescriptor kFlyingSaucersRTD =
             { RatingsModifierType::bonusScenery,         0, 5577, 0, 0 },
         },
     },
+    .LightFXAddLightsMagicVehicle = Drawing::LightFx::AddLightsMagicVehicle_BoatHire,
 };
 } // namespace OpenRCT2
 // clang-format on

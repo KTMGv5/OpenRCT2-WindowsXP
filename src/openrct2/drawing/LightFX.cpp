@@ -14,6 +14,9 @@
 #include "../config/Config.h"
 #include "../entity/EntityRegistry.h"
 #include "../interface/Viewport.h"
+#include "../interface/Window.h"
+#include "../interface/WindowBase.h"
+#include "../interface/WindowClasses.h"
 #include "../paint/Paint.h"
 #include "../ride/Ride.h"
 #include "../ride/RideData.h"
@@ -594,14 +597,44 @@ namespace OpenRCT2::Drawing::LightFx
             rtd.LightFXAddLightsMagicVehicle(vehicle);
     }
 
-    void AddKioskLights(const CoordsXY& mapPosition, const int32_t height, const uint8_t zOffset)
-    {
-        Add3DLightMagicFromDrawingTile(mapPosition, 0, 0, height + zOffset, LightType::lantern2);
-    }
-
     void AddShopLights(const CoordsXY& mapPosition, const uint8_t direction, const int32_t height, const uint8_t zOffset)
     {
-        Add3DLightMagicFromDrawingTile(mapPosition, 0, 0, height + zOffset, LightType::lantern2);
+        int16_t offsetX = 0;
+        int16_t offsetY = 0;
+        switch (direction & 3)
+        {
+            case 0:
+                offsetX = 10;
+                offsetY = 0;
+                break;
+            case 1:
+                offsetX = 0;
+                offsetY = -10;
+                break;
+            case 2:
+                offsetX = -10;
+                offsetY = 0;
+                break;
+            case 3:
+                offsetX = 0;
+                offsetY = 10;
+                break;
+        }
+
+        // Place a natural 64px warm lantern at the front service counter (height + 8)
+        // offset towards the queue / order window, illuminating the counter and guests
+        // without bleeding up onto the kiosk roof.
+        Add3DLightMagicFromDrawingTile(mapPosition, offsetX, offsetY, height + 8, LightType::lantern1);
+    }
+
+    void AddKioskLights(const CoordsXY& mapPosition, const uint8_t direction, const int32_t height, const uint8_t zOffset)
+    {
+        AddShopLights(mapPosition, direction, height, zOffset);
+    }
+
+    void AddKioskLights(const CoordsXY& mapPosition, const int32_t height, const uint8_t zOffset)
+    {
+        AddShopLights(mapPosition, 0, height, zOffset);
     }
 
     void ApplyPaletteFilter(uint8_t i, uint8_t* r, uint8_t* g, uint8_t* b)
@@ -823,6 +856,38 @@ namespace OpenRCT2::Drawing::LightFx
         return a0 | (r << 16) | (g << 8) | b;
     }
 
+    static void MaskUIWindows(uint32_t width, uint32_t height)
+    {
+        uint8_t* lightBits = static_cast<uint8_t*>(GetFrontBuffer());
+        if (lightBits == nullptr)
+        {
+            return;
+        }
+
+        WindowVisitEach([=](WindowBase* w) {
+            if (w == nullptr || !w->isVisible || w->classification == WindowClass::mainWindow)
+            {
+                return;
+            }
+
+            int32_t left = std::clamp<int32_t>(w->windowPos.x, 0, static_cast<int32_t>(width));
+            int32_t top = std::clamp<int32_t>(w->windowPos.y, 0, static_cast<int32_t>(height));
+            int32_t right = std::clamp<int32_t>(w->windowPos.x + w->width, 0, static_cast<int32_t>(width));
+            int32_t bottom = std::clamp<int32_t>(w->windowPos.y + w->height, 0, static_cast<int32_t>(height));
+
+            if (left >= right || top >= bottom)
+            {
+                return;
+            }
+
+            size_t rowBytes = static_cast<size_t>(right - left);
+            for (int32_t y = top; y < bottom; y++)
+            {
+                std::memset(lightBits + (y * width) + left, 0, rowBytes);
+            }
+        });
+    }
+
     void RenderToTexture(
         const Viewport& vp, void* dstPixels, uint32_t dstPitch, PaletteIndex* bits, uint32_t width, uint32_t height,
         const uint32_t* palette, const uint32_t* lightPalette)
@@ -849,6 +914,7 @@ namespace OpenRCT2::Drawing::LightFx
         SwapBuffers();
         PrepareLightList(vp);
         RenderLightsToFrontBuffer();
+        MaskUIWindows(width, height);
 
         uint8_t* lightBits = static_cast<uint8_t*>(GetFrontBuffer());
         if (lightBits == nullptr)

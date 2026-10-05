@@ -73,7 +73,7 @@ static void PaintRideEntranceExitLightEffects(PaintSession& session, int32_t hei
     {
         if (entranceEl.getEntranceType() == EntranceType::rideEntrance)
         {
-            LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 45, LightType::lantern2);
+            LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 32, LightType::lantern1);
         }
 
         switch (entranceEl.getDirection())

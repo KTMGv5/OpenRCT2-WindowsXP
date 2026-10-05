@@ -1993,7 +1993,7 @@ void PaintTrack(PaintSession& session, Direction direction, int32_t height, cons
 
             const auto* originElement = ride->getOriginElement(StationIndex::FromUnderlying(0));
             if (originElement != nullptr && originElement->getTrackType() == TrackElemType::flatTrack1x1B)
-                LightFx::AddKioskLights(session.MapPosition, height, zOffset);
+                LightFx::AddKioskLights(session.MapPosition, trackElement.getDirection(), height, zOffset);
             else if (kRideTypeDescriptors[ride->type].flags.has(RtdFlag::isShopOrFacility))
                 LightFx::AddShopLights(session.MapPosition, trackElement.getDirection(), height, zOffset);
         }

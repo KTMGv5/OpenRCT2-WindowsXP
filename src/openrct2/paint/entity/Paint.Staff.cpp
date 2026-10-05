@@ -37,29 +37,20 @@ void PaintStaff(PaintSession& session, const Staff& staff, int32_t orientation)
     PaintAddImageAsParent(session, imageId, kPaintPeepOffset(staff.z), kPaintPeepBoundBox(staff.z));
 }
 
+static constexpr int16_t kStaffFlashlightOffset[] = {
+    10, 10, 9, 8, 7, 6, 4, 2, 0, -2, -4, -6, -7, -8, -9, -10, -10, -10, -9, -8, -7, -6, -4, -2, 0, 2, 4, 6, 7, 8, 9, 10,
+};
+
 void PaintStaffLightingEffects(const Staff& staff)
 {
     if (!LightFx::IsAvailable())
         return;
 
     auto loc = staff.getLocation();
-    switch (staff.orientation)
-    {
-        case 0:
-            loc.x -= 10;
-            break;
-        case 8:
-            loc.y += 10;
-            break;
-        case 16:
-            loc.x += 10;
-            break;
-        case 24:
-            loc.y -= 10;
-            break;
-        default:
-            return;
-    }
+    uint8_t ori = staff.orientation % 32;
+    loc.x -= kStaffFlashlightOffset[(ori + 0) % 32];
+    loc.y -= kStaffFlashlightOffset[(ori + 8) % 32];
+    loc.z += 2;
 
     LightFx::Add3DLight(staff, 0, loc, LightFx::LightType::spot1);
 }
