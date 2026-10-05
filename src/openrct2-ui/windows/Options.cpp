@@ -483,25 +483,27 @@ namespace OpenRCT2::Ui::Windows
     // clang-format on
 
 #if defined(_WIN32)
+#include <SDL_loadso.h>
+
     static bool IsD3D11Available()
     {
         static int32_t s_isAvailable = -1;
         if (s_isAvailable == -1)
         {
-            void* hD3D11 = LoadLibraryA("d3d11.dll");
+            void* hD3D11 = SDL_LoadObject("d3d11.dll");
             if (hD3D11 != nullptr)
             {
-                void* hDXGI = LoadLibraryA("dxgi.dll");
+                void* hDXGI = SDL_LoadObject("dxgi.dll");
                 if (hDXGI != nullptr)
                 {
                     s_isAvailable = 1;
-                    FreeLibrary(hDXGI);
+                    SDL_UnloadObject(hDXGI);
                 }
                 else
                 {
                     s_isAvailable = 0;
                 }
-                FreeLibrary(hD3D11);
+                SDL_UnloadObject(hD3D11);
             }
             else
             {
