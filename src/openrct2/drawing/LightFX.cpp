@@ -185,7 +185,7 @@ namespace OpenRCT2::Drawing::LightFx
         {
             if (IsSolidWallElement(*el, lightZ))
             {
-                mask |= (1 << (EnumValue(el->getDirection()) & 3));
+                mask |= (1 << (el->getDirection() & 3));
             }
             if (el->isLastForTile())
                 break;
@@ -198,7 +198,7 @@ namespace OpenRCT2::Drawing::LightFx
         {
             for (const auto* el = MapGetFirstElementAt(westTile); el != nullptr; el++)
             {
-                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 2)
+                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 2)
                 {
                     mask |= (1 << 0);
                 }
@@ -213,7 +213,7 @@ namespace OpenRCT2::Drawing::LightFx
         {
             for (const auto* el = MapGetFirstElementAt(northTile); el != nullptr; el++)
             {
-                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 3)
+                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 3)
                 {
                     mask |= (1 << 1);
                 }
@@ -228,7 +228,7 @@ namespace OpenRCT2::Drawing::LightFx
         {
             for (const auto* el = MapGetFirstElementAt(eastTile); el != nullptr; el++)
             {
-                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 0)
+                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 0)
                 {
                     mask |= (1 << 2);
                 }
@@ -243,7 +243,7 @@ namespace OpenRCT2::Drawing::LightFx
         {
             for (const auto* el = MapGetFirstElementAt(southTile); el != nullptr; el++)
             {
-                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 1)
+                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 1)
                 {
                     mask |= (1 << 3);
                 }
