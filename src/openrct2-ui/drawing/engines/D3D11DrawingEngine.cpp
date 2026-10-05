@@ -756,7 +756,7 @@ private:
         // Present
         UINT syncInterval = _useVsync ? 1 : 0;
         UINT presentFlags = (!_useVsync && _allowTearing) ? DXGI_PRESENT_ALLOW_TEARING : 0;
-        HRESULT hr = _swapChain->Present(syncInterval, presentFlags);
+        hr = _swapChain->Present(syncInterval, presentFlags);
         if (FAILED(hr) && presentFlags != 0)
         {
             _swapChain->Present(syncInterval, 0);
