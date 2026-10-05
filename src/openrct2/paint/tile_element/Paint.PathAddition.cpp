@@ -287,10 +287,9 @@ void PaintLampLightEffects(PaintSession& session, const PathElement& pathEl, uin
             auto* pathAddEntry = pathEl.getAdditionEntry();
             if (pathAddEntry != nullptr && pathAddEntry->flags.has(PathAdditionFlag::lamp))
             {
-                // Ground-conforming light pool on the footpath pavement (height + 2)
-                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 2, LightType::lantern2);
-                // Subtle warm point glow at the lamp post fixture (height + 23)
-                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 23, LightType::lantern0);
+                // Single unified, ground-conforming lantern at the lamp post (height + 12)
+                // Naturally covers the 64x32 footpath tile with seamless soft falloff
+                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 12, LightType::lantern1);
             }
         }
     }

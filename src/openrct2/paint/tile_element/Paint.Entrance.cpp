@@ -73,23 +73,8 @@ static void PaintRideEntranceExitLightEffects(PaintSession& session, int32_t hei
     {
         if (entranceEl.getEntranceType() == EntranceType::rideEntrance)
         {
-            LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 32, LightType::lantern1);
-        }
-
-        switch (entranceEl.getDirection())
-        {
-            case 0:
-                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 16, 0, height + 16, LightType::lantern1);
-                break;
-            case 1:
-                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, -16, height + 16, LightType::lantern1);
-                break;
-            case 2:
-                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, -16, 0, height + 16, LightType::lantern1);
-                break;
-            case 3:
-                LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 16, height + 16, LightType::lantern1);
-                break;
+            // A subtle warm lantern under the entrance booth canopy (centered, no edge offset)
+            LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 14, LightType::lantern1);
         }
     }
 }
@@ -240,7 +225,8 @@ static void PaintParkEntranceLightEffects(PaintSession& session, int32_t height)
 
     if (LightFx::IsAvailable())
     {
-        LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 24, LightType::lantern2);
+        // Warm canopy lantern under the entrance arch (height + 14)
+        LightFx::Add3DLightMagicFromDrawingTile(session.MapPosition, 0, 0, height + 14, LightType::lantern1);
     }
 }
 

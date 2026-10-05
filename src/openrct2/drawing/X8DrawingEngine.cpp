@@ -12,6 +12,7 @@
 #include "../config/Config.h"
 #include "../core/Guard.hpp"
 #include "../core/Numerics.hpp"
+#include "../Game.h"
 #include "../interface/ColourWithFlags.h"
 #include "../interface/Screenshot.h"
 #include "../interface/Window.h"
@@ -187,7 +188,8 @@ void X8DrawingEngine::EndDraw()
 
 void X8DrawingEngine::PaintWindows()
 {
-    if (gPaintForceRedraw)
+    float night = static_cast<float>(pow(gDayNightCycle, 1.5));
+    if ((Config::Get().general.enableLightFx && night > 0.001f) || gPaintForceRedraw)
     {
         WindowUpdateAllViewports();
         WindowDrawAll(_mainRT, 0, 0, _width, _height);

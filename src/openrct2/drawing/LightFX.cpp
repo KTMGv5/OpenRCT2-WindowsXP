@@ -24,6 +24,7 @@
 #include "../util/Util.h"
 #include "../object/WallSceneryEntry.h"
 #include "../world/Map.h"
+#include "../world/tile_element/SmallSceneryElement.h"
 #include "../world/tile_element/SurfaceElement.h"
 #include "../world/tile_element/TileElement.h"
 #include "../world/tile_element/WallElement.h"
@@ -132,13 +133,13 @@ namespace OpenRCT2::Drawing::LightFx
                     {
                         // Focused spotlight: smooth cubic falloff
                         val = oneMinusU2 * oneMinusU2 * std::sqrt(oneMinusU2);
-                        maxIntensity = 220.0f;
+                        maxIntensity = 200.0f;
                     }
                     else
                     {
-                        // Omnidirectional lantern: smooth quadratic falloff with soft ambient peak
-                        val = oneMinusU2 * oneMinusU2;
-                        maxIntensity = 180.0f;
+                        // Omnidirectional lantern: smooth cubic falloff for gentle, seamless edge blend
+                        val = oneMinusU2 * oneMinusU2 * std::sqrt(oneMinusU2);
+                        maxIntensity = 160.0f;
                     }
                     *target++ = static_cast<uint8_t>(std::clamp(val * maxIntensity, 0.0f, 255.0f));
                 }
@@ -149,10 +150,6 @@ namespace OpenRCT2::Drawing::LightFx
     static bool IsSolidWallElement(const TileElement& element, int32_t lightZ)
     {
         if (element.getType() != TileElementType::wall)
-            return false;
-
-        // Check vertical overlap with a small floor margin
-        if (element.getBaseZ() > lightZ + 12 || element.getClearanceZ() < lightZ - 4)
             return false;
 
         const auto* wall = element.asWall();
@@ -171,8 +168,51 @@ namespace OpenRCT2::Drawing::LightFx
         if (entry->flags.has(WallSceneryFlag::hasGlass))
             return false;
 
+        // Only solid building walls (height >= 2 = 16 units) block light!
+        // Low garden curbs and fence posts do NOT cast giant room-blocking shadows
+        if (entry->height < 2)
+            return false;
+
+        // Check vertical overlap: the solid wall must actually stand at light elevation
+        if (element.getBaseZ() > lightZ + 8 || element.getClearanceZ() < lightZ - 4)
+            return false;
+
         // Solid walls (decorated brick, stone, timber, masonry, concrete) block light!
         return true;
+    }
+
+    static bool TileHasTreeBarrier(const TileCoordsXY& tile, int32_t lightZ)
+    {
+        for (const auto* el = MapGetFirstElementAt(tile); el != nullptr; el++)
+        {
+            if (el->getType() == TileElementType::smallScenery)
+            {
+                const auto* sc = el->asSmallScenery();
+                if (sc != nullptr)
+                {
+                    const auto* entry = sc->getEntry();
+                    if (entry != nullptr && entry->flags.has(SmallSceneryFlag::isTree))
+                    {
+                        // Tree stands at light elevation
+                        if (el->getBaseZ() <= lightZ + 24 && el->getClearanceZ() >= lightZ - 4)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            else if (el->getType() == TileElementType::largeScenery)
+            {
+                // Large scenery (e.g. big trees or large structures)
+                if (el->getBaseZ() <= lightZ + 24 && el->getClearanceZ() >= lightZ - 4)
+                {
+                    return true;
+                }
+            }
+            if (el->isLastForTile())
+                break;
+        }
+        return false;
     }
 
     static uint8_t GetTileSolidWallMask(const CoordsXY& lightPos, int32_t lightZ)
@@ -196,14 +236,21 @@ namespace OpenRCT2::Drawing::LightFx
         TileCoordsXY westTile{ static_cast<int16_t>(tile.x - 1), tile.y };
         if (MapIsLocationValid(westTile.toCoordsXY()))
         {
-            for (const auto* el = MapGetFirstElementAt(westTile); el != nullptr; el++)
+            if (TileHasTreeBarrier(westTile, lightZ))
             {
-                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 2)
+                mask |= (1 << 0);
+            }
+            else
+            {
+                for (const auto* el = MapGetFirstElementAt(westTile); el != nullptr; el++)
                 {
-                    mask |= (1 << 0);
+                    if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 2)
+                    {
+                        mask |= (1 << 0);
+                    }
+                    if (el->isLastForTile())
+                        break;
                 }
-                if (el->isLastForTile())
-                    break;
             }
         }
 
@@ -211,14 +258,21 @@ namespace OpenRCT2::Drawing::LightFx
         TileCoordsXY northTile{ tile.x, static_cast<int16_t>(tile.y + 1) };
         if (MapIsLocationValid(northTile.toCoordsXY()))
         {
-            for (const auto* el = MapGetFirstElementAt(northTile); el != nullptr; el++)
+            if (TileHasTreeBarrier(northTile, lightZ))
             {
-                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 3)
+                mask |= (1 << 1);
+            }
+            else
+            {
+                for (const auto* el = MapGetFirstElementAt(northTile); el != nullptr; el++)
                 {
-                    mask |= (1 << 1);
+                    if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 3)
+                    {
+                        mask |= (1 << 1);
+                    }
+                    if (el->isLastForTile())
+                        break;
                 }
-                if (el->isLastForTile())
-                    break;
             }
         }
 
@@ -226,14 +280,21 @@ namespace OpenRCT2::Drawing::LightFx
         TileCoordsXY eastTile{ static_cast<int16_t>(tile.x + 1), tile.y };
         if (MapIsLocationValid(eastTile.toCoordsXY()))
         {
-            for (const auto* el = MapGetFirstElementAt(eastTile); el != nullptr; el++)
+            if (TileHasTreeBarrier(eastTile, lightZ))
             {
-                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 0)
+                mask |= (1 << 2);
+            }
+            else
+            {
+                for (const auto* el = MapGetFirstElementAt(eastTile); el != nullptr; el++)
                 {
-                    mask |= (1 << 2);
+                    if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 0)
+                    {
+                        mask |= (1 << 2);
+                    }
+                    if (el->isLastForTile())
+                        break;
                 }
-                if (el->isLastForTile())
-                    break;
             }
         }
 
@@ -241,14 +302,21 @@ namespace OpenRCT2::Drawing::LightFx
         TileCoordsXY southTile{ tile.x, static_cast<int16_t>(tile.y - 1) };
         if (MapIsLocationValid(southTile.toCoordsXY()))
         {
-            for (const auto* el = MapGetFirstElementAt(southTile); el != nullptr; el++)
+            if (TileHasTreeBarrier(southTile, lightZ))
             {
-                if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 1)
+                mask |= (1 << 3);
+            }
+            else
+            {
+                for (const auto* el = MapGetFirstElementAt(southTile); el != nullptr; el++)
                 {
-                    mask |= (1 << 3);
+                    if (IsSolidWallElement(*el, lightZ) && (el->getDirection() & 3) == 1)
+                    {
+                        mask |= (1 << 3);
+                    }
+                    if (el->isLastForTile())
+                        break;
                 }
-                if (el->isLastForTile())
-                    break;
             }
         }
 
@@ -363,7 +431,7 @@ namespace OpenRCT2::Drawing::LightFx
                 const auto* s = MapGetSurfaceElementAt(checkPos);
                 if (s != nullptr)
                 {
-                    int32_t heightLimit = entry.position.z + (stepIdx * 16) + margin;
+                    int32_t heightLimit = entry.position.z + (stepIdx * 32) + margin;
                     if (s->getBaseZ() > heightLimit)
                     {
                         occluded = true;
@@ -634,13 +702,24 @@ namespace OpenRCT2::Drawing::LightFx
                             case 3: deltaX = v / 2; deltaY = -u / 2; break;
                         }
 
-                        if (((entry.solidWallMask & (1 << 0)) && (deltaX < -inTileX)) ||
-                            ((entry.solidWallMask & (1 << 1)) && (deltaY > (31 - inTileY))) ||
-                            ((entry.solidWallMask & (1 << 2)) && (deltaX > (31 - inTileX))) ||
-                            ((entry.solidWallMask & (1 << 3)) && (deltaY < -inTileY)))
+                        int32_t maxPast = 0;
+                        if ((entry.solidWallMask & (1 << 0)) && (deltaX < -inTileX))
+                            maxPast = std::max(maxPast, -inTileX - deltaX);
+                        if ((entry.solidWallMask & (1 << 1)) && (deltaY > (31 - inTileY)))
+                            maxPast = std::max(maxPast, deltaY - (31 - inTileY));
+                        if ((entry.solidWallMask & (1 << 2)) && (deltaX > (31 - inTileX)))
+                            maxPast = std::max(maxPast, deltaX - (31 - inTileX));
+                        if ((entry.solidWallMask & (1 << 3)) && (deltaY < -inTileY))
+                            maxPast = std::max(maxPast, -inTileY - deltaY);
+
+                        if (maxPast > 0)
                         {
-                            bufWriteBase++;
-                            continue;
+                            if (maxPast >= 6)
+                            {
+                                bufWriteBase++;
+                                continue;
+                            }
+                            bVal = (bVal * (6 - maxPast)) / 6;
                         }
                     }
 
@@ -650,23 +729,30 @@ namespace OpenRCT2::Drawing::LightFx
                         float fx = static_cast<float>(screenPixX);
                         float fy = static_cast<float>(screenPixY);
                         float dot = fx * spotDirX + fy * spotDirY;
-                        if (dot < -12.0f)
+                        // Forward check: absolutely NO light behind or at the staff member!
+                        // The flashlight only shines forward in the direction of movement.
+                        if (dot <= 1.0f)
                         {
                             bufWriteBase++;
                             continue;
                         }
                         float perp = std::abs(fx * (-spotDirY) + fy * spotDirX);
-                        float spreadLimit = (dot + 16.0f) * 0.9f;
+                        // Natural 40-degree beam spread (tan 20 deg ~= 0.36)
+                        float spreadLimit = dot * 0.45f;
                         if (perp > spreadLimit)
                         {
                             bufWriteBase++;
                             continue;
                         }
-                        if (spreadLimit > 0.001f)
+                        // Smooth falloff from center of beam to edge, and forward distance fade
+                        float edgeFade = 1.0f - (perp / spreadLimit);
+                        float distFade = 1.0f - (dot / 32.0f);
+                        if (distFade <= 0.0f)
                         {
-                            float edgeFade = 1.0f - (perp / spreadLimit);
-                            bVal = static_cast<uint32_t>(bVal * edgeFade * edgeFade);
+                            bufWriteBase++;
+                            continue;
                         }
+                        bVal = static_cast<uint32_t>(bVal * (edgeFade * edgeFade) * distFade);
                     }
 
                     if (entry.lightIntensity != 0xFF)
@@ -1055,15 +1141,6 @@ namespace OpenRCT2::Drawing::LightFx
         uint32_t b = static_cast<uint32_t>(std::clamp(b0 + (((b1 - b0) * factor) >> 8), 0, 255));
         uint32_t g = static_cast<uint32_t>(std::clamp(g0 + (((g1 - g0) * factor) >> 8), 0, 255));
         uint32_t r = static_cast<uint32_t>(std::clamp(r0 + (((r1 - r0) * factor) >> 8), 0, 255));
-
-        // Subtle warm luminous core for peak lamp/spotlight centers
-        if (intensity > 215)
-        {
-            uint32_t glow = (intensity - 215) >> 2; // 0..10
-            b = std::min<uint32_t>(255, b + (glow >> 1)); // warm tungsten
-            g = std::min<uint32_t>(255, g + glow);
-            r = std::min<uint32_t>(255, r + glow);
-        }
 
         return a0 | (r << 16) | (g << 8) | b;
     }
