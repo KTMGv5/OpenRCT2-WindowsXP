@@ -22,9 +22,11 @@
 #include "../ride/RideData.h"
 #include "../ride/Vehicle.h"
 #include "../util/Util.h"
+#include "../object/WallSceneryEntry.h"
 #include "../world/Map.h"
 #include "../world/tile_element/SurfaceElement.h"
 #include "../world/tile_element/TileElement.h"
+#include "../world/tile_element/WallElement.h"
 
 #include <algorithm>
 #include <cmath>
@@ -65,6 +67,8 @@ namespace OpenRCT2::Drawing::LightFx
         Qualifier qualifier;
         uint8_t lightID;
         uint8_t lightLinger;
+        uint8_t orientation;
+        uint8_t solidWallMask;
     };
 
     static constexpr uint32_t kMaxLights = 32000;
@@ -89,6 +93,10 @@ namespace OpenRCT2::Drawing::LightFx
 
     static GamePalette gPalette_light;
 
+    static constexpr int16_t kOffsetLookup[] = {
+        10, 10, 9, 8, 7, 6, 4, 2, 0, -2, -4, -6, -7, -8, -9, -10, -10, -10, -9, -8, -7, -6, -4, -2, 0, 2, 4, 6, 7, 8, 9, 10,
+    };
+
     constexpr uint8_t GetLightTypeSize(LightType type)
     {
         return static_cast<uint8_t>(type) & 0x3;
@@ -99,12 +107,13 @@ namespace OpenRCT2::Drawing::LightFx
         return static_cast<LightType>((static_cast<uint8_t>(type) & ~0x3) | size);
     }
 
-    static void GenerateLightTexture(uint8_t* target, int32_t size, bool isSpot)
+    static void GenerateLightTexture(uint8_t* target, int32_t size, bool isSpot, bool isIsometric)
     {
         float radius = static_cast<float>(size) / 2.0f;
+        float yMult = isIsometric ? 2.0f : 1.0f;
         for (int32_t y = 0; y < size; y++)
         {
-            float dy = (static_cast<float>(y) + 0.5f) - radius;
+            float dy = ((static_cast<float>(y) + 0.5f) - radius) * yMult;
             for (int32_t x = 0; x < size; x++)
             {
                 float dx = (static_cast<float>(x) + 0.5f) - radius;
@@ -137,6 +146,115 @@ namespace OpenRCT2::Drawing::LightFx
         }
     }
 
+    static bool IsSolidWallElement(const TileElement& element, int32_t lightZ)
+    {
+        if (element.getType() != TileElementType::wall)
+            return false;
+
+        // Check vertical overlap with a small floor margin
+        if (element.getBaseZ() > lightZ + 12 || element.getClearanceZ() < lightZ - 4)
+            return false;
+
+        const auto* wall = element.asWall();
+        if (wall == nullptr)
+            return false;
+
+        const auto* entry = wall->getEntry();
+        if (entry == nullptr)
+            return false;
+
+        // Transparent fences (picket fence, wire fence, etc.) allow light to stream through!
+        if (entry->flags2.has(WallSceneryFlag2::isTransparent))
+            return false;
+
+        // Glass walls allow light to stream through!
+        if (entry->flags.has(WallSceneryFlag::hasGlass))
+            return false;
+
+        // Solid walls (decorated brick, stone, timber, masonry, concrete) block light!
+        return true;
+    }
+
+    static uint8_t GetTileSolidWallMask(const CoordsXY& lightPos, int32_t lightZ)
+    {
+        TileCoordsXY tile = TileCoordsXY(lightPos);
+        uint8_t mask = 0;
+
+        // Scan walls on current tile
+        for (const auto* el = MapGetFirstElementAt(tile); el != nullptr; el++)
+        {
+            if (IsSolidWallElement(*el, lightZ))
+            {
+                mask |= (1 << (EnumValue(el->getDirection()) & 3));
+            }
+            if (el->isLastForTile())
+                break;
+        }
+
+        // Check the 4 adjacent tiles sharing these boundaries:
+        // West boundary (x - 1, East edge direction 2)
+        TileCoordsXY westTile{ static_cast<int16_t>(tile.x - 1), tile.y };
+        if (MapIsLocationValid(westTile.toCoordsXY()))
+        {
+            for (const auto* el = MapGetFirstElementAt(westTile); el != nullptr; el++)
+            {
+                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 2)
+                {
+                    mask |= (1 << 0);
+                }
+                if (el->isLastForTile())
+                    break;
+            }
+        }
+
+        // North boundary (y + 1, South edge direction 3)
+        TileCoordsXY northTile{ tile.x, static_cast<int16_t>(tile.y + 1) };
+        if (MapIsLocationValid(northTile.toCoordsXY()))
+        {
+            for (const auto* el = MapGetFirstElementAt(northTile); el != nullptr; el++)
+            {
+                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 3)
+                {
+                    mask |= (1 << 1);
+                }
+                if (el->isLastForTile())
+                    break;
+            }
+        }
+
+        // East boundary (x + 1, West edge direction 0)
+        TileCoordsXY eastTile{ static_cast<int16_t>(tile.x + 1), tile.y };
+        if (MapIsLocationValid(eastTile.toCoordsXY()))
+        {
+            for (const auto* el = MapGetFirstElementAt(eastTile); el != nullptr; el++)
+            {
+                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 0)
+                {
+                    mask |= (1 << 2);
+                }
+                if (el->isLastForTile())
+                    break;
+            }
+        }
+
+        // South boundary (y - 1, North edge direction 1)
+        TileCoordsXY southTile{ tile.x, static_cast<int16_t>(tile.y - 1) };
+        if (MapIsLocationValid(southTile.toCoordsXY()))
+        {
+            for (const auto* el = MapGetFirstElementAt(southTile); el != nullptr; el++)
+            {
+                if (IsSolidWallElement(*el, lightZ) && (EnumValue(el->getDirection()) & 3) == 1)
+                {
+                    mask |= (1 << 3);
+                }
+                if (el->isLastForTile())
+                    break;
+            }
+        }
+
+        return mask;
+    }
+
     void SetAvailable(bool available)
     {
         _lightfxAvailable = available;
@@ -157,15 +275,19 @@ namespace OpenRCT2::Drawing::LightFx
         _LightListBack = _LightListA;
         _LightListFront = _LightListB;
 
-        GenerateLightTexture(_bakedLightTexture_lantern_0, 32, false);
-        GenerateLightTexture(_bakedLightTexture_lantern_1, 64, false);
-        GenerateLightTexture(_bakedLightTexture_lantern_2, 128, false);
-        GenerateLightTexture(_bakedLightTexture_lantern_3, 256, false);
+        // lantern0: compact soft fixture glow at lamp post fixture (height + 23)
+        GenerateLightTexture(_bakedLightTexture_lantern_0, 32, false, false);
+        // lantern1: kiosk / counter / station glow -> 2:1 isometric ground ellipse
+        GenerateLightTexture(_bakedLightTexture_lantern_1, 64, false, true);
+        // lantern2: footpath pavement light pool -> 2:1 isometric ground ellipse
+        GenerateLightTexture(_bakedLightTexture_lantern_2, 128, false, true);
+        // lantern3: large area ground light -> 2:1 isometric ground ellipse
+        GenerateLightTexture(_bakedLightTexture_lantern_3, 256, false, true);
 
-        GenerateLightTexture(_bakedLightTexture_spot_0, 32, true);
-        GenerateLightTexture(_bakedLightTexture_spot_1, 64, true);
-        GenerateLightTexture(_bakedLightTexture_spot_2, 128, true);
-        GenerateLightTexture(_bakedLightTexture_spot_3, 256, true);
+        GenerateLightTexture(_bakedLightTexture_spot_0, 32, true, true);
+        GenerateLightTexture(_bakedLightTexture_spot_1, 64, true, true);
+        GenerateLightTexture(_bakedLightTexture_spot_2, 128, true, true);
+        GenerateLightTexture(_bakedLightTexture_spot_3, 256, true, true);
     }
 
     void UpdateBuffers(RenderTarget& info)
@@ -184,6 +306,7 @@ namespace OpenRCT2::Drawing::LightFx
             if (entry.position.z == 0x7FFF)
             {
                 entry.lightIntensity = 0xFF;
+                entry.solidWallMask = 0;
                 continue;
             }
 
@@ -207,11 +330,11 @@ namespace OpenRCT2::Drawing::LightFx
                 continue;
             }
 
-            // 1. Underground occlusion
+            // 1. Underground occlusion: only occlude if strictly below the surface base level with margin
             if (!vp.flags.has(ViewportFlag::undergroundInside))
             {
                 const auto* surface = MapGetSurfaceElementAt(mapLoc);
-                if (surface != nullptr && surface->getClearanceZ() > entry.position.z)
+                if (surface != nullptr && (entry.position.z < surface->getBaseZ() - 4))
                 {
                     entry.type = LightType::none;
                     continue;
@@ -229,6 +352,8 @@ namespace OpenRCT2::Drawing::LightFx
             CoordsXY step = kStepByRotation[rot];
 
             bool occluded = false;
+            // Generous margin for moving peeps/staff and surface path elements prevents slope boundary flicker
+            int32_t margin = (entry.qualifier == Qualifier::entity) ? 12 : 8;
             for (int32_t stepIdx = 1; stepIdx <= 2; stepIdx++)
             {
                 CoordsXY checkPos = { static_cast<int16_t>(mapLoc.x + step.x * stepIdx),
@@ -238,7 +363,7 @@ namespace OpenRCT2::Drawing::LightFx
                 const auto* s = MapGetSurfaceElementAt(checkPos);
                 if (s != nullptr)
                 {
-                    int32_t heightLimit = entry.position.z + (stepIdx * 16);
+                    int32_t heightLimit = entry.position.z + (stepIdx * 16) + margin;
                     if (s->getBaseZ() > heightLimit)
                     {
                         occluded = true;
@@ -252,6 +377,9 @@ namespace OpenRCT2::Drawing::LightFx
                 entry.type = LightType::none;
                 continue;
             }
+
+            // 3. Compute solid wall occlusion mask for this tile
+            entry.solidWallMask = GetTileSolidWallMask(mapLoc, entry.position.z);
 
             if (_current_view_zoom_front > ZoomLevel{ 0 })
             {
@@ -439,35 +567,119 @@ namespace OpenRCT2::Drawing::LightFx
             bufReadSkip = bufReadWidth - bufWriteWidth;
             bufWriteSkip = _pixelInfo.width - bufWriteWidth;
 
-            if (entry.lightIntensity == 0xFF)
-            {
-                for (int32_t y = 0; y < bufWriteHeight; y++)
-                {
-                    for (int32_t x = 0; x < bufWriteWidth; x++)
-                    {
-                        uint32_t a = *bufWriteBase;
-                        uint32_t b = *bufReadBase++;
-                        *bufWriteBase++ = static_cast<uint8_t>(a + b - ((a * b) >> 8));
-                    }
+            int32_t inTileX = entry.position.x & 31;
+            int32_t inTileY = entry.position.y & 31;
+            uint8_t rot = _current_view_rotation_front & 3;
 
-                    bufWriteBase += bufWriteSkip;
-                    bufReadBase += bufReadSkip;
+            // Directional spotlight vector calculation (e.g. staff flashlight)
+            float spotDirX = 0.0f;
+            float spotDirY = 0.0f;
+            bool isDirectional = (entry.orientation != 0xFF && entry.type >= LightType::spot0);
+            if (isDirectional)
+            {
+                int16_t dx_w = -kOffsetLookup[(entry.orientation + 0) % 32];
+                int16_t dy_w = -kOffsetLookup[(entry.orientation + 8) % 32];
+                int16_t rx = dx_w;
+                int16_t ry = dy_w;
+                switch (rot)
+                {
+                    case 0: rx = dx_w; ry = dy_w; break;
+                    case 1: rx = dy_w; ry = -dx_w; break;
+                    case 2: rx = -dx_w; ry = -dy_w; break;
+                    case 3: rx = -dy_w; ry = dx_w; break;
+                }
+                float screenDx = static_cast<float>(ry - rx);
+                float screenDy = static_cast<float>((rx + ry) / 2);
+                float len = std::sqrt(screenDx * screenDx + screenDy * screenDy);
+                if (len > 0.001f)
+                {
+                    spotDirX = screenDx / len;
+                    spotDirY = screenDy / len;
+                }
+                else
+                {
+                    isDirectional = false;
                 }
             }
-            else
+
+            for (int32_t y = 0; y < bufWriteHeight; y++)
             {
-                for (int32_t y = 0; y < bufWriteHeight; y++)
+                int32_t curY = bufWriteY + y;
+                int32_t screenPixY = curY - inRectCentreY;
+
+                for (int32_t x = 0; x < bufWriteWidth; x++)
                 {
-                    for (int32_t x = 0; x < bufWriteWidth; x++)
+                    uint32_t bVal = *bufReadBase++;
+                    if (bVal == 0)
                     {
-                        uint32_t a = *bufWriteBase;
-                        uint32_t b = ((*bufReadBase++) * (1 + entry.lightIntensity)) >> 8;
-                        *bufWriteBase++ = static_cast<uint8_t>(a + b - ((a * b) >> 8));
+                        bufWriteBase++;
+                        continue;
                     }
 
-                    bufWriteBase += bufWriteSkip;
-                    bufReadBase += bufReadSkip;
+                    int32_t curX = bufWriteX + x;
+                    int32_t screenPixX = curX - inRectCentreX;
+
+                    // Solid wall occlusion check
+                    if (entry.solidWallMask != 0)
+                    {
+                        int32_t u = (screenPixY * 2) - screenPixX;
+                        int32_t v = (screenPixY * 2) + screenPixX;
+                        int32_t deltaX = 0;
+                        int32_t deltaY = 0;
+                        switch (rot)
+                        {
+                            case 0: deltaX = u / 2; deltaY = v / 2; break;
+                            case 1: deltaX = -v / 2; deltaY = u / 2; break;
+                            case 2: deltaX = -u / 2; deltaY = -v / 2; break;
+                            case 3: deltaX = v / 2; deltaY = -u / 2; break;
+                        }
+
+                        if (((entry.solidWallMask & (1 << 0)) && (deltaX < -inTileX)) ||
+                            ((entry.solidWallMask & (1 << 1)) && (deltaY > (31 - inTileY))) ||
+                            ((entry.solidWallMask & (1 << 2)) && (deltaX > (31 - inTileX))) ||
+                            ((entry.solidWallMask & (1 << 3)) && (deltaY < -inTileY)))
+                        {
+                            bufWriteBase++;
+                            continue;
+                        }
+                    }
+
+                    // Directional flashlight cone check
+                    if (isDirectional)
+                    {
+                        float fx = static_cast<float>(screenPixX);
+                        float fy = static_cast<float>(screenPixY);
+                        float dot = fx * spotDirX + fy * spotDirY;
+                        if (dot < -12.0f)
+                        {
+                            bufWriteBase++;
+                            continue;
+                        }
+                        float perp = std::abs(fx * (-spotDirY) + fy * spotDirX);
+                        float spreadLimit = (dot + 16.0f) * 0.9f;
+                        if (perp > spreadLimit)
+                        {
+                            bufWriteBase++;
+                            continue;
+                        }
+                        if (spreadLimit > 0.001f)
+                        {
+                            float edgeFade = 1.0f - (perp / spreadLimit);
+                            bVal = static_cast<uint32_t>(bVal * edgeFade * edgeFade);
+                        }
+                    }
+
+                    if (entry.lightIntensity != 0xFF)
+                    {
+                        bVal = (bVal * (1 + entry.lightIntensity)) >> 8;
+                    }
+
+                    uint32_t a = *bufWriteBase;
+                    *bufWriteBase++ = static_cast<uint8_t>(a + bVal - ((a * bVal) >> 8));
                 }
+
+                bufWriteBase += bufWriteSkip;
+                bufReadBase += bufReadSkip;
             }
         }
     }
@@ -483,7 +695,8 @@ namespace OpenRCT2::Drawing::LightFx
     }
 
     static void Add3DLight(
-        const uint32_t lightHash, const Qualifier qualifier, const uint8_t id, const CoordsXYZ& loc, const LightType lightType)
+        const uint32_t lightHash, const Qualifier qualifier, const uint8_t id, const CoordsXYZ& loc, const LightType lightType,
+        const uint8_t orientation = 0xFF)
     {
         if (LightListCurrentCountBack >= kMaxLights)
         {
@@ -499,17 +712,20 @@ namespace OpenRCT2::Drawing::LightFx
         entry->qualifier = qualifier;
         entry->lightID = id;
         entry->lightLinger = 1;
+        entry->orientation = orientation;
+        entry->solidWallMask = 0;
     }
 
     static void Add3DLight(const CoordsXYZ& loc, const LightType lightType)
     {
         uint32_t hash = (static_cast<uint32_t>(static_cast<uint16_t>(loc.x)) << 16) | static_cast<uint16_t>(loc.y);
-        Add3DLight(hash, Qualifier::map, static_cast<uint8_t>(loc.z & 0xFF), loc, lightType);
+        Add3DLight(hash, Qualifier::map, static_cast<uint8_t>(loc.z & 0xFF), loc, lightType, 0xFF);
     }
 
-    void Add3DLight(const EntityBase& entity, const uint8_t id, const CoordsXYZ& loc, const LightType lightType)
+    void Add3DLight(
+        const EntityBase& entity, const uint8_t id, const CoordsXYZ& loc, const LightType lightType, uint8_t orientation)
     {
-        Add3DLight(entity.id.ToUnderlying(), Qualifier::entity, id, loc, lightType);
+        Add3DLight(entity.id.ToUnderlying(), Qualifier::entity, id, loc, lightType, orientation);
     }
 
     void Add3DLightMagicFromDrawingTile(
@@ -525,10 +741,6 @@ namespace OpenRCT2::Drawing::LightFx
     {
         return _lightPolution_front;
     }
-
-    static constexpr int16_t kOffsetLookup[] = {
-        10, 10, 9, 8, 7, 6, 4, 2, 0, -2, -4, -6, -7, -8, -9, -10, -10, -10, -9, -8, -7, -6, -4, -2, 0, 2, 4, 6, 7, 8, 9, 10,
-    };
     void AddLightsMagicVehicle_ObservationTower(const Vehicle* vehicle)
     {
         Add3DLight(*vehicle, 0, { vehicle->x, vehicle->y + 16, vehicle->z }, LightType::lantern1);

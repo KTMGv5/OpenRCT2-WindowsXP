@@ -55,7 +55,7 @@ namespace OpenRCT2::Drawing::LightFx
     void UpdateBuffers(RenderTarget&);
     const GamePalette& GetPalette();
 
-    void Add3DLight(const EntityBase& entity, uint8_t id, const CoordsXYZ& loc, LightType lightType);
+    void Add3DLight(const EntityBase& entity, uint8_t id, const CoordsXYZ& loc, LightType lightType, uint8_t orientation = 0xFF);
 
     void Add3DLightMagicFromDrawingTile(
         const CoordsXY& mapPosition, int16_t offsetX, int16_t offsetY, int16_t offsetZ, LightType lightType);

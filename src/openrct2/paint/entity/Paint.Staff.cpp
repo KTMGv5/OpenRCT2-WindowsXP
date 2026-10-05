@@ -46,11 +46,25 @@ void PaintStaffLightingEffects(const Staff& staff)
     if (!LightFx::IsAvailable())
         return;
 
+    // Only activate flashlight when staff member is actively walking or moving
+    bool isMoving = (staff.state == PeepState::walking ||
+                     staff.state == PeepState::patrolling ||
+                     staff.state == PeepState::headingToInspection ||
+                     staff.state == PeepState::answering ||
+                     staff.state == PeepState::sweeping ||
+                     staff.state == PeepState::mowing ||
+                     staff.state == PeepState::watering);
+    if (!isMoving)
+    {
+        return;
+    }
+
     auto loc = staff.getLocation();
     uint8_t ori = staff.orientation % 32;
-    loc.x -= kStaffFlashlightOffset[(ori + 0) % 32];
-    loc.y -= kStaffFlashlightOffset[(ori + 8) % 32];
-    loc.z += 2;
+    // Cast beam forward 15 units in the direction of movement, on the ground ahead of their feet
+    loc.x -= (kStaffFlashlightOffset[(ori + 0) % 32] * 3) / 2;
+    loc.y -= (kStaffFlashlightOffset[(ori + 8) % 32] * 3) / 2;
+    loc.z = staff.z + 1;
 
-    LightFx::Add3DLight(staff, 0, loc, LightFx::LightType::spot1);
+    LightFx::Add3DLight(staff, 0, loc, LightFx::LightType::spot1, ori);
 }
