@@ -22,6 +22,7 @@ enum class DrawingEngine : int32_t
     softwareWithHardwareDisplay,
     openGL,
     direct3D9,
+    direct3D11,
     count,
 };
 

@@ -111,6 +111,7 @@ namespace OpenRCT2::Config
         ConfigEnumEntry<DrawingEngine>("SOFTWARE_HWD", DrawingEngine::softwareWithHardwareDisplay),
         ConfigEnumEntry<DrawingEngine>("OPENGL", DrawingEngine::openGL),
         ConfigEnumEntry<DrawingEngine>("DIRECT3D9", DrawingEngine::direct3D9),
+        ConfigEnumEntry<DrawingEngine>("DIRECT3D11", DrawingEngine::direct3D11),
     });
 
     static const auto Enum_Temperature = ConfigEnum<TemperatureUnit>({

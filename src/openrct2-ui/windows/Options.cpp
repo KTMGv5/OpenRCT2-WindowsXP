@@ -482,25 +482,61 @@ namespace OpenRCT2::Ui::Windows
     };
     // clang-format on
 
-    static constexpr DrawingEngine kDrawingEngines[] = {
-        DrawingEngine::softwareWithHardwareDisplay,
-#ifndef DISABLE_OPENGL
-        DrawingEngine::openGL,
-#endif
 #if defined(_WIN32)
-        DrawingEngine::direct3D9,
+    extern "C" __declspec(dllimport) void* __stdcall LoadLibraryA(const char* lpLibFileName);
+    extern "C" __declspec(dllimport) int __stdcall FreeLibrary(void* hLibModule);
+
+    static bool IsD3D11Available()
+    {
+        static int32_t s_isAvailable = -1;
+        if (s_isAvailable == -1)
+        {
+            void* hD3D11 = LoadLibraryA("d3d11.dll");
+            if (hD3D11 != nullptr)
+            {
+                void* hDXGI = LoadLibraryA("dxgi.dll");
+                if (hDXGI != nullptr)
+                {
+                    s_isAvailable = 1;
+                    FreeLibrary(hDXGI);
+                }
+                else
+                {
+                    s_isAvailable = 0;
+                }
+                FreeLibrary(hD3D11);
+            }
+            else
+            {
+                s_isAvailable = 0;
+            }
+        }
+        return s_isAvailable == 1;
+    }
 #endif
+
+    struct DrawingEngineEntry
+    {
+        DrawingEngine engine;
+        StringId stringId;
     };
 
-    static constexpr StringId kDrawingEngineStringIds[] = {
-        STR_DRAWING_ENGINE_SOFTWARE,
+    static std::vector<DrawingEngineEntry> GetAvailableDrawingEngines()
+    {
+        std::vector<DrawingEngineEntry> engines;
+        engines.push_back({ DrawingEngine::softwareWithHardwareDisplay, STR_DRAWING_ENGINE_SOFTWARE });
 #ifndef DISABLE_OPENGL
-        STR_DRAWING_ENGINE_OPENGL,
+        engines.push_back({ DrawingEngine::openGL, STR_DRAWING_ENGINE_OPENGL });
 #endif
 #if defined(_WIN32)
-        STR_DRAWING_ENGINE_DIRECT3D9,
+        engines.push_back({ DrawingEngine::direct3D9, STR_DRAWING_ENGINE_DIRECT3D9 });
+        if (IsD3D11Available())
+        {
+            engines.push_back({ DrawingEngine::direct3D11, STR_DRAWING_ENGINE_DIRECT3D11 });
+        }
 #endif
-    };
+        return engines;
+    }
 
 #pragma endregion
 
@@ -878,12 +914,13 @@ namespace OpenRCT2::Ui::Windows
                     break;
                 case WIDX_DRAWING_ENGINE_DROPDOWN:
                 {
-                    const auto numItems = static_cast<int32_t>(std::size(kDrawingEngineStringIds));
+                    const auto engines = GetAvailableDrawingEngines();
+                    const auto numItems = static_cast<int32_t>(engines.size());
                     int32_t activeItem = 0;
                     for (int32_t i = 0; i < numItems; i++)
                     {
-                        gDropdown.items[i] = Dropdown::MenuLabel(kDrawingEngineStringIds[i]);
-                        if (kDrawingEngines[i] == Config::Get().general.drawingEngine)
+                        gDropdown.items[i] = Dropdown::MenuLabel(engines[i].stringId);
+                        if (engines[i].engine == Config::Get().general.drawingEngine)
                         {
                             activeItem = i;
                         }
@@ -962,9 +999,11 @@ namespace OpenRCT2::Ui::Windows
                     }
                     break;
                 case WIDX_DRAWING_ENGINE_DROPDOWN:
-                    if (dropdownIndex >= 0 && dropdownIndex < static_cast<int32_t>(std::size(kDrawingEngines)))
+                {
+                    const auto engines = GetAvailableDrawingEngines();
+                    if (dropdownIndex >= 0 && dropdownIndex < static_cast<int32_t>(engines.size()))
                     {
-                        DrawingEngine dstEngine = kDrawingEngines[dropdownIndex];
+                        DrawingEngine dstEngine = engines[dropdownIndex].engine;
                         if (dstEngine != Config::Get().general.drawingEngine)
                         {
                             Config::Get().general.drawingEngine = dstEngine;
@@ -974,6 +1013,7 @@ namespace OpenRCT2::Ui::Windows
                         }
                     }
                     break;
+                }
                 case WIDX_FRAME_RATE_LIMIT_DROPDOWN:
                 {
                     auto& config = Config::Get().general;
@@ -1027,11 +1067,12 @@ namespace OpenRCT2::Ui::Windows
             // Dropdown captions for straightforward strings.
             widgets[WIDX_FULLSCREEN].text = FullscreenModeNames[Config::Get().general.fullscreenMode];
             StringId engineStringId = STR_DRAWING_ENGINE_SOFTWARE;
-            for (size_t i = 0; i < std::size(kDrawingEngines); i++)
+            const auto engines = GetAvailableDrawingEngines();
+            for (size_t i = 0; i < engines.size(); i++)
             {
-                if (kDrawingEngines[i] == Config::Get().general.drawingEngine)
+                if (engines[i].engine == Config::Get().general.drawingEngine)
                 {
-                    engineStringId = kDrawingEngineStringIds[i];
+                    engineStringId = engines[i].stringId;
                     break;
                 }
             }

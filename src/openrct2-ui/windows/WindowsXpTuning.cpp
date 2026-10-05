@@ -94,10 +94,10 @@ namespace OpenRCT2::Ui::Windows
             setCheckboxValue(WIDX_HARDWARE_HUD, Config::Get().general.showFPS);
 
             static const char* kD3D9EffectNames[] = {
-                "Direct3D 9 Shader: Smooth Bilinear (Auto)",
-                "Direct3D 9 Shader: Crisp 1:1 Pixel Art",
-                "Direct3D 9 Shader: CRT Retro Scanlines",
-                "Direct3D 9 Shader: Vibrant Color Boost"
+                "Direct3D Shader: Smooth Bilinear (Auto)",
+                "Direct3D Shader: Crisp 1:1 Pixel Art",
+                "Direct3D Shader: CRT Retro Scanlines",
+                "Direct3D Shader: Vibrant Color Boost"
             };
             int32_t eff = Config::Get().general.d3d9ShaderEffect;
             if (eff < 0 || eff > 3)
