@@ -31,6 +31,7 @@
 #include <openrct2/paint/VirtualFloor.h>
 #include <openrct2/ui/WindowManager.h>
 
+using namespace OpenRCT2;
 using namespace OpenRCT2::Ui;
 
 struct CameraBookmark
@@ -47,7 +48,7 @@ static void SaveCameraBookmark(size_t slot)
     if (slot >= std::size(gCameraBookmarks))
         return;
 
-    auto mainWindow = WindowGetMain();
+    auto mainWindow = OpenRCT2::WindowGetMain();
     if (mainWindow == nullptr || mainWindow->viewport == nullptr)
         return;
 
@@ -56,7 +57,7 @@ static void SaveCameraBookmark(size_t slot)
     gCameraBookmarks[slot].rotation = mainWindow->viewport->rotation;
     gCameraBookmarks[slot].valid = true;
 
-    Audio::Play(Audio::SoundId::windowOpen, 100, ContextGetWidth() / 2);
+    OpenRCT2::Audio::Play(OpenRCT2::Audio::SoundId::windowOpen, 100, OpenRCT2::ContextGetWidth() / 2);
 }
 
 static void JumpCameraBookmark(size_t slot)
@@ -67,27 +68,27 @@ static void JumpCameraBookmark(size_t slot)
     if (!gCameraBookmarks[slot].valid)
         return;
 
-    auto mainWindow = WindowGetMain();
+    auto mainWindow = OpenRCT2::WindowGetMain();
     if (mainWindow == nullptr || mainWindow->viewport == nullptr)
         return;
 
-    WindowUnfollowSprite(*mainWindow);
+    OpenRCT2::WindowUnfollowSprite(*mainWindow);
 
     if (mainWindow->viewport->rotation != gCameraBookmarks[slot].rotation)
     {
-        ViewportRotateSingle(mainWindow, static_cast<int32_t>(gCameraBookmarks[slot].rotation) - static_cast<int32_t>(mainWindow->viewport->rotation));
+        OpenRCT2::ViewportRotateSingle(mainWindow, static_cast<int32_t>(gCameraBookmarks[slot].rotation) - static_cast<int32_t>(mainWindow->viewport->rotation));
     }
 
     if (mainWindow->viewport->zoom != gCameraBookmarks[slot].zoom)
     {
-        WindowZoomSet(*mainWindow, gCameraBookmarks[slot].zoom, false);
+        OpenRCT2::WindowZoomSet(*mainWindow, gCameraBookmarks[slot].zoom, false);
     }
 
     mainWindow->viewport->viewPos = gCameraBookmarks[slot].viewPos;
     mainWindow->savedViewPos = gCameraBookmarks[slot].viewPos;
     mainWindow->invalidate();
 
-    Audio::Play(Audio::SoundId::windowOpen, 100, ContextGetWidth() / 2);
+    OpenRCT2::Audio::Play(OpenRCT2::Audio::SoundId::windowOpen, 100, OpenRCT2::ContextGetWidth() / 2);
 }
 
 InputManager::InputManager()
