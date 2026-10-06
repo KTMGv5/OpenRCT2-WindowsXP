@@ -296,7 +296,6 @@ void PaintSessionGenerateRotate(PaintSession& session)
 
     const bool isZoomedOut = session.rt.zoom_level > ZoomLevel{ 0 };
     const bool paintEntities = (session.rt.zoom_level <= ZoomLevel{ 2 })
-        && !gTrackDesignSaveMode
         && !session.ViewFlags.has(ViewportFlag::hideEntities);
 
     int32_t currentScreenY = screenCoord.y;
