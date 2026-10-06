@@ -223,7 +223,7 @@ public:
         _d3dpp.EnableAutoDepthStencil = FALSE;
         _d3dpp.PresentationInterval = _useVsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 
-        DWORD behaviorFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED;
+        DWORD behaviorFlags = D3DCREATE_HARDWARE_VERTEXPROCESSING;
         HRESULT hr = _d3d->CreateDevice(
             D3DADAPTER_DEFAULT,
             D3DDEVTYPE_HAL,
@@ -235,7 +235,7 @@ public:
         if (FAILED(hr))
         {
             LOG_VERBOSE("Direct3D 9: Hardware vertex processing not available, trying software vertex processing...");
-            behaviorFlags = D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED;
+            behaviorFlags = D3DCREATE_SOFTWARE_VERTEXPROCESSING;
             hr = _d3d->CreateDevice(
                 D3DADAPTER_DEFAULT,
                 D3DDEVTYPE_HAL,

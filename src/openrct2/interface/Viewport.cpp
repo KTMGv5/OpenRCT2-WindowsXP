@@ -847,10 +847,7 @@ namespace OpenRCT2
     {
         PROFILED_FUNCTION();
 
-        if (!session.ViewFlags.has(ViewportFlag::transparentBackground)
-            && (session.rt.zoom_level > ZoomLevel{ 0 }
-                || session.ViewFlags.hasAny(
-                    ViewportFlag::hideVertical, ViewportFlag::hideBase, ViewportFlag::undergroundInside, ViewportFlag::clipView)))
+        if (!session.ViewFlags.has(ViewportFlag::transparentBackground))
         {
             PaletteIndex colour = PaletteIndex::pi10;
             if (session.ViewFlags.has(ViewportFlag::hideEntities))
@@ -913,11 +910,6 @@ namespace OpenRCT2
             _paintJobs = std::make_unique<JobPool>();
         }
 
-        bool useParallelDrawing = false;
-        if (useMultithreading && rt.DrawingEngine->GetFlags().has(DrawingEngineFlag::parallelDrawing))
-        {
-            useParallelDrawing = true;
-        }
 
         const int32_t columnWidth = worldRT.zoom_level.ApplyInversedTo(kCoordsXYStep);
         const int32_t rightBorder = worldRT.x + worldRT.width;
@@ -974,19 +966,10 @@ namespace OpenRCT2
             }
         }
 
-        // Paint columns (Pass 2)
-        if (useParallelDrawing && _paintJobs != nullptr)
+        // Paint columns (Pass 2 - sequential for optimal CPU cache streaming and zero false-sharing)
+        for (auto* session : _paintColumns)
         {
-            _paintJobs->ParallelFor(_paintColumns.size(), [](size_t i) {
-                ViewportPaintColumn(*_paintColumns[i]);
-            });
-        }
-        else
-        {
-            for (auto* session : _paintColumns)
-            {
-                ViewportPaintColumn(*session);
-            }
+            ViewportPaintColumn(*session);
         }
 
         // Release resources.

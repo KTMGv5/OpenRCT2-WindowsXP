@@ -315,10 +315,9 @@ public:
         _backBufferHeight = static_cast<uint32_t>(winH);
 
         // First attempt modern DXGI Flip-Discard swap chain with tearing support (DXGI_SWAP_EFFECT_FLIP_DISCARD)
-        // FLIP_DISCARD requires at least 2 buffers and BGRA8 / RGBA8 format.
-        // It provides zero-copy DWM presentation, lowest latency, and highest FPS on Win 10/11.
+        // FLIP_DISCARD requires at least 3 buffers (triple-buffering) for smooth tear-free / uncapped presentation.
         DXGI_SWAP_CHAIN_DESC sd = {};
-        sd.BufferCount = 2;
+        sd.BufferCount = 3;
         sd.BufferDesc.Width = static_cast<UINT>(winW);
         sd.BufferDesc.Height = static_cast<UINT>(winH);
         sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -336,29 +335,23 @@ public:
         if (SUCCEEDED(hr) && _swapChain != nullptr)
         {
             _allowTearing = true;
-            LOG_VERBOSE("Direct3D 11: Created FLIP_DISCARD swap chain with ALLOW_TEARING");
+            LOG_INFO("Direct3D 11: Created FLIP_DISCARD swap chain with ALLOW_TEARING (uncapped)");
         }
         else
         {
-            // Retry FLIP_DISCARD without ALLOW_TEARING
-            sd.Flags = 0;
-            hr = dxgiFactory1->CreateSwapChain(_device, &sd, &_swapChain);
-            if (SUCCEEDED(hr) && _swapChain != nullptr)
-            {
-                _allowTearing = false;
-                LOG_VERBOSE("Direct3D 11: Created FLIP_DISCARD swap chain without ALLOW_TEARING");
-            }
-        }
-
-        // Fallback for Windows 7 / 8 without FLIP_DISCARD support
-        if (FAILED(hr) || _swapChain == nullptr)
-        {
-            LOG_VERBOSE("Direct3D 11: FLIP_DISCARD swap chain creation failed, falling back to DISCARD model");
+            // If FLIP_DISCARD with tearing is not supported (e.g. AMD driver in windowed mode),
+            // do NOT use FLIP_DISCARD without tearing, as DWM forcibly locks it to the monitor refresh rate!
+            // Fall back directly to DXGI_SWAP_EFFECT_DISCARD (blit model), which DWM NEVER caps to refresh rate.
+            LOG_VERBOSE("Direct3D 11: FLIP_DISCARD with tearing unavailable, falling back to DISCARD bitblt model for uncapped FPS");
             sd.BufferCount = 1;
             sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
             sd.Flags = 0;
             _allowTearing = false;
             hr = dxgiFactory1->CreateSwapChain(_device, &sd, &_swapChain);
+            if (SUCCEEDED(hr) && _swapChain != nullptr)
+            {
+                LOG_INFO("Direct3D 11: Created DISCARD blit swap chain (uncapped)");
+            }
         }
 
         if (FAILED(hr) || _swapChain == nullptr)

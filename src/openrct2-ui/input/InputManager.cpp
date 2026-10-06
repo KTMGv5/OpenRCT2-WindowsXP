@@ -25,11 +25,70 @@
 #include <openrct2/Input.h>
 #include <openrct2/OpenRCT2.h>
 #include <openrct2/config/Config.h>
+#include <openrct2/audio/Audio.h>
 #include <openrct2/interface/Viewport.h>
+#include <openrct2/interface/Window.h>
 #include <openrct2/paint/VirtualFloor.h>
 #include <openrct2/ui/WindowManager.h>
 
 using namespace OpenRCT2::Ui;
+
+struct CameraBookmark
+{
+    bool valid = false;
+    ScreenCoordsXY viewPos{};
+    ZoomLevel zoom{ 0 };
+    uint8_t rotation = 0;
+};
+static CameraBookmark gCameraBookmarks[4];
+
+static void SaveCameraBookmark(size_t slot)
+{
+    if (slot >= std::size(gCameraBookmarks))
+        return;
+
+    auto mainWindow = WindowGetMain();
+    if (mainWindow == nullptr || mainWindow->viewport == nullptr)
+        return;
+
+    gCameraBookmarks[slot].viewPos = mainWindow->viewport->viewPos;
+    gCameraBookmarks[slot].zoom = mainWindow->viewport->zoom;
+    gCameraBookmarks[slot].rotation = mainWindow->viewport->rotation;
+    gCameraBookmarks[slot].valid = true;
+
+    Audio::Play(Audio::SoundId::windowOpen, 100, ContextGetWidth() / 2);
+}
+
+static void JumpCameraBookmark(size_t slot)
+{
+    if (slot >= std::size(gCameraBookmarks))
+        return;
+
+    if (!gCameraBookmarks[slot].valid)
+        return;
+
+    auto mainWindow = WindowGetMain();
+    if (mainWindow == nullptr || mainWindow->viewport == nullptr)
+        return;
+
+    WindowUnfollowSprite(*mainWindow);
+
+    if (mainWindow->viewport->rotation != gCameraBookmarks[slot].rotation)
+    {
+        ViewportRotateSingle(mainWindow, static_cast<int32_t>(gCameraBookmarks[slot].rotation) - static_cast<int32_t>(mainWindow->viewport->rotation));
+    }
+
+    if (mainWindow->viewport->zoom != gCameraBookmarks[slot].zoom)
+    {
+        WindowZoomSet(*mainWindow, gCameraBookmarks[slot].zoom, false);
+    }
+
+    mainWindow->viewport->viewPos = gCameraBookmarks[slot].viewPos;
+    mainWindow->savedViewPos = gCameraBookmarks[slot].viewPos;
+    mainWindow->invalidate();
+
+    Audio::Play(Audio::SoundId::windowOpen, 100, ContextGetWidth() / 2);
+}
 
 InputManager::InputManager()
 {
@@ -386,6 +445,34 @@ void InputManager::process(const InputEvent& e)
             if (Windows::IsUsingWidgetTextBox())
             {
                 return;
+            }
+
+            // Viewport Camera Bookmarks: Ctrl + 1..4 to save, Alt + 1..4 to jump
+            if (e.state == InputEventState::down)
+            {
+                int slot = -1;
+                if (e.button >= SDLK_1 && e.button <= SDLK_4)
+                {
+                    slot = e.button - SDLK_1;
+                }
+                else if (e.button >= SDLK_KP_1 && e.button <= SDLK_KP_4)
+                {
+                    slot = e.button - SDLK_KP_1;
+                }
+
+                if (slot >= 0 && slot < 4)
+                {
+                    if (isModifierKeyPressed(ModifierKey::ctrl) && !isModifierKeyPressed(ModifierKey::alt))
+                    {
+                        SaveCameraBookmark(static_cast<size_t>(slot));
+                        return;
+                    }
+                    else if (isModifierKeyPressed(ModifierKey::alt) && !isModifierKeyPressed(ModifierKey::ctrl))
+                    {
+                        JumpCameraBookmark(static_cast<size_t>(slot));
+                        return;
+                    }
+                }
             }
         }
     }

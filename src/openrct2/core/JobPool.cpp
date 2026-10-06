@@ -137,6 +137,26 @@ void JobPool::Join(std::function<void()> reportFn)
             break;
         }
 
+        // Spin-yield briefly (up to ~50 microseconds) before sleeping to avoid 2ms OS sleep latency
+        if (_completed.empty() && (!_pending.empty() || _processing != 0))
+        {
+            for (int spin = 0; spin < 50; spin++)
+            {
+                if ((_pending.empty() && _processing == 0) || !_completed.empty() || _shouldStop)
+                {
+                    break;
+                }
+                lock.unlock();
+                std::this_thread::yield();
+                lock.lock();
+            }
+
+            if ((_completed.empty() && _pending.empty() && _processing == 0) || _shouldStop)
+            {
+                break;
+            }
+        }
+
         // Wait for workers to finish. 2ms timeout to avoid lost wakeup deadlocks on Windows XP winpthreads.
         _condComplete.wait_for(lock, std::chrono::milliseconds(2), [this]() {
             return (_pending.empty() && _processing == 0) || !_completed.empty() || _shouldStop;
@@ -172,21 +192,24 @@ void JobPool::ParallelFor(size_t count, const std::function<void(size_t index)>&
         return;
     }
 
-    std::atomic<size_t> currentIndex(0);
+    const size_t totalThreads = _threads.size() + 1;
     const size_t numWorkers = std::min(_threads.size(), count - 1);
+    const size_t chunkSize = (count + totalThreads - 1) / totalThreads;
 
     {
         std::lock_guard lock(_mutex);
         for (size_t i = 0; i < numWorkers; i++)
         {
-            _pending.emplace_back([&currentIndex, count, &fn]() {
-                while (true)
+            const size_t startIdx = i * chunkSize;
+            const size_t endIdx = std::min(startIdx + chunkSize, count);
+            if (startIdx >= endIdx)
+            {
+                break;
+            }
+
+            _pending.emplace_back([startIdx, endIdx, &fn]() {
+                for (size_t idx = startIdx; idx < endIdx; idx++)
                 {
-                    size_t idx = currentIndex.fetch_add(1, std::memory_order_relaxed);
-                    if (idx >= count)
-                    {
-                        break;
-                    }
                     try
                     {
                         fn(idx);
@@ -200,14 +223,10 @@ void JobPool::ParallelFor(size_t count, const std::function<void(size_t index)>&
     }
     _condPending.notify_all();
 
-    // Calling thread also processes items directly
-    while (true)
+    // Calling thread processes the remainder chunk directly
+    const size_t mainStart = numWorkers * chunkSize;
+    for (size_t idx = mainStart; idx < count; idx++)
     {
-        size_t idx = currentIndex.fetch_add(1, std::memory_order_relaxed);
-        if (idx >= count)
-        {
-            break;
-        }
         try
         {
             fn(idx);

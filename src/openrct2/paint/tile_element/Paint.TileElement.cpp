@@ -55,53 +55,6 @@ void TileElementPaintSetup(PaintSession& session, const CoordsXY& mapCoords, boo
 
         PaintTileElementBase(session, mapCoords);
     }
-    else if (!session.ViewFlags.has(ViewportFlag::transparentBackground) && session.rt.zoom_level == ZoomLevel{ 0 })
-    {
-        BlankTilesPaint(session, mapCoords.x, mapCoords.y);
-    }
-}
-
-/**
- *
- *  rct2: 0x0068B60E
- */
-static void BlankTilesPaint(PaintSession& session, int32_t x, int32_t y)
-{
-    int32_t dx = 0;
-    switch (session.CurrentRotation)
-    {
-        case 0:
-            dx = x + y;
-            break;
-        case 1:
-            x += 32;
-            dx = y - x;
-            break;
-        case 2:
-            x += 32;
-            y += 32;
-            dx = -(x + y);
-            break;
-        case 3:
-            y += 32;
-            dx = x - y;
-            break;
-    }
-    dx /= 2;
-    dx -= 16;
-    int32_t bx = dx + 32;
-
-    if (bx <= session.rt.WorldY())
-        return;
-    dx -= 20;
-    dx -= session.rt.WorldHeight();
-    if (dx >= session.rt.WorldY())
-        return;
-
-    session.SpritePosition.x = x;
-    session.SpritePosition.y = y;
-    session.InteractionType = ViewportInteractionItem::none;
-    PaintAddImageAsParent(session, ImageId(SPR_BLANK_TILE), { 0, 0, 16 }, { 32, 32, -1 });
 }
 
 bool gShowSupportSegmentHeights = false;
