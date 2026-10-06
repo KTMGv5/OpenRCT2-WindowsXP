@@ -356,6 +356,9 @@ void PaintSmallScenery(PaintSession& session, uint8_t direction, int32_t height,
     }
 
     PaintSmallSceneryBody(session, direction, height, sceneryElement, sceneryEntry, imageTemplate);
-    PaintSmallScenerySupports(session, *sceneryEntry, sceneryElement, direction, height, imageTemplate);
+    if (session.rt.zoom_level < ZoomLevel{ 2 })
+    {
+        PaintSmallScenerySupports(session, *sceneryEntry, sceneryElement, direction, height, imageTemplate);
+    }
     SetSupportHeights(session, *sceneryEntry, sceneryElement, height);
 }

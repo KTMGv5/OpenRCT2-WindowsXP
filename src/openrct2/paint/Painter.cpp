@@ -188,7 +188,6 @@ PaintSession* Painter::CreateSession(RenderTarget& rt, ViewportFlags viewFlags, 
     session->Flags = 0;
     session->CurrentRotation = rotation;
 
-    std::fill(std::begin(session->Quadrants), std::end(session->Quadrants), nullptr);
     session->PaintHead = nullptr;
     session->LastPS = nullptr;
     session->LastAttachedPS = nullptr;
@@ -209,6 +208,12 @@ PaintSession* Painter::CreateSession(RenderTarget& rt, ViewportFlags viewFlags, 
 void Painter::ReleaseSession(PaintSession* session)
 {
     PROFILED_FUNCTION();
+
+    if (session->QuadrantBackIndex <= session->QuadrantFrontIndex && session->QuadrantBackIndex < MaxPaintQuadrants)
+    {
+        uint32_t front = std::min<uint32_t>(session->QuadrantFrontIndex, MaxPaintQuadrants - 1);
+        std::fill(&session->Quadrants[session->QuadrantBackIndex], &session->Quadrants[front + 1], nullptr);
+    }
 
     session->paintEntries.clear();
 

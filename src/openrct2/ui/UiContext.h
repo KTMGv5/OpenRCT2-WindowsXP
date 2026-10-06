@@ -117,6 +117,7 @@ namespace OpenRCT2
             virtual ScaleQuality GetScaleQuality() = 0;
             virtual void SetFullscreenMode(FullscreenMode mode) = 0;
             virtual const std::vector<Resolution>& GetFullscreenResolutions() = 0;
+            virtual std::vector<int32_t> GetFullscreenRefreshRates(int32_t width, int32_t height) = 0;
             virtual bool HasFocus() = 0;
             virtual void requestUserAttention() = 0;
             virtual bool IsMinimised() = 0;

@@ -52,7 +52,7 @@ void EntityPaintSetup(PaintSession& session, const CoordsXY& pos)
         return;
     }
 
-    if (session.rt.zoom_level > ZoomLevel{ 2 })
+    if (session.rt.zoom_level > ZoomLevel{ 3 })
     {
         return;
     }
@@ -61,6 +61,13 @@ void EntityPaintSetup(PaintSession& session, const CoordsXY& pos)
 
     for (auto* entity : EntityTileList(pos))
     {
+        // When zoomed out (4x or 8x), peeps, staff, and litter are sub-pixel specks.
+        // Rendering only vehicles preserves visible train motion while preventing
+        // sorting tens of thousands of microscopic entities.
+        if (session.rt.zoom_level >= ZoomLevel{ 2 } && entity->type != EntityType::vehicle)
+        {
+            continue;
+        }
         if (highlightPathIssues)
         {
             const auto staff = entity->as<Staff>();

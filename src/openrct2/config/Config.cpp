@@ -198,6 +198,7 @@ namespace OpenRCT2::Config
             model->fullscreenMode = reader->GetInt32("fullscreen_mode", 0);
             model->fullscreenHeight = reader->GetInt32("fullscreen_height", -1);
             model->fullscreenWidth = reader->GetInt32("fullscreen_width", -1);
+            model->fullscreenRate = reader->GetInt32("fullscreen_rate", 0);
             model->rct1Path = reader->GetString("rct1_path", "");
             model->rct2Path = reader->GetString("game_path", "");
             model->landscapeSmoothing = reader->GetBoolean("landscape_smoothing", true);
@@ -311,6 +312,7 @@ namespace OpenRCT2::Config
         writer->WriteInt32("fullscreen_mode", model->fullscreenMode);
         writer->WriteInt32("fullscreen_height", model->fullscreenHeight);
         writer->WriteInt32("fullscreen_width", model->fullscreenWidth);
+        writer->WriteInt32("fullscreen_rate", model->fullscreenRate);
         writer->WriteString("rct1_path", model->rct1Path);
         writer->WriteString("game_path", model->rct2Path);
         writer->WriteBoolean("landscape_smoothing", model->landscapeSmoothing);

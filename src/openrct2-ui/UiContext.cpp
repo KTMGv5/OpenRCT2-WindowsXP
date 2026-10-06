@@ -199,24 +199,39 @@ public:
                 Config::Get().general.fullscreenWidth, Config::Get().general.fullscreenHeight);
             SDL_SetWindowSize(_window, resolution.Width, resolution.Height);
 
-            // Set display mode with the highest available refresh rate so high-refresh displays don't drop to 60Hz
+            // Set display mode with the chosen or highest available refresh rate
+            int32_t targetRate = Config::Get().general.fullscreenRate; // 0 = highest/auto
             int32_t displayIndex = SDL_GetWindowDisplayIndex(_window);
             int32_t numModes = SDL_GetNumDisplayModes(displayIndex);
             SDL_DisplayMode bestMode{};
+            SDL_DisplayMode targetMode{};
+            bool foundTarget = false;
             int32_t maxRefreshRate = 0;
             for (int32_t i = 0; i < numModes; i++)
             {
                 SDL_DisplayMode dm{};
                 if (SDL_GetDisplayMode(displayIndex, i, &dm) == 0)
                 {
-                    if (dm.w == resolution.Width && dm.h == resolution.Height && dm.refresh_rate >= maxRefreshRate)
+                    if (dm.w == resolution.Width && dm.h == resolution.Height)
                     {
-                        maxRefreshRate = dm.refresh_rate;
-                        bestMode = dm;
+                        if (dm.refresh_rate >= maxRefreshRate)
+                        {
+                            maxRefreshRate = dm.refresh_rate;
+                            bestMode = dm;
+                        }
+                        if (targetRate > 0 && dm.refresh_rate == targetRate)
+                        {
+                            targetMode = dm;
+                            foundTarget = true;
+                        }
                     }
                 }
             }
-            if (maxRefreshRate > 0)
+            if (foundTarget)
+            {
+                SDL_SetWindowDisplayMode(_window, &targetMode);
+            }
+            else if (maxRefreshRate > 0)
             {
                 SDL_SetWindowDisplayMode(_window, &bestMode);
             }
@@ -257,6 +272,29 @@ public:
     {
         UpdateFullscreenResolutions();
         return _fsResolutions;
+    }
+
+    std::vector<int32_t> GetFullscreenRefreshRates(int32_t width, int32_t height) override
+    {
+        std::vector<int32_t> rates;
+#ifndef __EMSCRIPTEN__
+        int32_t displayIndex = SDL_GetWindowDisplayIndex(_window);
+        int32_t numModes = SDL_GetNumDisplayModes(displayIndex);
+        for (int32_t i = 0; i < numModes; i++)
+        {
+            SDL_DisplayMode mode{};
+            if (SDL_GetDisplayMode(displayIndex, i, &mode) == 0)
+            {
+                if (mode.w == width && mode.h == height && mode.refresh_rate > 0)
+                {
+                    rates.push_back(mode.refresh_rate);
+                }
+            }
+        }
+        std::sort(rates.begin(), rates.end());
+        rates.erase(std::unique(rates.begin(), rates.end()), rates.end());
+#endif
+        return rates;
     }
 
     bool HasFocus() override

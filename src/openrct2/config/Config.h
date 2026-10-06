@@ -39,6 +39,7 @@ namespace OpenRCT2::Config
         int32_t fullscreenMode;
         int32_t fullscreenWidth;
         int32_t fullscreenHeight;
+        int32_t fullscreenRate;
         float windowScale;
         bool inferDisplayDPI;
         ::DrawingEngine drawingEngine;

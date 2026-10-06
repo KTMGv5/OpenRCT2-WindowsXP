@@ -67,6 +67,10 @@ namespace OpenRCT2::Ui
             static std::vector<Resolution> res;
             return res;
         }
+        std::vector<int32_t> GetFullscreenRefreshRates(int32_t /*width*/, int32_t /*height*/) override
+        {
+            return {};
+        }
         bool HasFocus() override
         {
             return false;

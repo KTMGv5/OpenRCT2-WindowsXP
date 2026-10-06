@@ -110,6 +110,9 @@ namespace OpenRCT2::Ui::Windows
         WIDX_RESOLUTION_LABEL,
         WIDX_RESOLUTION,
         WIDX_RESOLUTION_DROPDOWN,
+        WIDX_REFRESH_RATE_LABEL,
+        WIDX_REFRESH_RATE,
+        WIDX_REFRESH_RATE_DROPDOWN,
         WIDX_SCALE_LABEL,
         WIDX_SCALE,
         WIDX_SCALE_UP,
@@ -281,29 +284,32 @@ namespace OpenRCT2::Ui::Windows
 
     static constexpr auto window_options_display_widgets = makeWidgets(
         kMainOptionsWidgets,
-        makeWidget        ({  5,  53}, {300,  70}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_WINDOW                                                                ), // Window group
+        makeWidget        ({  5,  53}, {300,  87}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_WINDOW                                                                ), // Window group
         makeWidget        ({ 10,  69}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_FULLSCREEN_MODE,                   STR_FULLSCREEN_MODE_TIP                  ), // Fullscreen
         makeWidget        ({155,  68}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ),
         makeWidget        ({288,  69}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_FULLSCREEN_MODE_TIP                  ),
         makeWidget        ({ 24,  86}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_DISPLAY_RESOLUTION,                STR_DISPLAY_RESOLUTION_TIP               ), // Resolution
         makeWidget        ({155,  85}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary, kStringIdEmpty                                                    ),
         makeWidget        ({288,  86}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_DISPLAY_RESOLUTION_TIP               ),
-        makeWidget        ({ 10, 102}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_UI_SCALING_DESC,                   STR_WINDOW_SCALE_TIP                     ), // Scale
-        makeSpinnerWidgets({155, 102}, {145,  14}, WidgetType::spinner,      WindowColour::secondary, kStringIdNone,                         STR_WINDOW_SCALE_TIP                     ), // Scale spinner (3 widgets)
+        makeWidget        ({ 24, 103}, {145,  12}, WidgetType::label,        WindowColour::secondary, kStringIdNone                                                                   ), // Refresh Rate
+        makeWidget        ({155, 102}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary, kStringIdEmpty                                                    ),
+        makeWidget        ({288, 103}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH                                                              ),
+        makeWidget        ({ 10, 120}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_UI_SCALING_DESC,                   STR_WINDOW_SCALE_TIP                     ), // Scale
+        makeSpinnerWidgets({155, 120}, {145,  14}, WidgetType::spinner,      WindowColour::secondary, kStringIdNone,                         STR_WINDOW_SCALE_TIP                     ), // Scale spinner (3 widgets)
 
-        makeWidget        ({  5, 129}, {300,  68}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_RENDERING                                                             ), // Rendering group
-        makeWidget        ({ 10, 146}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_DRAWING_ENGINE,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (label)
-        makeWidget        ({155, 145}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Drawing engine (dropdown label)
-        makeWidget        ({288, 146}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (chevron)
-        makeWidget        ({ 10, 161}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_FRAME_RATE_LIMIT_LABEL                                                      ), // Frame rate limit (label)
-        makeWidget        ({155, 160}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Frame rate limit (dropdown label)
-        makeWidget        ({288, 161}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH                                                              ), // Frame rate limit (chevron)
-        makeWidget        ({ 11, 178}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_SHOW_FPS,                          STR_SHOW_FPS_TIP                         ), // Show fps
-        makeWidget        ({155, 178}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MULTITHREADING,                    STR_MULTITHREADING_TIP                   ), // Multithreading
+        makeWidget        ({  5, 146}, {300,  68}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_RENDERING                                                             ), // Rendering group
+        makeWidget        ({ 10, 163}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_DRAWING_ENGINE,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (label)
+        makeWidget        ({155, 162}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Drawing engine (dropdown label)
+        makeWidget        ({288, 163}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (chevron)
+        makeWidget        ({ 10, 178}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_FRAME_RATE_LIMIT_LABEL                                                      ), // Frame rate limit (label)
+        makeWidget        ({155, 177}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Frame rate limit (dropdown label)
+        makeWidget        ({288, 178}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH                                                              ), // Frame rate limit (chevron)
+        makeWidget        ({ 11, 195}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_SHOW_FPS,                          STR_SHOW_FPS_TIP                         ), // Show fps
+        makeWidget        ({155, 195}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MULTITHREADING,                    STR_MULTITHREADING_TIP                   ), // Multithreading
 
-        makeWidget        ({  5, 200}, {300,  49}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_BEHAVIOUR                                                             ), // Behaviour group
-        makeWidget        ({ 11, 215}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS_TIP), // Minimise fullscreen focus loss
-        makeWidget        ({ 11, 230}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_DISABLE_SCREENSAVER,               STR_DISABLE_SCREENSAVER_TIP              )  // Disable screensaver
+        makeWidget        ({  5, 218}, {300,  49}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_BEHAVIOUR                                                             ), // Behaviour group
+        makeWidget        ({ 11, 233}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS_TIP), // Minimise fullscreen focus loss
+        makeWidget        ({ 11, 248}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_DISABLE_SCREENSAVER,               STR_DISABLE_SCREENSAVER_TIP              )  // Disable screensaver
     );
 
     constexpr int32_t kFrameRenderingStart = 53;
@@ -542,6 +548,8 @@ namespace OpenRCT2::Ui::Windows
     class OptionsWindow final : public Window
     {
         u8string _dropdownCaption{};
+        u8string _refreshRateDropdownCaption{};
+        std::vector<int32_t> _availableRefreshRates{};
 
     public:
         void onOpen() override
@@ -900,8 +908,40 @@ namespace OpenRCT2::Ui::Windows
                         gDropdown.items[selectedResolution].setChecked(true);
                     }
                 }
-
                 break;
+                case WIDX_REFRESH_RATE_DROPDOWN:
+                {
+                    const auto rates = GetContext()->GetUiContext().GetFullscreenRefreshRates(
+                        Config::Get().general.fullscreenWidth, Config::Get().general.fullscreenHeight);
+
+                    _availableRefreshRates.clear();
+                    _availableRefreshRates.push_back(0); // 0 = Default (Auto/Highest)
+                    for (int32_t r : rates)
+                    {
+                        _availableRefreshRates.push_back(r);
+                    }
+
+                    int32_t selectedRateIdx = 0;
+                    gDropdown.items[0] = Dropdown::MenuLabel("Default (Highest)");
+                    for (size_t i = 1; i < _availableRefreshRates.size(); i++)
+                    {
+                        int32_t r = _availableRefreshRates[i];
+                        std::string label = std::to_string(r) + " Hz";
+                        gDropdown.items[i] = Dropdown::MenuLabel(label);
+                        if (r == Config::Get().general.fullscreenRate)
+                        {
+                            selectedRateIdx = static_cast<int32_t>(i);
+                        }
+                    }
+
+                    ShowDropdown(widget, static_cast<int32_t>(_availableRefreshRates.size()));
+
+                    if (selectedRateIdx != -1 && selectedRateIdx < 32)
+                    {
+                        gDropdown.items[selectedRateIdx].setChecked(true);
+                    }
+                    break;
+                }
                 case WIDX_FULLSCREEN_DROPDOWN:
                     gDropdown.items[0] = Dropdown::MenuLabel(STR_OPTIONS_DISPLAY_WINDOWED);
                     gDropdown.items[1] = Dropdown::MenuLabel(STR_OPTIONS_DISPLAY_FULLSCREEN);
@@ -987,6 +1027,24 @@ namespace OpenRCT2::Ui::Windows
                     }
                     break;
                 }
+                case WIDX_REFRESH_RATE_DROPDOWN:
+                {
+                    if (dropdownIndex >= 0 && dropdownIndex < static_cast<int32_t>(_availableRefreshRates.size()))
+                    {
+                        int32_t chosenRate = _availableRefreshRates[dropdownIndex];
+                        if (chosenRate != Config::Get().general.fullscreenRate)
+                        {
+                            Config::Get().general.fullscreenRate = chosenRate;
+                            if (Config::Get().general.fullscreenMode == static_cast<int32_t>(FullscreenMode::fullscreen))
+                            {
+                                ContextSetFullscreenMode(static_cast<int32_t>(FullscreenMode::fullscreen));
+                            }
+                            Config::Save();
+                            GfxInvalidateScreen();
+                        }
+                    }
+                    break;
+                }
                 case WIDX_FULLSCREEN_DROPDOWN:
                     if (dropdownIndex != Config::Get().general.fullscreenMode)
                     {
@@ -1053,6 +1111,21 @@ namespace OpenRCT2::Ui::Windows
             setWidgetDisabled(WIDX_RESOLUTION_DROPDOWN, disableResolution);
             setWidgetDisabled(WIDX_RESOLUTION, disableResolution);
             setWidgetDisabled(WIDX_RESOLUTION_LABEL, disableResolution);
+
+            widgets[WIDX_REFRESH_RATE_LABEL].setString("Refresh rate:");
+            if (Config::Get().general.fullscreenRate <= 0)
+            {
+                _refreshRateDropdownCaption = "Default (Highest)";
+            }
+            else
+            {
+                _refreshRateDropdownCaption = std::to_string(Config::Get().general.fullscreenRate) + " Hz";
+            }
+            widgets[WIDX_REFRESH_RATE].setString(_refreshRateDropdownCaption.c_str());
+
+            setWidgetDisabled(WIDX_REFRESH_RATE_DROPDOWN, disableResolution);
+            setWidgetDisabled(WIDX_REFRESH_RATE, disableResolution);
+            setWidgetDisabled(WIDX_REFRESH_RATE_LABEL, disableResolution);
 
             setCheckboxValue(WIDX_SHOW_FPS_CHECKBOX, Config::Get().general.showFPS);
             const bool disableMultithreading = (std::thread::hardware_concurrency() <= 1);

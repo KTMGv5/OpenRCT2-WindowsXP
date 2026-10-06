@@ -294,48 +294,64 @@ void PaintSessionGenerateRotate(PaintSession& session)
     };
     constexpr CoordsXY nextVerticalTile = CoordsXY{ 32, 32 }.rotate(direction);
 
-    const bool isZoomedOut = session.rt.zoom_level > ZoomLevel{ 0 };
-    const bool paintEntities = (session.rt.zoom_level <= ZoomLevel{ 2 })
-        && !session.ViewFlags.has(ViewportFlag::hideEntities);
+    const bool paintEntities = !session.ViewFlags.has(ViewportFlag::hideEntities);
 
     int32_t currentScreenY = screenCoord.y;
-    int32_t mapMinY = 0;
-    int32_t mapMaxY = 0;
-
-    if (isZoomedOut)
-    {
-        const auto mapSizeUnits = GetMapSizeUnits();
-        const auto sc1 = Translate3DTo2DWithZ(session.CurrentRotation, { 0, 0, 0 });
-        const auto sc2 = Translate3DTo2DWithZ(session.CurrentRotation, { mapSizeUnits.x, 0, 0 });
-        const auto sc3 = Translate3DTo2DWithZ(session.CurrentRotation, { mapSizeUnits.x, mapSizeUnits.y, 0 });
-        const auto sc4 = Translate3DTo2DWithZ(session.CurrentRotation, { 0, mapSizeUnits.y, 0 });
-
-        mapMinY = std::min({ sc1.y, sc2.y, sc3.y, sc4.y }) - 64;
-        mapMaxY = std::max({ sc1.y, sc2.y, sc3.y, sc4.y }) + 64;
-    }
-
+    const auto mapSizeUnits = GetMapSizeUnits();
     const int32_t viewportBottom = session.rt.WorldY() + session.rt.WorldHeight();
 
     for (; numVerticalTiles > 0; --numVerticalTiles)
     {
-        // 1. If tile base is past the bottom of the map when zoomed out, stop immediately
-        if (isZoomedOut && currentScreenY > mapMaxY)
-        {
-            break;
-        }
-
-        // 2. If tile base is far below the viewport bottom, even maximum height elements (2128) cannot reach viewport
+        // 1. If tile base is far below the viewport bottom, even maximum height elements (2128) cannot reach viewport
         if (currentScreenY - 2128 > viewportBottom + 64)
         {
             break;
         }
 
-        // 3. If tile base is before the top of the map when zoomed out, skip
-        if (isZoomedOut && currentScreenY < mapMinY)
+        // 2. Monotonic boundary exit check: once tile moves past the far corner of the map, it can never re-enter
+        if constexpr (direction == 0)
         {
-            mapTile += nextVerticalTile;
-            currentScreenY += 32;
-            continue;
+            if (mapTile.x >= mapSizeUnits.x && mapTile.y >= mapSizeUnits.y)
+                break;
+            if (mapTile.x < -64 || mapTile.y < -64)
+            {
+                mapTile += nextVerticalTile;
+                currentScreenY += 32;
+                continue;
+            }
+        }
+        else if constexpr (direction == 1)
+        {
+            if (mapTile.x >= mapSizeUnits.x && mapTile.y < 0)
+                break;
+            if (mapTile.x < -64 || mapTile.y > mapSizeUnits.y + 64)
+            {
+                mapTile += nextVerticalTile;
+                currentScreenY += 32;
+                continue;
+            }
+        }
+        else if constexpr (direction == 2)
+        {
+            if (mapTile.x < 0 && mapTile.y < 0)
+                break;
+            if (mapTile.x > mapSizeUnits.x + 64 || mapTile.y > mapSizeUnits.y + 64)
+            {
+                mapTile += nextVerticalTile;
+                currentScreenY += 32;
+                continue;
+            }
+        }
+        else if constexpr (direction == 3)
+        {
+            if (mapTile.x < 0 && mapTile.y >= mapSizeUnits.y)
+                break;
+            if (mapTile.x > mapSizeUnits.x + 64 || mapTile.y < -64)
+            {
+                mapTile += nextVerticalTile;
+                currentScreenY += 32;
+                continue;
+            }
         }
 
         TileElementPaintSetup(session, mapTile);
