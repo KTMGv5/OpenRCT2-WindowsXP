@@ -847,9 +847,10 @@ namespace OpenRCT2
     {
         PROFILED_FUNCTION();
 
-        if (session.ViewFlags.hasAny(
-                ViewportFlag::hideVertical, ViewportFlag::hideBase, ViewportFlag::undergroundInside, ViewportFlag::clipView)
-            && !session.ViewFlags.has(ViewportFlag::transparentBackground))
+        if (!session.ViewFlags.has(ViewportFlag::transparentBackground)
+            && (session.rt.zoom_level > ZoomLevel{ 0 }
+                || session.ViewFlags.hasAny(
+                    ViewportFlag::hideVertical, ViewportFlag::hideBase, ViewportFlag::undergroundInside, ViewportFlag::clipView)))
         {
             PaletteIndex colour = PaletteIndex::pi10;
             if (session.ViewFlags.has(ViewportFlag::hideEntities))

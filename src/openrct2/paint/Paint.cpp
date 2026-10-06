@@ -27,6 +27,7 @@
 #include "Boundbox.h"
 #include "Paint.Entity.h"
 #include "tile_element/Paint.TileElement.h"
+#include "../world/Map.h"
 
 #include <algorithm>
 #include <array>
@@ -293,22 +294,68 @@ void PaintSessionGenerateRotate(PaintSession& session)
     };
     constexpr CoordsXY nextVerticalTile = CoordsXY{ 32, 32 }.rotate(direction);
 
+    const bool isZoomedOut = session.rt.zoom_level > ZoomLevel{ 0 };
+    const bool paintEntities = (session.rt.zoom_level <= ZoomLevel{ 2 })
+        && !gTrackDesignSaveMode
+        && !session.ViewFlags.has(ViewportFlag::hideEntities);
+
+    int32_t currentScreenY = screenCoord.y;
+    int32_t mapMinY = 0;
+    int32_t mapMaxY = 0;
+
+    if (isZoomedOut)
+    {
+        const auto mapSizeUnits = GetMapSizeUnits();
+        const auto sc1 = Translate3DTo2DWithZ(session.CurrentRotation, { 0, 0, 0 });
+        const auto sc2 = Translate3DTo2DWithZ(session.CurrentRotation, { mapSizeUnits.x, 0, 0 });
+        const auto sc3 = Translate3DTo2DWithZ(session.CurrentRotation, { mapSizeUnits.x, mapSizeUnits.y, 0 });
+        const auto sc4 = Translate3DTo2DWithZ(session.CurrentRotation, { 0, mapSizeUnits.y, 0 });
+
+        mapMinY = std::min({ sc1.y, sc2.y, sc3.y, sc4.y }) - 64;
+        mapMaxY = std::max({ sc1.y, sc2.y, sc3.y, sc4.y }) + 64;
+    }
+
+    const int32_t viewportBottom = session.rt.WorldY() + session.rt.WorldHeight();
+
     for (; numVerticalTiles > 0; --numVerticalTiles)
     {
-        TileElementPaintSetup(session, mapTile);
-        EntityPaintSetup(session, mapTile);
+        // 1. If tile base is past the bottom of the map when zoomed out, stop immediately
+        if (isZoomedOut && currentScreenY > mapMaxY)
+        {
+            break;
+        }
 
-        const auto loc1 = mapTile + adjacentTiles[0];
-        EntityPaintSetup(session, loc1);
+        // 2. If tile base is far below the viewport bottom, even maximum height elements (2128) cannot reach viewport
+        if (currentScreenY - 2128 > viewportBottom + 64)
+        {
+            break;
+        }
+
+        // 3. If tile base is before the top of the map when zoomed out, skip
+        if (isZoomedOut && currentScreenY < mapMinY)
+        {
+            mapTile += nextVerticalTile;
+            currentScreenY += 32;
+            continue;
+        }
+
+        TileElementPaintSetup(session, mapTile);
+        if (paintEntities)
+        {
+            EntityPaintSetup(session, mapTile);
+            EntityPaintSetup(session, mapTile + adjacentTiles[0]);
+        }
 
         const auto loc2 = mapTile + adjacentTiles[1];
         TileElementPaintSetup(session, loc2);
-        EntityPaintSetup(session, loc2);
-
-        const auto loc3 = mapTile + adjacentTiles[2];
-        EntityPaintSetup(session, loc3);
+        if (paintEntities)
+        {
+            EntityPaintSetup(session, loc2);
+            EntityPaintSetup(session, mapTile + adjacentTiles[2]);
+        }
 
         mapTile += nextVerticalTile;
+        currentScreenY += 32;
     }
 }
 
@@ -318,6 +365,23 @@ void PaintSessionGenerateRotate(PaintSession& session)
  */
 void PaintSessionGenerate(PaintSession& session)
 {
+    if (session.rt.zoom_level > ZoomLevel{ 0 })
+    {
+        const auto mapSizeUnits = GetMapSizeUnits();
+        const auto sc1 = Translate3DTo2DWithZ(session.CurrentRotation, { 0, 0, 0 });
+        const auto sc2 = Translate3DTo2DWithZ(session.CurrentRotation, { mapSizeUnits.x, 0, 0 });
+        const auto sc3 = Translate3DTo2DWithZ(session.CurrentRotation, { mapSizeUnits.x, mapSizeUnits.y, 0 });
+        const auto sc4 = Translate3DTo2DWithZ(session.CurrentRotation, { 0, mapSizeUnits.y, 0 });
+
+        const int32_t mapMinX = std::min({ sc1.x, sc2.x, sc3.x, sc4.x }) - 64;
+        const int32_t mapMaxX = std::max({ sc1.x, sc2.x, sc3.x, sc4.x }) + 64;
+
+        if (session.rt.WorldX() + session.rt.WorldWidth() < mapMinX || session.rt.WorldX() > mapMaxX)
+        {
+            return;
+        }
+    }
+
     switch (DirectionFlipXAxis(session.CurrentRotation))
     {
         case 0:

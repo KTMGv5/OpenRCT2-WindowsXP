@@ -55,7 +55,7 @@ void TileElementPaintSetup(PaintSession& session, const CoordsXY& mapCoords, boo
 
         PaintTileElementBase(session, mapCoords);
     }
-    else if (!session.ViewFlags.has(ViewportFlag::transparentBackground))
+    else if (!session.ViewFlags.has(ViewportFlag::transparentBackground) && session.rt.zoom_level == ZoomLevel{ 0 })
     {
         BlankTilesPaint(session, mapCoords.x, mapCoords.y);
     }

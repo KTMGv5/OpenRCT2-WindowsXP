@@ -751,27 +751,8 @@ private:
                 _device->SetSamplerState(1, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
                 _device->SetSamplerState(1, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
 
-                int32_t shaderEffect = Config::Get().general.d3d9ShaderEffect;
-                if (shaderEffect == 2 && _pixelShaderCRT != nullptr)
-                {
-                    float crtParams[4] = {
-                        static_cast<float>(_width),
-                        static_cast<float>(_height),
-                        static_cast<float>(windowWidth),
-                        static_cast<float>(windowHeight)
-                    };
-                    _device->SetPixelShaderConstantF(0, crtParams, 1);
-                    _device->SetPixelShader(_pixelShaderCRT);
-                }
-                else if (shaderEffect == 3 && _pixelShaderVibrant != nullptr)
-                {
-                    _device->SetPixelShader(_pixelShaderVibrant);
-                }
-                else if (shaderEffect == 1)
-                {
-                    _device->SetPixelShader(_pixelShader);
-                }
-                else if ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
+                ScaleQuality scaleQuality = _uiContext.GetScaleQuality();
+                if ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
                     && _pixelShaderSmooth != nullptr)
                 {
                     float canvasParams[4] = {
@@ -792,33 +773,10 @@ private:
             {
                 _device->SetTexture(0, _screenTexture);
                 _device->SetTexture(1, nullptr);
-
-                int32_t shaderEffect = Config::Get().general.d3d9ShaderEffect;
-                if (shaderEffect == 2 && _pixelShaderRGBCRT != nullptr)
-                {
-                    float crtParams[4] = {
-                        static_cast<float>(_width),
-                        static_cast<float>(_height),
-                        static_cast<float>(windowWidth),
-                        static_cast<float>(windowHeight)
-                    };
-                    _device->SetPixelShaderConstantF(0, crtParams, 1);
-                    _device->SetPixelShader(_pixelShaderRGBCRT);
-                }
-                else if (shaderEffect == 3 && _pixelShaderRGBVibrant != nullptr)
-                {
-                    _device->SetPixelShader(_pixelShaderRGBVibrant);
-                }
-                else
-                {
-                    _device->SetPixelShader(nullptr);
-                }
-
-                D3DTEXTUREFILTERTYPE filter = (shaderEffect == 1)
-                    ? D3DTEXF_POINT
-                    : ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour || shaderEffect == 0)
-                        ? D3DTEXF_LINEAR
-                        : D3DTEXF_POINT);
+                ScaleQuality scaleQuality = _uiContext.GetScaleQuality();
+                D3DTEXTUREFILTERTYPE filter = (scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
+                    ? D3DTEXF_LINEAR
+                    : D3DTEXF_POINT;
 
                 _device->SetSamplerState(0, D3DSAMP_MAGFILTER, filter);
                 _device->SetSamplerState(0, D3DSAMP_MINFILTER, filter);

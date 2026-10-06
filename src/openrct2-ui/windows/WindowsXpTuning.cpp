@@ -31,7 +31,7 @@
 namespace OpenRCT2::Ui::Windows
 {
     static constexpr StringId kWindowTitle = STR_WINDOWS_XP_TUNING;
-    static constexpr ScreenSize kWindowSize = { 430, 368 };
+    static constexpr ScreenSize kWindowSize = { 430, 248 };
 
     enum WindowXpTuningWidgetIdx : WidgetIndex
     {
@@ -40,12 +40,6 @@ namespace OpenRCT2::Ui::Windows
         WIDX_CLOSE,
 
         WIDX_GROUP_DIAGNOSTICS,
-
-        WIDX_GROUP_TUNING,
-        WIDX_VM_IDLE_SLEEP,
-        WIDX_HIGH_PRECISION_TIMER,
-        WIDX_HARDWARE_HUD,
-        WIDX_D3D9_SHADER_EFFECT,
 
         WIDX_GROUP_ACTIONS,
         WIDX_SET_DESKTOP_WALLPAPER,
@@ -57,19 +51,12 @@ namespace OpenRCT2::Ui::Windows
         makeWindowShim(kWindowTitle, kWindowSize),
 
         // Group 1: Diagnostics
-        makeWidget({ 6, 20 }, { 418, 120 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_DIAGNOSTICS_GROUP),
+        makeWidget({ 6, 20 }, { 418, 108 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_DIAGNOSTICS_GROUP),
 
-        // Group 2: Engine & Performance Tuning
-        makeWidget({ 6, 146 }, { 418, 98 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_TUNING_GROUP),
-        makeWidget({ 14, 162 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_VM_IDLE_SLEEP_LABEL, STR_VM_IDLE_SLEEP_TIP),
-        makeWidget({ 14, 180 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_HIGH_PRECISION_TIMER_LABEL, STR_HIGH_PRECISION_TIMER_TIP),
-        makeWidget({ 14, 198 }, { 402, 14 }, WidgetType::checkbox, WindowColour::tertiary, STR_HARDWARE_HUD_LABEL, STR_HARDWARE_HUD_TIP),
-        makeWidget({ 14, 216 }, { 402, 22 }, WidgetType::button,   WindowColour::secondary),
-
-        // Group 3: Tools & Desktop Integration
-        makeWidget({ 6, 250 }, { 418, 88 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_ACTIONS_GROUP),
-        makeWidget({ 14, 266 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_SET_DESKTOP_WALLPAPER, STR_SET_DESKTOP_WALLPAPER_TIP),
-        makeWidget({ 14, 294 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP)
+        // Group 2: Tools & Desktop Integration
+        makeWidget({ 6, 134 }, { 418, 86 }, WidgetType::groupbox, WindowColour::secondary, STR_XP_ACTIONS_GROUP),
+        makeWidget({ 14, 150 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_SET_DESKTOP_WALLPAPER, STR_SET_DESKTOP_WALLPAPER_TIP),
+        makeWidget({ 14, 178 }, { 402, 22 }, WidgetType::button, WindowColour::secondary, STR_RUN_BENCHMARK_BTN, STR_RUN_BENCHMARK_TIP)
     );
     // clang-format on
 
@@ -78,7 +65,6 @@ namespace OpenRCT2::Ui::Windows
     private:
         std::string _benchmarkScore = "Not run yet - click benchmark below";
         std::string _actionStatus;
-        std::string _shaderButtonText;
 
     public:
         void onOpen() override
@@ -89,21 +75,6 @@ namespace OpenRCT2::Ui::Windows
 
         void onPrepareDraw() override
         {
-            setCheckboxValue(WIDX_VM_IDLE_SLEEP, Config::Get().general.vmIdleSleep);
-            setCheckboxValue(WIDX_HIGH_PRECISION_TIMER, Config::Get().general.highPrecisionTimer);
-            setCheckboxValue(WIDX_HARDWARE_HUD, Config::Get().general.showFPS);
-
-            static const char* kD3D9EffectNames[] = {
-                "Direct3D Shader: Smooth Bilinear (Auto)",
-                "Direct3D Shader: Crisp 1:1 Pixel Art",
-                "Direct3D Shader: CRT Retro Scanlines",
-                "Direct3D Shader: Vibrant Color Boost"
-            };
-            int32_t eff = Config::Get().general.d3d9ShaderEffect;
-            if (eff < 0 || eff > 3)
-                eff = 0;
-            _shaderButtonText = kD3D9EffectNames[eff];
-            widgets[WIDX_D3D9_SHADER_EFFECT].setString(_shaderButtonText.c_str());
         }
 
         void onMouseUp(WidgetIndex widgetIndex) override
@@ -112,29 +83,6 @@ namespace OpenRCT2::Ui::Windows
             {
                 case WIDX_CLOSE:
                     close();
-                    break;
-                case WIDX_VM_IDLE_SLEEP:
-                    Config::Get().general.vmIdleSleep = !Config::Get().general.vmIdleSleep;
-                    Config::Save();
-                    invalidate();
-                    break;
-                case WIDX_HIGH_PRECISION_TIMER:
-                    Config::Get().general.highPrecisionTimer = !Config::Get().general.highPrecisionTimer;
-                    Platform::SetHighPrecisionTimer(Config::Get().general.highPrecisionTimer);
-                    Config::Save();
-                    invalidate();
-                    break;
-                case WIDX_HARDWARE_HUD:
-                    Config::Get().general.showFPS = !Config::Get().general.showFPS;
-                    Config::Save();
-                    Drawing::GfxInvalidateScreen();
-                    invalidate();
-                    break;
-                case WIDX_D3D9_SHADER_EFFECT:
-                    Config::Get().general.d3d9ShaderEffect = (Config::Get().general.d3d9ShaderEffect + 1) % 4;
-                    Config::Save();
-                    Drawing::GfxInvalidateScreen();
-                    invalidate();
                     break;
                 case WIDX_SET_DESKTOP_WALLPAPER:
                     ScreenshotSetDesktopWallpaper();
@@ -161,19 +109,17 @@ namespace OpenRCT2::Ui::Windows
             auto osStr = "Windows XP / Win32 (x86 Vintage Native)";
             auto hypervisor = Platform::GetHypervisorName();
             auto cpu = Platform::GetCpuBrandName();
-            auto timerStr = Platform::IsHighPrecisionTimerActive() ? "1.0 ms Period (Active - Micro-stutter eliminated)" : "15.6 ms Standard Period";
             auto netStr = "256 KiB Buffers | TCP_NODELAY | KeepAlive (10/100M Ready)";
 
             drawLine(16, 36, "Platform OS:  ", osStr);
             drawLine(16, 52, "Hypervisor:   ", hypervisor);
             drawLine(16, 68, "CPU Detected: ", cpu.empty() ? "x86 Compatible Processor" : cpu);
-            drawLine(16, 84, "Kernel Timer: ", timerStr);
-            drawLine(16, 100, "Network Stack:", netStr);
-            drawLine(16, 116, "Benchmark:    ", _benchmarkScore);
+            drawLine(16, 84, "Network Stack:", netStr);
+            drawLine(16, 100, "Benchmark:    ", _benchmarkScore);
 
             if (!_actionStatus.empty())
             {
-                drawText(rt, windowPos + ScreenCoordsXY{ 16, 324 }, _actionStatus, { textColour });
+                drawText(rt, windowPos + ScreenCoordsXY{ 16, 226 }, _actionStatus, { textColour });
             }
         }
 

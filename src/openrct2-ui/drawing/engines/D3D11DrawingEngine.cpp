@@ -715,18 +715,9 @@ private:
 
         // Shader selection
         ID3D11PixelShader* selectedPS = _psPalette;
-        int32_t shaderEffect = Config::Get().general.d3d9ShaderEffect;
         ScaleQuality scaleQuality = _uiContext.GetScaleQuality();
 
-        if (shaderEffect == 2 && _psPaletteCRT != nullptr)
-        {
-            selectedPS = _psPaletteCRT;
-        }
-        else if (shaderEffect == 3 && _psPaletteVibrant != nullptr)
-        {
-            selectedPS = _psPaletteVibrant;
-        }
-        else if ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour || shaderEffect == 0)
+        if ((scaleQuality == ScaleQuality::linear || scaleQuality == ScaleQuality::smoothNearestNeighbour)
             && _psPaletteSmooth != nullptr)
         {
             selectedPS = _psPaletteSmooth;
