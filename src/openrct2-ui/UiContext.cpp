@@ -198,6 +198,28 @@ public:
             Resolution resolution = GetClosestResolution(
                 Config::Get().general.fullscreenWidth, Config::Get().general.fullscreenHeight);
             SDL_SetWindowSize(_window, resolution.Width, resolution.Height);
+
+            // Set display mode with the highest available refresh rate so high-refresh displays don't drop to 60Hz
+            int32_t displayIndex = SDL_GetWindowDisplayIndex(_window);
+            int32_t numModes = SDL_GetNumDisplayModes(displayIndex);
+            SDL_DisplayMode bestMode{};
+            int32_t maxRefreshRate = 0;
+            for (int32_t i = 0; i < numModes; i++)
+            {
+                SDL_DisplayMode dm{};
+                if (SDL_GetDisplayMode(displayIndex, i, &dm) == 0)
+                {
+                    if (dm.w == resolution.Width && dm.h == resolution.Height && dm.refresh_rate >= maxRefreshRate)
+                    {
+                        maxRefreshRate = dm.refresh_rate;
+                        bestMode = dm;
+                    }
+                }
+            }
+            if (maxRefreshRate > 0)
+            {
+                SDL_SetWindowDisplayMode(_window, &bestMode);
+            }
         }
         else if (mode == FullscreenMode::windowed)
         {

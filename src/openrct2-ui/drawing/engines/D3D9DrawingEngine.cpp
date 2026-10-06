@@ -97,6 +97,7 @@ public:
         , _uiContext(uiContext)
     {
         _window = static_cast<SDL_Window*>(_uiContext.GetWindow());
+        _useVsync = Config::Get().general.useVSync;
     }
 
     ~D3D9DrawingEngine() override
@@ -649,14 +650,9 @@ private:
         else if (static_cast<uint32_t>(windowWidth) != _backBufferWidth ||
                  static_cast<uint32_t>(windowHeight) != _backBufferHeight)
         {
-            GetContext()->GetUiContext().TriggerResize();
-            if (static_cast<uint32_t>(windowWidth) != _backBufferWidth ||
-                static_cast<uint32_t>(windowHeight) != _backBufferHeight)
+            if (!ResetDevice(windowWidth, windowHeight, _width, _height))
             {
-                if (!ResetDevice(windowWidth, windowHeight, _width, _height))
-                {
-                    return;
-                }
+                return;
             }
         }
 

@@ -35,7 +35,6 @@
 using namespace OpenRCT2;
 using namespace OpenRCT2::Drawing;
 
-static void BlankTilesPaint(PaintSession& session, int32_t x, int32_t y);
 static void PaintTileElementBase(PaintSession& session, const CoordsXY& origCoords);
 
 /**
