@@ -114,6 +114,12 @@ namespace OpenRCT2::Config
         ConfigEnumEntry<DrawingEngine>("DIRECT3D11", DrawingEngine::direct3D11),
     });
 
+    static const auto Enum_ScaleQuality = ConfigEnum<ScaleQuality>({
+        ConfigEnumEntry<ScaleQuality>("NEAREST_NEIGHBOUR", ScaleQuality::nearestNeighbour),
+        ConfigEnumEntry<ScaleQuality>("LINEAR", ScaleQuality::linear),
+        ConfigEnumEntry<ScaleQuality>("SMOOTH_NEAREST_NEIGHBOUR", ScaleQuality::smoothNearestNeighbour),
+    });
+
     static const auto Enum_Temperature = ConfigEnum<TemperatureUnit>({
         ConfigEnumEntry<TemperatureUnit>("CELSIUS", TemperatureUnit::celsius),
         ConfigEnumEntry<TemperatureUnit>("FAHRENHEIT", TemperatureUnit::fahrenheit),
@@ -241,6 +247,8 @@ namespace OpenRCT2::Config
             model->upperCaseBanners = reader->GetBoolean("upper_case_banners", false);
             model->disableLightningEffect = reader->GetBoolean("disable_lightning_effect", false);
             model->windowScale = reader->GetFloat("window_scale", Platform::GetDefaultScale());
+            model->scaleQuality = reader->GetEnum<ScaleQuality>(
+                "scale_quality", ScaleQuality::nearestNeighbour, Enum_ScaleQuality);
             model->inferDisplayDPI = reader->GetBoolean("infer_display_dpi", kInferDisplayDPIDefault);
             model->showFPS = reader->GetBoolean("show_fps", false);
             model->vmIdleSleep = reader->GetBoolean("vm_idle_sleep", true);
@@ -347,6 +355,7 @@ namespace OpenRCT2::Config
         writer->WriteBoolean("upper_case_banners", model->upperCaseBanners);
         writer->WriteBoolean("disable_lightning_effect", model->disableLightningEffect);
         writer->WriteFloat("window_scale", model->windowScale);
+        writer->WriteEnum<ScaleQuality>("scale_quality", model->scaleQuality, Enum_ScaleQuality);
         writer->WriteBoolean("infer_display_dpi", model->inferDisplayDPI);
         writer->WriteBoolean("show_fps", model->showFPS);
         writer->WriteBoolean("vm_idle_sleep", model->vmIdleSleep);

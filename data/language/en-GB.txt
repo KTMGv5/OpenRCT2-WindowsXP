@@ -3896,3 +3896,8 @@ STR_7120    :Network Optimizer for 10/100 Mbps
 STR_7121    :Enhanced buffer sizes, TCP_NODELAY, and extended timeout keepalives for smooth multiplayer on vintage and 10/100 Mbps links.
 STR_7122    :Direct3D 9 (Hardware Accelerated)
 STR_7123    :Direct3D 11 (Hardware Accelerated)
+STR_7124    :Scaling quality:
+STR_7125    :Choose between sharp pixel-art or smoothed edges when scaling the game.
+STR_7126    :Sharp (Crisp Pixel-Art)
+STR_7127    :Smooth (Bilinear)
+STR_7128    :Smooth Nearest Neighbour

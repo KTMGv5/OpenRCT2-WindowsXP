@@ -230,6 +230,9 @@ public:
         }
         else
         {
+            char scaleQualityBuffer[4];
+            snprintf(scaleQualityBuffer, sizeof(scaleQualityBuffer), "%d", static_cast<int32_t>(scaleQuality));
+            SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, scaleQualityBuffer);
             _screenTexture = CreateScreenTexture(pixelFormat, SDL_TEXTUREACCESS_STREAMING, width, height);
         }
 

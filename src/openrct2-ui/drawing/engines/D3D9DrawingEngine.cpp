@@ -714,8 +714,6 @@ private:
             { x2, y2, 0.0f, 1.0f, 1.0f, 1.0f },
         };
 
-        ScaleQuality scaleQuality = GetContext()->GetUiContext().GetScaleQuality();
-
         D3DVIEWPORT9 vp = {};
         vp.X = 0;
         vp.Y = 0;

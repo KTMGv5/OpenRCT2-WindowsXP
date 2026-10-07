@@ -41,6 +41,7 @@ namespace OpenRCT2::Config
         int32_t fullscreenHeight;
         int32_t fullscreenRate;
         float windowScale;
+        ScaleQuality scaleQuality;
         bool inferDisplayDPI;
         ::DrawingEngine drawingEngine;
         int32_t d3d9ShaderEffect;

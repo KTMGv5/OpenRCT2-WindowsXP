@@ -1820,6 +1820,11 @@ enum : StringId
     STR_NETWORK_OPTIMIZER_TIP = 7121,
     STR_DRAWING_ENGINE_DIRECT3D9 = 7122,
     STR_DRAWING_ENGINE_DIRECT3D11 = 7123,
+    STR_SCALING_QUALITY = 7124,
+    STR_SCALING_QUALITY_TIP = 7125,
+    STR_SCALING_QUALITY_NEAREST = 7126,
+    STR_SCALING_QUALITY_LINEAR = 7127,
+    STR_SCALING_QUALITY_SMOOTH_NN = 7128,
 
     // Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
     /* MAX_STR_COUNT = 32768 */ // MAX_STR_COUNT - upper limit for number of strings, not the current count strings

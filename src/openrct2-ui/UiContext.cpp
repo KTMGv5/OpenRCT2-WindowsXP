@@ -175,7 +175,7 @@ public:
 
     ScaleQuality GetScaleQuality() override
     {
-        return _scaleQuality;
+        return Config::Get().general.scaleQuality;
     }
 
     void SetFullscreenMode(FullscreenMode mode) override
@@ -674,13 +674,9 @@ public:
      */
     void TriggerResize() override
     {
-        char scaleQualityBuffer[4];
-        _scaleQuality = ScaleQuality::smoothNearestNeighbour;
-        if (Config::Get().general.windowScale == std::floor(Config::Get().general.windowScale))
-        {
-            _scaleQuality = ScaleQuality::nearestNeighbour;
-        }
+        _scaleQuality = Config::Get().general.scaleQuality;
 
+        char scaleQualityBuffer[4];
         ScaleQuality scaleQuality = _scaleQuality;
         if (_scaleQuality == ScaleQuality::smoothNearestNeighbour)
         {

@@ -117,6 +117,9 @@ namespace OpenRCT2::Ui::Windows
         WIDX_SCALE,
         WIDX_SCALE_UP,
         WIDX_SCALE_DOWN,
+        WIDX_SCALE_QUALITY_LABEL,
+        WIDX_SCALE_QUALITY,
+        WIDX_SCALE_QUALITY_DROPDOWN,
 
         WIDX_RENDERING_GROUP,
         WIDX_DRAWING_ENGINE_LABEL,
@@ -284,7 +287,7 @@ namespace OpenRCT2::Ui::Windows
 
     static constexpr auto window_options_display_widgets = makeWidgets(
         kMainOptionsWidgets,
-        makeWidget        ({  5,  53}, {300,  87}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_WINDOW                                                                ), // Window group
+        makeWidget        ({  5,  53}, {300, 104}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_WINDOW                                                                ), // Window group
         makeWidget        ({ 10,  69}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_FULLSCREEN_MODE,                   STR_FULLSCREEN_MODE_TIP                  ), // Fullscreen
         makeWidget        ({155,  68}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ),
         makeWidget        ({288,  69}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_FULLSCREEN_MODE_TIP                  ),
@@ -296,20 +299,23 @@ namespace OpenRCT2::Ui::Windows
         makeWidget        ({288, 103}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH                                                              ),
         makeWidget        ({ 10, 120}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_UI_SCALING_DESC,                   STR_WINDOW_SCALE_TIP                     ), // Scale
         makeSpinnerWidgets({155, 120}, {145,  14}, WidgetType::spinner,      WindowColour::secondary, kStringIdNone,                         STR_WINDOW_SCALE_TIP                     ), // Scale spinner (3 widgets)
+        makeWidget        ({ 10, 137}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_SCALING_QUALITY,                    STR_SCALING_QUALITY_TIP                  ), // Scale Quality
+        makeWidget        ({155, 136}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary, kStringIdEmpty                                                    ),
+        makeWidget        ({288, 137}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_SCALING_QUALITY_TIP                  ),
 
-        makeWidget        ({  5, 146}, {300,  68}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_RENDERING                                                             ), // Rendering group
-        makeWidget        ({ 10, 163}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_DRAWING_ENGINE,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (label)
-        makeWidget        ({155, 162}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Drawing engine (dropdown label)
-        makeWidget        ({288, 163}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (chevron)
-        makeWidget        ({ 10, 178}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_FRAME_RATE_LIMIT_LABEL                                                      ), // Frame rate limit (label)
-        makeWidget        ({155, 177}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Frame rate limit (dropdown label)
-        makeWidget        ({288, 178}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH                                                              ), // Frame rate limit (chevron)
-        makeWidget        ({ 11, 195}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_SHOW_FPS,                          STR_SHOW_FPS_TIP                         ), // Show fps
-        makeWidget        ({155, 195}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MULTITHREADING,                    STR_MULTITHREADING_TIP                   ), // Multithreading
+        makeWidget        ({  5, 163}, {300,  68}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_RENDERING                                                             ), // Rendering group
+        makeWidget        ({ 10, 180}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_DRAWING_ENGINE,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (label)
+        makeWidget        ({155, 179}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Drawing engine (dropdown label)
+        makeWidget        ({288, 180}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH,                    STR_DRAWING_ENGINE_TIP                   ), // Drawing engine (chevron)
+        makeWidget        ({ 10, 195}, {145,  12}, WidgetType::label,        WindowColour::secondary, STR_FRAME_RATE_LIMIT_LABEL                                                      ), // Frame rate limit (label)
+        makeWidget        ({155, 194}, {145,  14}, WidgetType::dropdownMenu, WindowColour::secondary                                                                                  ), // Frame rate limit (dropdown label)
+        makeWidget        ({288, 195}, { 11,  12}, WidgetType::button,       WindowColour::secondary, STR_DROPDOWN_GLYPH                                                              ), // Frame rate limit (chevron)
+        makeWidget        ({ 11, 212}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_SHOW_FPS,                          STR_SHOW_FPS_TIP                         ), // Show fps
+        makeWidget        ({155, 212}, {136,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MULTITHREADING,                    STR_MULTITHREADING_TIP                   ), // Multithreading
 
-        makeWidget        ({  5, 218}, {300,  49}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_BEHAVIOUR                                                             ), // Behaviour group
-        makeWidget        ({ 11, 233}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS_TIP), // Minimise fullscreen focus loss
-        makeWidget        ({ 11, 248}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_DISABLE_SCREENSAVER,               STR_DISABLE_SCREENSAVER_TIP              )  // Disable screensaver
+        makeWidget        ({  5, 235}, {300,  49}, WidgetType::groupbox,     WindowColour::secondary, STR_GROUP_BEHAVIOUR                                                             ), // Behaviour group
+        makeWidget        ({ 11, 250}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS, STR_MINIMISE_FULLSCREEN_ON_FOCUS_LOSS_TIP), // Minimise fullscreen focus loss
+        makeWidget        ({ 11, 265}, {280,  12}, WidgetType::checkbox,     WindowColour::secondary, STR_DISABLE_SCREENSAVER,               STR_DISABLE_SCREENSAVER_TIP              )  // Disable screensaver
     );
 
     constexpr int32_t kFrameRenderingStart = 53;
@@ -983,6 +989,21 @@ namespace OpenRCT2::Ui::Windows
                     ContextTriggerResize();
                     ContextUpdateCursorScale();
                     break;
+                case WIDX_SCALE_QUALITY_DROPDOWN:
+                {
+                    gDropdown.items[0] = Dropdown::MenuLabel(STR_SCALING_QUALITY_NEAREST);
+                    gDropdown.items[1] = Dropdown::MenuLabel(STR_SCALING_QUALITY_LINEAR);
+                    gDropdown.items[2] = Dropdown::MenuLabel(STR_SCALING_QUALITY_SMOOTH_NN);
+
+                    ShowDropdown(widget, 3);
+
+                    auto activeQuality = static_cast<int32_t>(Config::Get().general.scaleQuality);
+                    if (activeQuality >= 0 && activeQuality < 3)
+                    {
+                        gDropdown.items[activeQuality].setChecked(true);
+                    }
+                    break;
+                }
                 case WIDX_FRAME_RATE_LIMIT_DROPDOWN:
                 {
                     gDropdown.items[0] = Dropdown::MenuLabel(STR_FRAME_RATE_LIMIT_DEFAULT);
@@ -1041,6 +1062,21 @@ namespace OpenRCT2::Ui::Windows
                             }
                             Config::Save();
                             GfxInvalidateScreen();
+                        }
+                    }
+                    break;
+                }
+                case WIDX_SCALE_QUALITY_DROPDOWN:
+                {
+                    if (dropdownIndex >= 0 && dropdownIndex <= 2)
+                    {
+                        auto newQuality = static_cast<ScaleQuality>(dropdownIndex);
+                        if (newQuality != Config::Get().general.scaleQuality)
+                        {
+                            Config::Get().general.scaleQuality = newQuality;
+                            Config::Save();
+                            GfxInvalidateScreen();
+                            ContextTriggerResize();
                         }
                     }
                     break;
@@ -1149,6 +1185,17 @@ namespace OpenRCT2::Ui::Windows
                 }
             }
             widgets[WIDX_DRAWING_ENGINE].text = engineStringId;
+
+            static constexpr StringId kScaleQualityStringIds[] = {
+                STR_SCALING_QUALITY_NEAREST,
+                STR_SCALING_QUALITY_LINEAR,
+                STR_SCALING_QUALITY_SMOOTH_NN,
+            };
+            auto qualityIdx = static_cast<size_t>(Config::Get().general.scaleQuality);
+            if (qualityIdx < std::size(kScaleQualityStringIds))
+            {
+                widgets[WIDX_SCALE_QUALITY].text = kScaleQualityStringIds[qualityIdx];
+            }
 
             static constexpr StringId kFrameRateLimitStringIds[] = {
                 STR_FRAME_RATE_LIMIT_DEFAULT,
