@@ -31,13 +31,18 @@
 #include <openrct2/audio/Audio.h>
 #include <openrct2/config/Config.h>
 #include <openrct2/core/EnumUtils.hpp>
+#include <openrct2/core/File.h>
+#include <openrct2/core/Path.hpp>
 #include <openrct2/drawing/Drawing.Screen.h>
 #include <openrct2/interface/Screenshot.h>
 #include <openrct2/interface/Viewport.h>
 #include <openrct2/interface/WidgetIndexGlobals.h>
+#include <openrct2/management/NewsItem.h>
 #include <openrct2/network/Network.h>
 #include <openrct2/object/WallSceneryEntry.h>
+#include <openrct2/PlatformEnvironment.h>
 #include <openrct2/scenes/title/TitleScene.h>
+#include <openrct2/scenario/Scenario.h>
 #include <openrct2/ui/WindowManager.h>
 #include <openrct2/windows/Intent.h>
 #include <openrct2/windows/TileInspectorGlobals.h>
@@ -435,6 +440,66 @@ static void ShortcutLoadGame()
     }
 }
 
+static void ShortcutInstantQuickSave()
+{
+    if (gLegacyScene != LegacyScene::playing && gLegacyScene != LegacyScene::scenarioEditor)
+        return;
+
+    auto& env = GetContext()->GetPlatformEnvironment();
+    auto saveDir = env.GetDirectoryPath(DirBase::user, DirId::saves);
+    Path::CreateDirectory(saveDir);
+    auto quicksavePath = Path::Combine(saveDir, u8"quicksave.park");
+
+    ToolCancel();
+    auto& gameState = getGameState();
+    if (ScenarioSave(gameState, quicksavePath, {}))
+    {
+        Audio::Play(Audio::SoundId::click1, 0, ContextGetWidth() / 2);
+        News::AddItemToQueue(gameState.park.newsItems, News::ItemType::blank, "Park Quick-Saved (F5)", 0);
+    }
+}
+
+static void ShortcutInstantQuickLoad()
+{
+    if (gLegacyScene != LegacyScene::playing && gLegacyScene != LegacyScene::scenarioEditor)
+        return;
+
+    auto& env = GetContext()->GetPlatformEnvironment();
+    auto saveDir = env.GetDirectoryPath(DirBase::user, DirId::saves);
+    auto quicksavePath = Path::Combine(saveDir, u8"quicksave.park");
+
+    if (!File::Exists(quicksavePath))
+    {
+        News::AddItemToQueue(getGameState().park.newsItems, News::ItemType::blank, "No Quick-Save Found (F5 to save)", 0);
+        return;
+    }
+
+    ToolCancel();
+    auto* windowMgr = Ui::GetWindowManager();
+    windowMgr->CloseByClass(WindowClass::rideConstruction);
+    windowMgr->CloseAll();
+
+    if (GetContext()->LoadParkFromFile(quicksavePath))
+    {
+        GameNotifyMapChange();
+        GameUnloadScripts();
+        windowMgr->CloseByClass(WindowClass::editorObjectSelection);
+        GameLoadScripts();
+        GameNotifyMapChanged();
+        gIsAutosaveLoaded = false;
+        gFirstTimeSaving = false;
+        Drawing::GfxInvalidateScreen();
+        Audio::Play(Audio::SoundId::click2, 0, ContextGetWidth() / 2);
+        News::AddItemToQueue(getGameState().park.newsItems, News::ItemType::blank, "Park Quick-Loaded (F8)", 0);
+    }
+}
+
+static void ShortcutToggleFPS()
+{
+    Config::Get().general.showFPS ^= 1;
+    Config::Save();
+}
+
 static void ShortcutOpenSceneryPicker()
 {
     if ((gLegacyScene == LegacyScene::titleSequence || gLegacyScene == LegacyScene::trackDesigner
@@ -793,9 +858,11 @@ void ShortcutManager::registerDefaultShortcuts()
     registerShortcut(ShortcutId::kInterfaceIncreaseSpeed, STR_SHORTCUT_INCREASE_GAME_SPEED, "=", ShortcutIncreaseGameSpeed);
     registerShortcut(ShortcutId::kInterfaceToggleToolbars, STR_SHORTCUT_TOGGLE_VISIBILITY_OF_TOOLBARS, ShortcutRemoveTopBottomToolbarToggle);
     registerShortcut(ShortcutId::kInterfaceScreenshot, STR_SHORTCUT_SCREENSHOT, "CTRL+S", []() { gScreenshotCountdown = 2; });
-    registerShortcut(ShortcutId::kInterfaceGiantScreenshot, STR_SHORTCUT_GIANT_SCREENSHOT, "CTRL+SHIFT+S", ScreenshotGiant);
     registerShortcut(ShortcutId::kInterfaceLoadGame, STR_LOAD_GAME, "CTRL+L", ShortcutLoadGame);
     registerShortcut(ShortcutId::kInterfaceSaveGame, STR_SAVE_GAME, "CTRL+F10", ShortcutQuickSaveGame);
+    registerShortcut(ShortcutId::kInterfaceQuickSave, STR_SAVE_GAME, "F5", ShortcutInstantQuickSave);
+    registerShortcut(ShortcutId::kInterfaceQuickLoad, STR_LOAD_GAME, "F8", ShortcutInstantQuickLoad);
+    registerShortcut(ShortcutId::kInterfaceToggleFPS, STR_SHOW_FPS, "F10", ShortcutToggleFPS);
     registerShortcut(ShortcutId::kInterfaceMute, STR_SHORTCUT_MUTE_SOUND, Audio::ToggleAllSounds);
     registerShortcut(ShortcutId::kInterfaceSceneryPicker, STR_SHORTCUT_OPEN_SCENERY_PICKER, ShortcutOpenSceneryPicker);
     registerShortcut(
@@ -814,7 +881,7 @@ void ShortcutManager::registerDefaultShortcuts()
     registerShortcut(ShortcutId::kInterfaceClearScenery, STR_SHORTCUT_CLEAR_SCENERY, "B", ShortcutClearScenery);
     registerShortcut(ShortcutId::kInterfaceOpenScenery, STR_SHORTCUT_BUILD_SCENERY, "F3", ShortcutBuildScenery);
     registerShortcut(ShortcutId::kInterfaceOpenFootpaths, STR_SHORTCUT_BUILD_PATHS, "F4", ShortcutBuildPaths);
-    registerShortcut(ShortcutId::kInterfaceOpenNewRide, STR_SHORTCUT_BUILD_NEW_RIDE, "F5", ShortcutBuildNewRide);
+    registerShortcut(ShortcutId::kInterfaceOpenNewRide, STR_SHORTCUT_BUILD_NEW_RIDE, "F6", ShortcutBuildNewRide);
     registerShortcut(ShortcutId::kInterfaceOpenFinances, STR_SHORTCUT_SHOW_FINANCIAL_INFORMATION, "F", ShortcutShowFinancialInformation);
     registerShortcut(ShortcutId::kInterfaceOpenResearch, STR_SHORTCUT_SHOW_RESEARCH_INFORMATION, "D", ShortcutShowResearchInformation);
     registerShortcut(ShortcutId::kInterfaceOpenRides, STR_SHORTCUT_SHOW_RIDES_LIST, "R", ShortcutShowRidesList);

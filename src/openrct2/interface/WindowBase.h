@@ -175,6 +175,9 @@ namespace OpenRCT2
         virtual void onMouseUp(WidgetIndex widgetIndex)
         {
         }
+        virtual void onMouseRightClick(WidgetIndex widgetIndex)
+        {
+        }
         virtual void onDropdown(WidgetIndex widgetIndex, int32_t selectedIndex)
         {
         }

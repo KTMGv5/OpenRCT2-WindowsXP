@@ -857,6 +857,7 @@
     <ClCompile Include="command_line\sprite\SpriteExportAll.cpp" />
     <ClCompile Include="command_line\sprite\SpriteExportObject.cpp" />
     <ClCompile Include="command_line\sprite\SpriteFile.cpp" />
+    <ClCompile Include="command_line\BenchmarkCommands.cpp" />
     <ClCompile Include="command_line\CommandLine.cpp" />
     <ClCompile Include="command_line\ConvertCommand.cpp" />
     <ClCompile Include="command_line\ParkInfoCommands.cpp" />
@@ -901,6 +902,7 @@
     <ClCompile Include="Date.cpp" />
     <ClCompile Include="Diagnostic.cpp" />
     <ClCompile Include="drawing\AVX2Drawing.cpp" />
+    <ClCompile Include="drawing\SSE2Drawing.cpp" />
     <ClCompile Include="drawing\BlendColourMap.cpp" />
     <ClCompile Include="drawing\Colour.cpp" />
     <ClCompile Include="drawing\ColourMap.cpp" />

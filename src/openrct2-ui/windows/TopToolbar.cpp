@@ -876,6 +876,22 @@ namespace OpenRCT2::Ui::Windows
                         ContextShowError(STR_CHAT_UNAVAILABLE, kStringIdNone, {});
                     }
                     break;
+                case WIDX_FASTFORWARD:
+                {
+                    int32_t maxSpeed = Config::Get().general.debuggingTools ? 8 : 4;
+                    int32_t nextSpeed = gGameSpeed + 1;
+                    if (gGameSpeed >= 4 && maxSpeed == 8)
+                    {
+                        nextSpeed = (gGameSpeed == 4) ? 8 : 1;
+                    }
+                    else if (nextSpeed > maxSpeed)
+                    {
+                        nextSpeed = 1;
+                    }
+                    auto setSpeedAction = GameActions::GameSetSpeedAction(nextSpeed);
+                    GameActions::Execute(&setSpeedAction, getGameState());
+                    break;
+                }
             }
         }
 
@@ -897,15 +913,20 @@ namespace OpenRCT2::Ui::Windows
                 case WIDX_MAP:
                     initMapMenu(widget);
                     break;
-                case WIDX_FASTFORWARD:
-                    initFastforwardMenu(widget);
-                    break;
                 case WIDX_DEBUG:
                     initDebugMenu(widget);
                     break;
                 case WIDX_NETWORK:
                     initNetworkMenu(widget);
                     break;
+            }
+        }
+
+        void onMouseRightClick(WidgetIndex widgetIndex) override
+        {
+            if (widgetIndex == WIDX_FASTFORWARD)
+            {
+                initFastforwardMenu(widgets[widgetIndex]);
             }
         }
 
@@ -1374,6 +1395,15 @@ namespace OpenRCT2::Ui::Windows
                 for (int32_t i = 0; i < 3 && gGameSpeed >= 5; i++)
                 {
                     GfxDrawSprite(rt, ImageId(SPR_G2_HYPER_ARROW), screenPos + ScreenCoordsXY{ 5 + i * 6, 15 });
+                }
+
+                if (gGameSpeed > 1)
+                {
+                    std::string speedStr = std::to_string(gGameSpeed) + "x";
+                    drawText(
+                        rt, screenPos + ScreenCoordsXY{ 28, 2 }, speedStr,
+                        TextPaint{ ColourWithFlags{ Drawing::Colour::brightGreen }.withFlag(ColourFlag::withOutline, true),
+                                   FontStyle::tiny, TextAlignment::right });
                 }
             }
 

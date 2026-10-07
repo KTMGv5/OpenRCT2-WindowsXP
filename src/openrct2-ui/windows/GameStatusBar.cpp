@@ -18,7 +18,11 @@
 #include <openrct2/drawing/Text.h>
 #include <openrct2/localisation/StringIds.h>
 #include <openrct2/management/NewsItem.h>
+#include <openrct2/ride/Ride.h>
+#include <openrct2/ride/RideManager.hpp>
 #include <openrct2/ui/WindowManager.h>
+
+#include <string>
 
 using namespace OpenRCT2::Drawing;
 
@@ -61,15 +65,43 @@ namespace OpenRCT2::Ui::Windows
             StringId stringId;
             auto ft = GetMapTooltip();
             std::memcpy(&stringId, ft.Data(), sizeof(StringId));
-            if (stringId == kStringIdNone)
-            {
-                drawTextWrapped(
-                    rt, middleWidgetCoords, panelWidth, STR_STATUS_BAR_OPENRCT2, ft, { colours[0], TextAlignment::centre });
-            }
-            else
+            if (stringId != kStringIdNone)
             {
                 // Show tooltip in bottom toolbar
                 drawTextWrapped(rt, middleWidgetCoords, panelWidth, STR_STRINGID, ft, { colours[0], TextAlignment::centre });
+            }
+            else
+            {
+                const auto& gameState = getGameState();
+                int32_t brokenRidesCount = 0;
+                for (const auto& ride : RideManager(gameState))
+                {
+                    if (ride.flags.has(RideFlag::brokenDown))
+                    {
+                        brokenRidesCount++;
+                    }
+                }
+
+                if (brokenRidesCount > 0)
+                {
+                    std::string alertText = "{RED}* " + std::to_string(brokenRidesCount)
+                        + (brokenRidesCount == 1 ? " Ride Broken Down! (Click to View) *" : " Rides Broken Down! (Click to View) *");
+                    drawTextWrapped(
+                        rt, middleWidgetCoords, panelWidth, alertText,
+                        { ColourWithFlags{ Drawing::Colour::saturatedRed }.withFlag(ColourFlag::withOutline, true),
+                          TextAlignment::centre });
+                }
+                else
+                {
+                    const auto& park = gameState.park;
+                    bool isOpen = park.flags.has(ParkFlag::parkOpen);
+                    std::string statusText = (isOpen ? "{BRIGHTGREEN}* PARK OPEN" : "{RED}o PARK CLOSED");
+                    statusText += "  {WHITE}|  Guests: " + std::to_string(park.numGuestsInPark);
+                    statusText += "  |  Rating: " + std::to_string(park.rating) + "/999";
+                    drawTextWrapped(
+                        rt, middleWidgetCoords, panelWidth, statusText,
+                        { colours[0], TextAlignment::centre });
+                }
             }
         }
 
@@ -88,8 +120,26 @@ namespace OpenRCT2::Ui::Windows
             switch (widgetIndex)
             {
                 case WIDX_PANEL_INSET:
-                    ContextOpenWindow(WindowClass::recentNews);
+                {
+                    bool hasBroken = false;
+                    for (const auto& ride : RideManager(getGameState()))
+                    {
+                        if (ride.flags.has(RideFlag::brokenDown))
+                        {
+                            hasBroken = true;
+                            break;
+                        }
+                    }
+                    if (hasBroken)
+                    {
+                        ContextOpenWindow(WindowClass::rideList);
+                    }
+                    else
+                    {
+                        ContextOpenWindow(WindowClass::parkInformation);
+                    }
                     break;
+                }
             }
         }
 

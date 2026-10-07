@@ -85,6 +85,16 @@ namespace OpenRCT2::Ui::Windows
                 auto ft = Formatter();
                 ft.Add<money64>(gameState.park.cash);
                 drawText(rt, screenCoords, stringId, ft, { colour, TextAlignment::centre });
+
+                // Draw weekly cashflow velocity indicator
+                if (gameState.park.currentProfit > 0)
+                {
+                    drawText(rt, screenCoords + ScreenCoordsXY{ 56, 0 }, "{OUTLINE}{BRIGHTGREEN}^", TextPaint{ FontStyle::tiny });
+                }
+                else if (gameState.park.currentProfit < 0)
+                {
+                    drawText(rt, screenCoords + ScreenCoordsXY{ 56, 0 }, "{OUTLINE}{RED}v", TextPaint{ FontStyle::tiny });
+                }
             }
 
             static constexpr StringId kGuestCountFormats[] = {
@@ -138,6 +148,14 @@ namespace OpenRCT2::Ui::Windows
                         ColourWithFlags{ colour });
                 }
             }
+
+            // Draw exact numeric park rating value inside the bar
+            char ratingBuf[16];
+            snprintf(ratingBuf, sizeof(ratingBuf), "%d", getGameState().park.rating);
+            TextPaint ratingPaint{ ColourWithFlags{ Drawing::Colour::white }.withFlag(ColourFlag::withOutline, true) };
+            ratingPaint.alignment = TextAlignment::centre;
+            ratingPaint.fontStyle = FontStyle::tiny;
+            drawText(rt, coords + ScreenCoordsXY{ 57, 1 }, ratingBuf, ratingPaint);
 
             // Draw thumbs on the sides
             GfxDrawSprite(rt, ImageId(SPR_RATING_LOW), coords - ScreenCoordsXY{ 14, 0 });

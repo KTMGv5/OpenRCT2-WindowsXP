@@ -15,6 +15,7 @@
     #include "PaletteIndex.h"
 #endif
 
+#include <array>
 #include <cassert>
 
 namespace OpenRCT2::Drawing

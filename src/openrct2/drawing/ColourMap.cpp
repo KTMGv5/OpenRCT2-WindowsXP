@@ -14,6 +14,8 @@
 #include "Colour.h"
 #include "Drawing.Sprite.h"
 
+#include <array>
+
 namespace OpenRCT2::Drawing
 {
     constexpr uint8_t kIndexColour0 = 243;

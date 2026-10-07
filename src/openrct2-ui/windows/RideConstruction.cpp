@@ -1162,48 +1162,64 @@ namespace OpenRCT2::Ui::Windows
                 case WIDX_LEFT_CURVE:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::left;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_LEFT) && widgets[WIDX_BANK_LEFT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::left;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;
                 case WIDX_RIGHT_CURVE:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::right;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_RIGHT) && widgets[WIDX_BANK_RIGHT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::right;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;
                 case WIDX_LEFT_CURVE_SMALL:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::leftSmall;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_LEFT) && widgets[WIDX_BANK_LEFT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::left;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;
                 case WIDX_RIGHT_CURVE_SMALL:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::rightSmall;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_RIGHT) && widgets[WIDX_BANK_RIGHT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::right;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;
                 case WIDX_LEFT_CURVE_VERY_SMALL:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::leftVerySmall;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_LEFT) && widgets[WIDX_BANK_LEFT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::left;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;
                 case WIDX_RIGHT_CURVE_VERY_SMALL:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::rightVerySmall;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_RIGHT) && widgets[WIDX_BANK_RIGHT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::right;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;
                 case WIDX_LEFT_CURVE_LARGE:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::leftLarge;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_LEFT) && widgets[WIDX_BANK_LEFT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::left;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;
                 case WIDX_RIGHT_CURVE_LARGE:
                     RideConstructionInvalidateCurrentTrack();
                     _currentlySelectedTrack = TrackCurve::rightLarge;
+                    if (!widgetIsDisabled(*this, WIDX_BANK_RIGHT) && widgets[WIDX_BANK_RIGHT].isVisible())
+                        _currentTrackRollEnd = TrackRoll::right;
                     _currentTrackPrice = kMoney64Undefined;
                     WindowRideConstructionUpdateActiveElements();
                     break;

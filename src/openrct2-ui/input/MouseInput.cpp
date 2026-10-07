@@ -324,6 +324,10 @@ namespace OpenRCT2
                                     InputScrollDragBegin(screenCoords, w, widgetIndex);
                                     break;
                                 default:
+                                    if (w != nullptr && !widgetIsDisabled(*w, widgetIndex))
+                                    {
+                                        w->onMouseRightClick(widgetIndex);
+                                    }
                                     break;
                             }
                         }

@@ -12,10 +12,11 @@
 #include "../core/EnumUtils.hpp"
 
 #include <algorithm>
+#include <array>
 
 namespace OpenRCT2
 {
-    constexpr std::array kAllObjectTypes = {
+    static constexpr std::array<const ObjectType, EnumValue(ObjectType::count)> kAllObjectTypes = {
         ObjectType::ride,
         ObjectType::smallScenery,
         ObjectType::largeScenery,
@@ -71,16 +72,16 @@ namespace OpenRCT2
 
     std::span<const ObjectType> getAllObjectTypes()
     {
-        return kAllObjectTypes;
+        return std::span<const ObjectType>(kAllObjectTypes.data(), kAllObjectTypes.size());
     }
 
     std::span<const ObjectType> getTransientObjectTypes()
     {
-        return kTransientObjectTypes;
+        return std::span<const ObjectType>(kTransientObjectTypes.data(), kTransientObjectTypes.size());
     }
 
     std::span<const ObjectType> getIntransientObjectTypes()
     {
-        return kIntransientObjectTypes;
+        return std::span<const ObjectType>(kIntransientObjectTypes.data(), kIntransientObjectTypes.size());
     }
 } // namespace OpenRCT2

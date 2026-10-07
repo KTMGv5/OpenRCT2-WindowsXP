@@ -116,7 +116,9 @@ static bool ShouldShowFPS()
 }
 
 #ifdef _WIN32
-#    define WIN32_LEAN_AND_MEAN
+#    ifndef WIN32_LEAN_AND_MEAN
+#        define WIN32_LEAN_AND_MEAN
+#    endif
 #    include <windows.h>
 #endif
 
@@ -127,8 +129,24 @@ void Painter::PaintFPS(RenderTarget& rt)
 
     MeasureFPS();
 
-    char buffer[64]{};
-    FormatStringToBuffer(buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32} FPS", _currentFPS);
+    const char* engineName = "Software";
+    switch (Config::Get().general.drawingEngine)
+    {
+        case DrawingEngine::openGL:
+            engineName = "OpenGL";
+            break;
+        case DrawingEngine::direct3D9:
+            engineName = "Direct3D 9";
+            break;
+        case DrawingEngine::direct3D11:
+            engineName = "Direct3D 11";
+            break;
+        default:
+            break;
+    }
+
+    char buffer[96]{};
+    FormatStringToBuffer(buffer, sizeof(buffer), "{OUTLINE}{WHITE}{INT32} FPS  {GREY}({STRING})", _currentFPS, engineName);
     const int32_t stringWidth = getStringWidth(buffer, FontStyle::medium);
 
     // Figure out where counter should be rendered

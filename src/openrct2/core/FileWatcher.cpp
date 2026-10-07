@@ -9,6 +9,7 @@
 
 #include "../Diagnostic.h"
 
+#include <array>
 #include <stdexcept>
 
 #ifdef _WIN32

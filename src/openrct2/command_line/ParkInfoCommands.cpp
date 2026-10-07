@@ -16,6 +16,8 @@
 #include "../object/ObjectRepository.h"
 #include "CommandLine.hpp"
 
+#include <array>
+
 using namespace OpenRCT2::CommandLine;
 
 namespace OpenRCT2

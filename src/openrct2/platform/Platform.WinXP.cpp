@@ -8,7 +8,7 @@
  * Windows XP (NT 5.1).
  *****************************************************************************/
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(_WIN64)
 
 #include <windows.h>
 #include <cstdint>
