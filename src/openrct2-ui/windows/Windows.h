@@ -399,6 +399,7 @@ namespace OpenRCT2::Ui::Windows
 
     // Viewport
     WindowBase* ViewportOpen();
+    WindowBase* ViewportOpenCoasterCam(RideId rideId = RideId::GetNull());
 
     // Water
     WindowBase* WaterOpen();

@@ -2017,10 +2017,11 @@ namespace OpenRCT2::Ui::Windows
 
             gDropdown.items[0] = Dropdown::PlainMenuLabel(STR_LOCATE_SUBJECT_TIP);
             gDropdown.items[1] = Dropdown::PlainMenuLabel(STR_FOLLOW_SUBJECT_TIP);
+            gDropdown.items[2] = Dropdown::PlainMenuLabel(STR_COASTER_CAM_MENU);
 
             WindowDropdownShowText(
                 { windowPos.x + widget->left, windowPos.y + widget->top }, widget->height(), colours[1],
-                { Dropdown::Flag::autoClose }, 2);
+                { Dropdown::Flag::autoClose }, 3);
             gDropdown.defaultIndex = 0;
             if (!ride->getRideTypeDescriptor().flags.has(RtdFlag::hasTrack) || _viewIndex == 0 || _viewIndex > ride->numTrains)
             {
@@ -2330,6 +2331,10 @@ namespace OpenRCT2::Ui::Windows
                     else if (dropdownIndex == 1)
                     {
                         MainFollowRide();
+                    }
+                    else if (dropdownIndex == 2)
+                    {
+                        ViewportOpenCoasterCam(rideId);
                     }
                     break;
                 }

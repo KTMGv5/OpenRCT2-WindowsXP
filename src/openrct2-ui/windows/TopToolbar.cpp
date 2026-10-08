@@ -419,6 +419,7 @@ namespace OpenRCT2::Ui::Windows
             auto i = 0;
             gDropdown.items[i++] = Dropdown::PlainMenuLabel(STR_SHORTCUT_SHOW_MAP);
             gDropdown.items[i++] = Dropdown::PlainMenuLabel(STR_EXTRA_VIEWPORT);
+            gDropdown.items[i++] = Dropdown::PlainMenuLabel(STR_COASTER_CAM_MENU);
             if (gLegacyScene == LegacyScene::scenarioEditor && getGameState().editorStep == Editor::Step::landscapeEditor)
             {
                 gDropdown.items[i++] = Dropdown::PlainMenuLabel(STR_MAPGEN_MENU_ITEM);
@@ -449,25 +450,27 @@ namespace OpenRCT2::Ui::Windows
         void mapMenuDropdown(int16_t dropdownIndex)
         {
             int32_t customStartIndex = 3;
-            if (gLegacyScene == LegacyScene::scenarioEditor && getGameState().editorStep == Editor::Step::landscapeEditor)
+            bool isLandscapeEditor = (gLegacyScene == LegacyScene::scenarioEditor && getGameState().editorStep == Editor::Step::landscapeEditor);
+            if (isLandscapeEditor)
             {
                 customStartIndex++;
             }
 
-            if (dropdownIndex < customStartIndex)
+            if (dropdownIndex == 0)
             {
-                switch (dropdownIndex)
-                {
-                    case 0:
-                        ContextOpenWindow(WindowClass::map);
-                        break;
-                    case 1:
-                        ContextOpenWindow(WindowClass::viewport);
-                        break;
-                    case 2:
-                        ContextOpenWindow(WindowClass::mapgen);
-                        break;
-                }
+                ContextOpenWindow(WindowClass::map);
+            }
+            else if (dropdownIndex == 1)
+            {
+                ContextOpenWindow(WindowClass::viewport);
+            }
+            else if (dropdownIndex == 2)
+            {
+                ViewportOpenCoasterCam();
+            }
+            else if (dropdownIndex == 3 && isLandscapeEditor)
+            {
+                ContextOpenWindow(WindowClass::mapgen);
             }
             else
             {

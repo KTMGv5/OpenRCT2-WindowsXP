@@ -118,6 +118,8 @@ namespace OpenRCT2::Config
         ConfigEnumEntry<ScaleQuality>("NEAREST_NEIGHBOUR", ScaleQuality::nearestNeighbour),
         ConfigEnumEntry<ScaleQuality>("LINEAR", ScaleQuality::linear),
         ConfigEnumEntry<ScaleQuality>("SMOOTH_NEAREST_NEIGHBOUR", ScaleQuality::smoothNearestNeighbour),
+        ConfigEnumEntry<ScaleQuality>("VIBRANT_HDR", ScaleQuality::vibrantHDR),
+        ConfigEnumEntry<ScaleQuality>("RETRO_CRT", ScaleQuality::retroCRT),
     });
 
     static const auto Enum_Temperature = ConfigEnum<TemperatureUnit>({

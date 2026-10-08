@@ -1825,6 +1825,14 @@ enum : StringId
     STR_SCALING_QUALITY_NEAREST = 7126,
     STR_SCALING_QUALITY_LINEAR = 7127,
     STR_SCALING_QUALITY_SMOOTH_NN = 7128,
+    STR_SCALING_QUALITY_VIBRANT = 7129,
+    STR_SCALING_QUALITY_CRT = 7130,
+    STR_COASTER_CAM_NEXT_RIDE_TIP = 7131,
+    STR_COASTER_CAM_NEXT_TRAIN_TIP = 7132,
+    STR_COASTER_CAM_HUD_TIP = 7133,
+    STR_COASTER_CAM_PIP_TIP = 7134,
+    STR_COASTER_CAM_WINDOW_TITLE = 7135,
+    STR_COASTER_CAM_MENU = 7136,
 
     // Have to include resource strings (from scenarios and objects) for the time being now that language is partially working
     /* MAX_STR_COUNT = 32768 */ // MAX_STR_COUNT - upper limit for number of strings, not the current count strings

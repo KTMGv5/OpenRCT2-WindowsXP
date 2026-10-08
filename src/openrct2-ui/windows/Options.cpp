@@ -994,11 +994,13 @@ namespace OpenRCT2::Ui::Windows
                     gDropdown.items[0] = Dropdown::MenuLabel(STR_SCALING_QUALITY_NEAREST);
                     gDropdown.items[1] = Dropdown::MenuLabel(STR_SCALING_QUALITY_LINEAR);
                     gDropdown.items[2] = Dropdown::MenuLabel(STR_SCALING_QUALITY_SMOOTH_NN);
+                    gDropdown.items[3] = Dropdown::MenuLabel(STR_SCALING_QUALITY_VIBRANT);
+                    gDropdown.items[4] = Dropdown::MenuLabel(STR_SCALING_QUALITY_CRT);
 
-                    ShowDropdown(widget, 3);
+                    ShowDropdown(widget, 5);
 
                     auto activeQuality = static_cast<int32_t>(Config::Get().general.scaleQuality);
-                    if (activeQuality >= 0 && activeQuality < 3)
+                    if (activeQuality >= 0 && activeQuality < 5)
                     {
                         gDropdown.items[activeQuality].setChecked(true);
                     }
@@ -1068,7 +1070,7 @@ namespace OpenRCT2::Ui::Windows
                 }
                 case WIDX_SCALE_QUALITY_DROPDOWN:
                 {
-                    if (dropdownIndex >= 0 && dropdownIndex <= 2)
+                    if (dropdownIndex >= 0 && dropdownIndex <= 4)
                     {
                         auto newQuality = static_cast<ScaleQuality>(dropdownIndex);
                         if (newQuality != Config::Get().general.scaleQuality)
@@ -1190,6 +1192,8 @@ namespace OpenRCT2::Ui::Windows
                 STR_SCALING_QUALITY_NEAREST,
                 STR_SCALING_QUALITY_LINEAR,
                 STR_SCALING_QUALITY_SMOOTH_NN,
+                STR_SCALING_QUALITY_VIBRANT,
+                STR_SCALING_QUALITY_CRT,
             };
             auto qualityIdx = static_cast<size_t>(Config::Get().general.scaleQuality);
             if (qualityIdx < std::size(kScaleQualityStringIds))

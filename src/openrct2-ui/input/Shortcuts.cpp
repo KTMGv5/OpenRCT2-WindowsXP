@@ -500,6 +500,50 @@ static void ShortcutToggleFPS()
     Config::Save();
 }
 
+static void ShortcutOpenCoasterCam()
+{
+    ViewportOpenCoasterCam();
+}
+
+static void ShortcutCycleRendererShader()
+{
+    auto current = Config::Get().general.scaleQuality;
+    ScaleQuality next;
+    const char* shaderDesc = "Sharp Pixel Art";
+    switch (current)
+    {
+        case ScaleQuality::nearestNeighbour:
+            next = ScaleQuality::linear;
+            shaderDesc = "Smooth Bilinear";
+            break;
+        case ScaleQuality::linear:
+            next = ScaleQuality::smoothNearestNeighbour;
+            shaderDesc = "Smooth Nearest";
+            break;
+        case ScaleQuality::smoothNearestNeighbour:
+            next = ScaleQuality::vibrantHDR;
+            shaderDesc = "Vibrant HDR (Modern Punch)";
+            break;
+        case ScaleQuality::vibrantHDR:
+            next = ScaleQuality::retroCRT;
+            shaderDesc = "Retro Arcade CRT (Scanlines)";
+            break;
+        case ScaleQuality::retroCRT:
+        default:
+            next = ScaleQuality::nearestNeighbour;
+            shaderDesc = "Sharp Pixel Art (Crisp)";
+            break;
+    }
+    Config::Get().general.scaleQuality = next;
+    Config::Save();
+    Drawing::GfxInvalidateScreen();
+    ContextTriggerResize();
+
+    std::string msg = "Renderer Shader: ";
+    msg += shaderDesc;
+    News::AddItemToQueue(getGameState().park.newsItems, News::ItemType::blank, msg.c_str(), 0);
+}
+
 static void ShortcutOpenSceneryPicker()
 {
     if ((gLegacyScene == LegacyScene::titleSequence || gLegacyScene == LegacyScene::trackDesigner
@@ -861,7 +905,9 @@ void ShortcutManager::registerDefaultShortcuts()
     registerShortcut(ShortcutId::kInterfaceLoadGame, STR_LOAD_GAME, "CTRL+L", ShortcutLoadGame);
     registerShortcut(ShortcutId::kInterfaceSaveGame, STR_SAVE_GAME, "CTRL+F10", ShortcutQuickSaveGame);
     registerShortcut(ShortcutId::kInterfaceQuickSave, STR_SAVE_GAME, "F5", ShortcutInstantQuickSave);
+    registerShortcut(ShortcutId::kInterfaceCoasterCam, STR_COASTER_CAM_MENU, "F7", ShortcutOpenCoasterCam);
     registerShortcut(ShortcutId::kInterfaceQuickLoad, STR_LOAD_GAME, "F8", ShortcutInstantQuickLoad);
+    registerShortcut(ShortcutId::kInterfaceCycleShader, STR_SCALING_QUALITY, "F9", ShortcutCycleRendererShader);
     registerShortcut(ShortcutId::kInterfaceToggleFPS, STR_SHOW_FPS, "F10", ShortcutToggleFPS);
     registerShortcut(ShortcutId::kInterfaceMute, STR_SHORTCUT_MUTE_SOUND, Audio::ToggleAllSounds);
     registerShortcut(ShortcutId::kInterfaceSceneryPicker, STR_SHORTCUT_OPEN_SCENERY_PICKER, ShortcutOpenSceneryPicker);

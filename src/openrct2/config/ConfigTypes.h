@@ -47,7 +47,9 @@ namespace OpenRCT2
     {
         nearestNeighbour,
         linear,
-        smoothNearestNeighbour
+        smoothNearestNeighbour,
+        vibrantHDR,
+        retroCRT,
     };
 
     enum class MeasurementFormat : int32_t

@@ -37,6 +37,8 @@ namespace OpenRCT2::Ui::ShortcutId
     constexpr std::string_view kInterfaceScaleToggleWindowMode = "interface.graphics.toggle_window_mode";
     constexpr std::string_view kInterfaceScaleIncrease = "interface.graphics.increase";
     constexpr std::string_view kInterfaceScaleDecrease = "interface.graphics.decrease";
+    constexpr std::string_view kInterfaceCycleShader = "interface.graphics.cycle_shader";
+    constexpr std::string_view kInterfaceCoasterCam = "interface.open.coaster_cam";
 
     // Interface / open
     constexpr std::string_view kInterfaceOpenLand = "interface.open.land";

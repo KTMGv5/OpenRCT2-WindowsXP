@@ -698,6 +698,14 @@ private:
         {
             selectedPS = _psPaletteSmooth;
         }
+        else if (scaleQuality == ScaleQuality::vibrantHDR && _psPaletteVibrant != nullptr)
+        {
+            selectedPS = _psPaletteVibrant;
+        }
+        else if (scaleQuality == ScaleQuality::retroCRT && _psPaletteCRT != nullptr)
+        {
+            selectedPS = _psPaletteCRT;
+        }
 
         _context->PSSetShader(selectedPS, nullptr, 0);
 
